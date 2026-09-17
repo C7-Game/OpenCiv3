@@ -393,6 +393,11 @@ namespace C7GameData {
 			if (!Tile.IsTileValid(tile))
 				return Intent.Disabled;
 
+			// Impassable terrain (e.g. some mods' deserts) cannot be entered
+			// by any unit, no matter what.
+			if (tile.IsImpassable())
+				return Intent.Disabled;
+
 			var unitOwner = this.owner;
 
 			// TODO: Perhaps this is not sufficient, but it is for now,

@@ -14,14 +14,8 @@ public partial class MainMenuMusicPlayer : AudioStreamPlayer {
 		//Figured out how to load the mp3 from this post: https://godotengine.org/qa/30210/how-do-load-resource-works
 
 		try {
-			string mp3Path = Util.Civ3MediaPath("Sounds/Menu/Menu1.mp3");
-			FileAccess mp3File = FileAccess.Open(mp3Path, FileAccess.ModeFlags.Read);
-
-			AudioStreamMP3 mp3 = new AudioStreamMP3();
-			long fileSize = (long)mp3File.GetLength();  //might blow up if it's > 2 GB, oh well
-			mp3.Data = mp3File.GetBuffer(fileSize);
-			mp3.Loop = true;
-			this.Stream = mp3;
+			AudioStream stream = AudioLoader.Load("menu.main_menu_1");
+			this.Stream = stream;
 
 			string volume = C7Settings.GetSettingValue("audio", "musicVolume");
 			float targetVolumeOffset = GetVolumeOffset(volume);

@@ -149,11 +149,12 @@ public partial class MainMenu : Node {
 	}
 
 	private void PlayButtonPressedSound() {
-		AudioStreamWav wav = Util.LoadCiv3WAVFromDisk("Sounds/Button1.wav");
-		if (wav == null) {
+		AudioStream stream = AudioLoader.Load("buttons.button_1");
+
+		if (stream == null)
 			return;
-		}
-		player.Stream = wav;
+
+		player.Stream = stream;
 		player.Play();
 	}
 

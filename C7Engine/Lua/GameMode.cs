@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Serilog;
 using C7GameData.Save;
 using MoonSharp.Interpreter;
@@ -27,6 +28,7 @@ public class GameMode {
 	internal SaveGame ruleset;
 	public BehaviorEngine behaviors;
 	public (Script, Table) textures;
+	public (Script, Table) audio;
 
 	// Returns a deep copy of the ruleset
 	//
@@ -52,6 +54,7 @@ internal class GameModeLoader {
 		Textures,
 		Ruleset,
 		Behaviors,
+		Audio
 	}
 
 	private static ILogger log = Log.ForContext<GameModeLoader>();
@@ -76,11 +79,13 @@ internal class GameModeLoader {
 
 		Table behaviors = LoadWithAddons(ScriptType.Behaviors).Table;
 		Table textures = LoadWithAddons(ScriptType.Textures).Table;
+		Table audio = LoadWithAddons(ScriptType.Audio).Table;
 
 		return new() {
 			ruleset = LoadRuleset(),
 			behaviors = new(lua, behaviors),
 			textures = (lua, textures),
+			audio = (lua, audio)
 		};
 	}
 
@@ -144,8 +149,9 @@ internal class GameModeLoader {
 	private string GetScriptPath(string addonDir, ScriptType scriptType) {
 		string scriptFile = scriptType switch {
 			ScriptType.Textures => "textures.lua",
-			ScriptType.Behaviors => "behaviors.lua",
 			ScriptType.Ruleset => "ruleset.lua",
+			ScriptType.Behaviors => "behaviors.lua",
+			ScriptType.Audio => "audio.lua",
 			_ => throw new InvalidOperationException("Unknown script type"),
 		};
 		return Path.Combine(gameModesDir, addonDir, scriptFile);

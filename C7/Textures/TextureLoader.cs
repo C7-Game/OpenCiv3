@@ -80,20 +80,6 @@ public static class TextureLoader {
 	private static Dictionary<(string configKey, string animationName), SpriteFrames> animationCache = [];
 
 	static TextureLoader() {
-		// Note: classes in the C7GameData namespace are already registered as part of GameModeLoader logic
-		UserData.RegisterType<CityGraphicsDetails>();
-		UserData.RegisterType<PopHead.TextureKey>();
-		UserData.RegisterType<BorderLayer.TextureDetails>();
-
-		// Note, we register all of AdvisorHeader rather than just
-		// AdvisorHead.AdvisorGraphicsDetails because we access the nums
-		// in the class as well.
-		UserData.RegisterType<AdvisorHead>();
-
-		// We need to register the "Type" type to be able to inspect
-		// the types of C# objects in the Lua code
-		UserData.RegisterType<Type>();
-
 		// Initialize the TextureLoader when running in the editor
 		// In game it is done by GlobalSingleton, but it's not accessible in the editor
 		if (Engine.IsEditorHint()) {

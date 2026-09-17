@@ -24,6 +24,8 @@ public partial class TileInfoPopup : Popup {
 
 	private List<Label> _labels = new();
 
+	private PopupOverlay _overlay;
+
 	public TileInfoPopup(Game game, Tile tile, Vector2 position, float zoom) {
 		_game = game;
 		_tile = tile;
@@ -148,7 +150,15 @@ public partial class TileInfoPopup : Popup {
 		});
 
 		var overlay = GetParent<PopupOverlay>();
+		_overlay = overlay;
 		overlay.Click += Close; // a click outside the box means close
+	}
+
+	public override void _ExitTree() {
+		if (_overlay != null && IsInstanceValid(_overlay)) {
+			_overlay.Click -= Close;
+		}
+		base._ExitTree();
 	}
 
 	public override void _GuiInput(InputEvent @event) {

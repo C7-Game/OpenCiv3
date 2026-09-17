@@ -97,6 +97,40 @@ public sealed class AStarPathFindingLandUnitTest : MapBase {
 		Assert.True(tilePath.path.Contains(otherContinentTile));
 		Assert.True(tilePath.path.Contains(coast));
 	}
+
+	[Fact]
+	private void TestLandUnitCannotEnterImpassableTile() {
+		InitilizeStartTile(MakeHillTile(), new TileLocation(50, 50));
+		var impassableDesert = AddNeighborsAndUpdateMap(startTile, MakeImpassableDesertTile(), TileDirection.NORTH);
+
+		MapUnit unit = MakeLandUnit();
+
+		// The unit must not consider the impassable tile enterable,
+		// even forcefully.
+		Assert.False(unit.CanEnter(impassableDesert));
+		Assert.False(unit.CanEnterForcefully(impassableDesert));
+
+		AStarAlgorithm aStarAlgorithm = PathingAlgorithmChooser.GetAlgorithm(unit) as AStarAlgorithm;
+		TilePath tilePath = aStarAlgorithm.PathFrom(startTile, impassableDesert, unit);
+
+		// No path can be found onto an impassable tile.
+		Assert.Empty(tilePath.path);
+	}
+
+	[Fact]
+	private void TestLandUnitCannotPathThroughImpassableTile() {
+		InitilizeStartTile(MakeHillTile(), new TileLocation(50, 50));
+		var impassableDesert = AddNeighborsAndUpdateMap(startTile, MakeImpassableDesertTile(), TileDirection.NORTH);
+		var beyondDesert = AddNeighborsAndUpdateMap(impassableDesert, MakeDesertTile(), TileDirection.NORTH);
+
+		MapUnit unit = MakeLandUnit();
+
+		AStarAlgorithm aStarAlgorithm = PathingAlgorithmChooser.GetAlgorithm(unit) as AStarAlgorithm;
+		TilePath tilePath = aStarAlgorithm.PathFrom(startTile, beyondDesert, unit);
+
+		// The path cannot cross the impassable tile to reach the destination.
+		Assert.Empty(tilePath.path);
+	}
 }
 
 public sealed class AStarPathFindingWaterUnitTest : MapBase {

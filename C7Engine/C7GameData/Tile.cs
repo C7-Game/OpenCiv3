@@ -160,6 +160,12 @@ namespace C7GameData {
 			return overlayTerrainType.movementCost;
 		}
 
+		// Like MovementCost(), impassability comes from the overlay terrain
+		// that actually exists on the tile.
+		public bool IsImpassable() {
+			return overlayTerrainType.impassable;
+		}
+
 		//This should be used when we want to check if land tiles are next to water tiles.
 		//Usually this is coast, but it could be Sea - see the "Deepwater Harbours" topics at CFC.
 		//Sometimes we care *specifically* about the Coast terrain, e.g. galleys can only move on that terrain, not Sea or Ocean

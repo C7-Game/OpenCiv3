@@ -70,3 +70,7 @@ msbuild.wrn
 
 # Visual Studio 2015
 .vs/
+
+# Local agent/contributor docs (keep out of the repo until maintainers want them)
+/doc/agent/
+/AGENTS.md
