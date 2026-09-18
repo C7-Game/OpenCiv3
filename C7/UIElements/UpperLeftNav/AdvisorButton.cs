@@ -7,4 +7,9 @@ public partial class AdvisorButton : Civ3TextureButton {
 	public override void _Ready() {
 		TextureLoader.SetButtonTextures(this, "upper_left_navigation.advisor");
 	}
+
+	public override void _Pressed() {
+		base._Pressed();
+		ReleaseFocus();
+	}
 }

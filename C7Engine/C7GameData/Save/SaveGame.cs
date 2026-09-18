@@ -80,8 +80,8 @@ namespace C7GameData.Save {
 				GameDifficulty = data.gameDifficulty,
 				Rules = data.rules,
 				TimeOptions = data.timeOptions,
-				VictoryConditions = data.victoryConditions,
 				History = data.history,
+				VictoryConditions = data.victoryConditions,
 				TerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
 				GameModeConfig = data.gameModeConfig,
 			};
@@ -154,6 +154,15 @@ namespace C7GameData.Save {
 			return data;
 		}
 
+		private void BeginHistory(GameData data) {
+			foreach (var player in data.players) {
+				if (!player.isBarbarians) {
+					if (!data.history.ContainsKey(player.id.ToString()))
+						data.history[player.id.ToString()] = new List<HistTurnRecord>();
+				}
+			}
+		}
+
 		private void ConvertVictoryConditions(GameData data) {
 			VictoryConditions conditions = data.victoryConditions;
 
@@ -189,15 +198,6 @@ namespace C7GameData.Save {
 			// TODO: Does the original have a switch to have the game never end?
 			// Always add time limits
 			data.victories.Add(new TimeLimitVictory(data.timeOptions.turnLimit));
-		}
-
-		private void BeginHistory(GameData data) {
-			foreach (var player in data.players) {
-				if (!player.isBarbarians) {
-					if (!data.history.ContainsKey(player.id.ToString()))
-						data.history[player.id.ToString()] = new List<HistTurnRecord>();
-				}
-			}
 		}
 
 		private void OnGameCreation() {

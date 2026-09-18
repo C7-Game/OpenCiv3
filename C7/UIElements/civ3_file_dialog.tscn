@@ -4,6 +4,6 @@
 
 [node name="LoadDialog" type="FileDialog"]
 initial_position = 1
-size = Vector2i(312, 450)
+size = Vector2i(512, 450)
 visible = true
 script = ExtResource("1_mb1lm")

@@ -9,4 +9,9 @@ public partial class CivilopediaButton : Civ3TextureButton {
 		ImageTexture menuTexture = TextureLoader.Load("upper_left_navigation.civilopedia");
 		this.TextureNormal = menuTexture;
 	}
+
+	public override void _Pressed() {
+		base._Pressed();
+		ReleaseFocus();
+	}
 }

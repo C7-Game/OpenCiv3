@@ -332,4 +332,6 @@ visible = false
 [connection signal="DiplomacySelection" from="CanvasLayer/PopupOverlay" to="." method="OnDiplomacySelected"]
 [connection signal="HidePopup" from="CanvasLayer/PopupOverlay" to="CanvasLayer/PopupOverlay" method="OnHidePopup"]
 [connection signal="Quit" from="CanvasLayer/PopupOverlay" to="." method="OnQuitTheGame"]
-[connection signal="Retire" from="CanvasLayer/PopupOverlay" to="." method="_on_QuitButton_pressed"]
+[connection signal="Retire" from="CanvasLayer/PopupOverlay" to="." method="OnRetire"]
+[connection signal="SaveGame" from="CanvasLayer/PopupOverlay" to="." method="OnSaveGame"]
+[connection signal="LoadGame" from="CanvasLayer/PopupOverlay" to="." method="OnLoadGame"]

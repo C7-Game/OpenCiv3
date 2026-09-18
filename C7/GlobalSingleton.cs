@@ -1,7 +1,10 @@
+using System;
+using C7.Map;
 using Godot;
 using C7Engine;
 using C7GameData.Save;
 using C7Engine.Lua;
+using MoonSharp.Interpreter;
 
 /****
 	Need to pass values from one scene to another, particularly when loading
@@ -44,8 +47,13 @@ public partial class GlobalSingleton : Node {
 
 		GameMode = GameMode.Load(GamePaths.GameModesDir, config);
 
+		LuaTypeRegistrations();
+
 		var (script, textureConfig) = GameMode.textures;
 		TextureLoader.SetConfig(script, textureConfig);
+
+		var (audioLua, audioConfig) = GameMode.audio;
+		AudioLoader.SetConfig(audioLua, audioConfig);
 
 		if (config.addonPaths.Contains("standalone")) {
 			C7Settings.SetValue("locations", "useStandaloneMode", "true");
@@ -54,6 +62,22 @@ public partial class GlobalSingleton : Node {
 		}
 
 		C7Settings.SaveSettings();
+	}
+
+	private void LuaTypeRegistrations() {
+		// We need to register the "Type" type to be able to inspect
+		// the types of C# objects in the Lua code
+		UserData.RegisterType<Type>();
+
+		// Note: classes in the C7GameData namespace are already registered as part of GameModeLoader logic
+		UserData.RegisterType<CityGraphicsDetails>();
+		UserData.RegisterType<PopHead.TextureKey>();
+		UserData.RegisterType<BorderLayer.TextureDetails>();
+
+		// Note, we register all of AdvisorHeader rather than just
+		// AdvisorHead.AdvisorGraphicsDetails because we access the nums
+		// in the class as well.
+		UserData.RegisterType<AdvisorHead>();
 	}
 
 	public void ToggleStandaloneMode() {

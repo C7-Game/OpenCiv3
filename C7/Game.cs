@@ -125,6 +125,7 @@ public partial class Game : Node {
 	Stopwatch loadTimer = new Stopwatch();
 
 	GlobalSingleton Global;
+	Civ3FileDialog FileDialog;
 
 	public Player controller; // Player that's controlling the UI.
 
@@ -165,6 +166,10 @@ public partial class Game : Node {
 	// that gives an error if we fail to load for some reason.
 	public override async void _Ready() {
 		Global = GetNode<GlobalSingleton>("/root/GlobalSingleton");
+
+		FileDialog = GetNode<Civ3FileDialog>("%LoadDialog");
+		FileDialog.Canceled += OnResolved;
+		FileDialog.FileSelected += path => OnResolved();
 
 		try {
 			await InitializeGame();
@@ -521,12 +526,39 @@ public partial class Game : Node {
 		EmitSignal(SignalName.PlayerTurnEnd);
 	}
 
-	public void _on_QuitButton_pressed() {
-		// This apparently exits the whole program
-		// GetTree().Quit();
-
-		// ChangeSceneToFile deletes the current scene and frees its memory, so this is quitting to main menu
+	public void OnRetire() {
+		// Quit to main menu, freeing previous scene data
 		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
+	}
+
+	public void OnSaveGame() {
+		popupOverlay.OnHidePopup(); // hide game menu
+
+		// FileDialog is a Window, not a Control, so we have the popup overlay present a blank control
+		popupOverlay.ShowBlank();
+
+		// TODO: this should go to our own saves directory.
+		FileDialog.SetDirectoryForSaving(@"Conquests/Saves");
+
+		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
+		FileDialog.Popup();
+	}
+
+	public void OnLoadGame() {
+		popupOverlay.OnHidePopup(); // hide game menu
+
+		// FileDialog is a Window, not a Control, so we have the popup overlay present a blank control
+		popupOverlay.ShowBlank();
+
+		// TODO: this should go to our own saves directory.
+		FileDialog.SetDirectoryForLoading(@"Conquests/Saves");
+
+		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
+		FileDialog.Popup();
+	}
+
+	public void OnResolved() {
+		popupOverlay.OnHidePopup();
 	}
 
 	public void _on_Zoom_value_changed(float value) {

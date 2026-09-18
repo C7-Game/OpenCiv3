@@ -17,6 +17,7 @@ namespace C7GameData {
 		public int baseCommerceProduction { get; set; }
 		public int movementCost { get; set; }
 		public bool allowCities { get; set; } = true;
+		public bool impassable { get; set; }
 		public StrengthBonus defenseBonus;
 		public HashSet<string> allowedResources = new();
 		public int height = -1;
@@ -73,6 +74,7 @@ namespace C7GameData {
 				baseCommerceProduction = civ3Terrain.Commerce,
 				movementCost = civ3Terrain.MovementCost,
 				allowCities = civ3Terrain.AllowCities != 0,
+				impassable = civ3Terrain.Impassable != 0,
 				defenseBonus = new StrengthBonus {
 					description = civ3Terrain.Name,
 					amount = civ3Terrain.DefenseBonus / 100.0
