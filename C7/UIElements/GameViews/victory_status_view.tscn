@@ -34,36 +34,3 @@ offset_bottom = 650.0
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 6
 columns = 6
-
-[node name="Label" type="Label" parent="VictoryStatusBG/Grid"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "% of world area:"
-
-[node name="Label2" type="Label" parent="VictoryStatusBG/Grid"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "66"
-horizontal_alignment = 2
-
-[node name="Label3" type="Label" parent="VictoryStatusBG/Grid"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Your % of world area:"
-
-[node name="Label4" type="Label" parent="VictoryStatusBG/Grid"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "1"
-horizontal_alignment = 2
-
-[node name="Label5" type="Label" parent="VictoryStatusBG/Grid"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "America"
-
-[node name="Label6" type="Label" parent="VictoryStatusBG/Grid"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "2"
-horizontal_alignment = 2

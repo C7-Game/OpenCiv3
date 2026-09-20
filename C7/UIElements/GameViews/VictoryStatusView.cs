@@ -11,10 +11,11 @@ public partial class VictoryStatusView : Control {
 	[Export] public TextureRect background;
 	[Export] public GridContainer gridHeader;
 	[Export] public GridContainer grid;
-	[Export] public float LabelColumnWidth = 185f;
-	[Export] public float ValueColumnWidth = 40f;
 
 	private TextureButton _close;
+
+	private const float LabelColumnWidth = 185f;
+	private const float ValueColumnWidth = 40f;
 
 	private const int GridHeaderColumns = 3;
 	private const int GridColumns = 6;

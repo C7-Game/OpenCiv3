@@ -106,19 +106,11 @@ public partial class PlayerSetup : Control {
 	}
 
 	private void AddRules() {
-		victoryConditions = VictoryConditions.WarMongerDefault();
+		victoryConditions = new VictoryConditions();
 		rulesContainer.Columns = 2;
 		rulesContainer.AddThemeConstantOverride("v_separation", 0);
 
-		var dominationVictory = new Civ3Checkbox() { Text = "Allow Domination Victory" };
-		dominationVictory.SetPressed(victoryConditions.AllowDominationVictory);
-		dominationVictory.Toggled += (state) => { victoryConditions.AllowDominationVictory = state; };
-		rulesContainer.AddChild(dominationVictory);
-
-		var conquestVictory = new Civ3Checkbox() { Text = "Allow Conquest Victory" };
-		conquestVictory.SetPressed(victoryConditions.AllowConquestVictory);
-		conquestVictory.Toggled += (state) => { victoryConditions.AllowConquestVictory = state; };
-		rulesContainer.AddChild(conquestVictory);
+		// TODO: Add Civ3Checkbox in rulesContainer for each victory condition, wire up to victoryConditions
 	}
 
 	private void BackToMainMenu() {

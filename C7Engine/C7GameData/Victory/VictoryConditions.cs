@@ -14,12 +14,4 @@ public class VictoryConditions {
 	public bool VictoryLocations { get; set; }
 	public bool CaptureTheFlag { get; set; }
 	public bool ReverseCaptureTheFlag { get; set; }
-
-	public static VictoryConditions WarMongerDefault() {
-		// Useful for testing
-		return new VictoryConditions {
-			AllowDominationVictory = true,
-			AllowConquestVictory = true
-		};
-	}
 }

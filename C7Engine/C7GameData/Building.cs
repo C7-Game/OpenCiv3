@@ -203,8 +203,5 @@ namespace C7GameData {
 				tileModifier += modifier;
 			}
 		}
-
-		// TODO: Diplomatic victory voting flag?
-		public bool CanTriggerDiplomaticVictoryVote => name == "The United Nations";
 	}
 }

@@ -42,7 +42,7 @@ public partial class QuickStartSetup : Node {
 			difficulty = difficulty,
 			worldCharacteristics = global.WorldCharacteristics,
 			opponents = opponents,
-			victoryConditions = VictoryConditions.WarMongerDefault() // TODO: preferred victory conditions
+			victoryConditions = new VictoryConditions() // TODO: preferred victory conditions
 		};
 
 		gameSetup.Populate(save);

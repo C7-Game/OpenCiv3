@@ -13022,11 +13022,11 @@
     }
   ],
   "victoryConditions": {
-    "allowDominationVictory": true,
-    "allowSpaceRaceVictory": true,
-    "allowDiplomaticVictory": true,
-    "allowConquestVictory": true,
-    "allowCulturalVictory": true,
+    "allowDominationVictory": false,
+    "allowSpaceRaceVictory": false,
+    "allowDiplomaticVictory": false,
+    "allowConquestVictory": false,
+    "allowCulturalVictory": false,
     "allowWonderVictory": false,
     "cityElimination": false,
     "regicide": false,

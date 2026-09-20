@@ -57,7 +57,7 @@ public class SaveGameFixture : IDisposable {
 			difficulty = save.Difficulties.First(),
 			worldCharacteristics = wc,
 			opponents = Enumerable.Repeat(new SelectedOpponent() { isRandom = true }, worldSize.numberOfCivs - 1).ToList(),
-			victoryConditions = VictoryConditions.WarMongerDefault()
+			victoryConditions = new VictoryConditions()
 		};
 
 		gameSetup.Populate(save);
