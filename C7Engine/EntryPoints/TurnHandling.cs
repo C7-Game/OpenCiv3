@@ -138,14 +138,14 @@ namespace C7Engine {
 			return EngineStorage.gameData.turn;
 		}
 
-		private static void CheckVictory(GameData gameData) {
-			if (gameData.winner != null || gameData.victoryType != null)
+		internal static void CheckVictory(GameData gameData) {
+			if (gameData.gameOver)
 				return; // Game is already over
 
 			List<Tuple<Player, IVictory>> winners = [];
 
 			foreach (Player player in gameData.players) {
-				if (player.isBarbarians)
+				if (player.isBarbarians || player.defeated)
 					continue;
 
 				foreach (IVictory victory in gameData.victories) {
@@ -174,7 +174,7 @@ namespace C7Engine {
 				winner, victory.Header());
 
 			gameData.winner = winner;
-			gameData.victoryType = victory;
+			gameData.gameOver = true;
 
 			new MsgVictory(winner, victory).send();
 		}

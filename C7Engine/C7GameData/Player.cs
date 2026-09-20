@@ -1135,8 +1135,8 @@ namespace C7GameData {
 			if (!gameData.history.ContainsKey(id.ToString()))
 				return;
 
-			if (gameData.winner != null || gameData.victoryType != null)
-				return; // Game is already over
+			if (gameData.gameOver) // Game is already over
+				return;
 
 			int n = gameData.history[id.ToString()].Count;
 			HistTurnRecord lastTurn = gameData.history[id.ToString()].LastOrDefault();

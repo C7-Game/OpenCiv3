@@ -467,7 +467,7 @@ namespace C7GameData {
 				// TODO: translate victory type
 				Log.Warning("This game is over - Unknown winner and victory type");
 				save.Winner = new SavePlayer();
-				save.VictoryType = "Unknown";
+				save.GameOver = true;
 			}
 
 		}

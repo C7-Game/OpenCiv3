@@ -82,7 +82,7 @@ namespace C7GameData.Save {
 				TimeOptions = data.timeOptions,
 				History = data.history,
 				VictoryConditions = data.victoryConditions,
-				VictoryType = data.victoryType?.Header(),
+				GameOver = data.gameOver,
 				Winner = data.winner != null ? new SavePlayer(data.winner) : null,
 				TerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
 				GameModeConfig = data.gameModeConfig,
@@ -141,7 +141,12 @@ namespace C7GameData.Save {
 			ConvertCultureGroups(data);
 			ConvertAlliances(data);
 			ConvertAllianceWars(data);
+
 			ConvertVictoryConditions(data);
+
+			// TODO: Redo victory state recording
+			data.winner = data.players?.FirstOrDefault(p => p.civilization?.name == Winner?.civilization);
+			data.gameOver = GameOver;
 
 			BeginHistory(data);
 
@@ -478,7 +483,7 @@ namespace C7GameData.Save {
 		public Rules Rules = new();
 		public TimeOptions TimeOptions = new();
 		public VictoryConditions VictoryConditions = new();
-		public string VictoryType;
+		public bool GameOver { get; set; }
 		public SavePlayer Winner { get; set; }
 		public List<SaveTech> Techs = new();
 		public List<CitizenType> CitizenTypes = new();
