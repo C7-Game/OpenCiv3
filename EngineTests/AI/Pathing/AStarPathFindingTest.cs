@@ -131,6 +131,29 @@ public sealed class AStarPathFindingLandUnitTest : MapBase {
 		// The path cannot cross the impassable tile to reach the destination.
 		Assert.Empty(tilePath.path);
 	}
+
+	[Fact]
+	private void TestBarbarianCampTileIsEnterableEvenWhenImpassable() {
+		InitilizeStartTile(MakeHillTile(), new TileLocation(50, 50));
+		var impassableDesert = AddNeighborsAndUpdateMap(startTile, MakeImpassableDesertTile(), TileDirection.NORTH);
+		impassableDesert.hasBarbarianCamp = true;
+
+		MapUnit unit = MakeLandUnit();
+		unit.unitType.attack = 1;
+		unit.location = startTile;
+		startTile.unitsOnTile.Add(unit);
+
+		// A camp tile stays enterable even on impassable terrain, so a
+		// garrison can leave and return, both peacefully and forcefully.
+		Assert.True(unit.CanEnter(impassableDesert));
+		Assert.True(unit.CanEnterForcefully(impassableDesert));
+
+		AStarAlgorithm aStarAlgorithm = PathingAlgorithmChooser.GetAlgorithm(unit) as AStarAlgorithm;
+		TilePath tilePath = aStarAlgorithm.PathFrom(startTile, impassableDesert, unit);
+
+		Assert.NotEmpty(tilePath.path);
+		Assert.True(tilePath.path.Contains(impassableDesert));
+	}
 }
 
 public sealed class AStarPathFindingWaterUnitTest : MapBase {
