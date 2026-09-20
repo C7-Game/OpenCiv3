@@ -402,11 +402,21 @@ public partial class Game : Node {
 						}),
 					PopupOverlay.PopupCategory.Advisor);
 				break;
-			case MsgVictory mv:
+			case MsgVictory mV:
+				var endMsg =
+					$"The {mV.winner.civilization.noun} have won a {mV.victory.Header()} victory!\n"
+					+ "This game is over: No further score will be entered.\n\n";
+
 				popupOverlay.ShowPopup(
-					new InformationalPopup(
-						$"The {mv.winner.civilization.noun} have won a {mv.victory.Header()} victory!"),
-					PopupOverlay.PopupCategory.Info);
+					new ConfirmationPopup(
+						endMsg,
+						"Good! I’m Done!",
+						"Wait, lemme just play a couple of more turns...",
+						() => {
+							OnRetire();
+						}),
+					PopupOverlay.PopupCategory.Advisor);
+
 				InterestingEvent();
 				break;
 		}
