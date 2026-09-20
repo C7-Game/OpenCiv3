@@ -7,8 +7,10 @@ using QueryCiv3;
 using QueryCiv3.Biq;
 using C7GameData.Save;
 using System.Reflection;
+using C7Engine;
 using static C7GameData.Tile.TileOverlays;
 using GAME = QueryCiv3.Sav.GAME;
+using Util = QueryCiv3.Util;
 
 /*
   This will read a Civ3 sav into C7 native format for immediate use or saving to native JSON save
@@ -99,8 +101,6 @@ namespace C7GameData {
 			save.TurnNumber = savData.Game.TurnNumber;
 			save.Seed = savData.Wrld.WorldSeed;
 
-			ImportSavVictoryConditions();
-
 			ImportSharedBiqData();
 			ImportSavLeaders();
 			ImportSavUnits();
@@ -108,6 +108,7 @@ namespace C7GameData {
 			save.GameDifficulty = save.Difficulties[savData.Game.DifficultyID];
 
 			ImportSavHistory();
+			ImportSavVictory();
 
 			SetMapDimensions(savData, save);
 			SetWorldWrap(savData, save);
@@ -441,7 +442,7 @@ namespace C7GameData {
 
 		}
 
-		private void ImportSavVictoryConditions() {
+		private void ImportSavVictory() {
 			var game = savData.Game;
 
 			save.VictoryConditions = new VictoryConditions {
@@ -460,6 +461,15 @@ namespace C7GameData {
 				CaptureTheFlag = game.CaptureTheFlag, // 'Capture the Unit', 'Capture the Princess'
 				ReverseCaptureTheFlag = game.ReverseCaptureTheFlag,
 			};
+
+			if (game.Winner > -1) {
+				// TODO: load winner
+				// TODO: translate victory type
+				Log.Warning("This game is over - Unknown winner and victory type");
+				save.Winner = new SavePlayer();
+				save.VictoryType = "Unknown";
+			}
+
 		}
 
 		private void ImportCiv3Resources() {

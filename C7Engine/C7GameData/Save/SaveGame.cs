@@ -82,6 +82,8 @@ namespace C7GameData.Save {
 				TimeOptions = data.timeOptions,
 				History = data.history,
 				VictoryConditions = data.victoryConditions,
+				VictoryType = data.victoryType?.Header(),
+				Winner = data.winner != null ? new SavePlayer(data.winner) : null,
 				TerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
 				GameModeConfig = data.gameModeConfig,
 			};
@@ -476,6 +478,8 @@ namespace C7GameData.Save {
 		public Rules Rules = new();
 		public TimeOptions TimeOptions = new();
 		public VictoryConditions VictoryConditions = new();
+		public string VictoryType;
+		public SavePlayer Winner { get; set; }
 		public List<SaveTech> Techs = new();
 		public List<CitizenType> CitizenTypes = new();
 		public List<SaveTerraform> TerraForms = new();

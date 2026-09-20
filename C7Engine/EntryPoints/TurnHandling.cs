@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -78,6 +80,8 @@ namespace C7Engine {
 					player.UpdateHistory(gameData);
 				}
 
+				CheckVictory(gameData);
+
 				// Now that the turn is ending, do all the bookkeeping for the
 				// start of the next turn. We don't put the "hasPlayedThisTurn"
 				// logic in OnBeginTurn because OnBeginTurn is called when a
@@ -132,6 +136,47 @@ namespace C7Engine {
 		///Eventually we'll have a game year or month or whatever, but for now this provides feedback on our progression
 		public static int GetTurnNumber() {
 			return EngineStorage.gameData.turn;
+		}
+
+		private static void CheckVictory(GameData gameData) {
+			if (gameData.winner != null || gameData.victoryType != null)
+				return; // Game is already over
+
+			List<Tuple<Player, IVictory>> winners = [];
+
+			foreach (Player player in gameData.players) {
+				if (player.isBarbarians)
+					continue;
+
+				foreach (IVictory victory in gameData.victories) {
+					VictoryStatus status = victory.Evaluate(player, gameData);
+					if (victory.HasVictory(status)) {
+						winners.Add(new Tuple<Player, IVictory>(player, victory));
+						break;
+					}
+				}
+			}
+
+			if (winners.Count == 1) {
+				DeclareVictory(winners[0].Item1, winners[0].Item2, gameData);
+			} else if (winners.Count > 1) {
+				var topScoring = winners.OrderByDescending(pv => {
+					var player = pv.Item1;
+					HistTurnRecord lastTurn = gameData.history[player.id.ToString()].LastOrDefault();
+					return lastTurn?.Score ?? 0;
+				}).First();
+				DeclareVictory(topScoring.Item1, topScoring.Item2, gameData);
+			}
+		}
+
+		private static void DeclareVictory(Player winner, IVictory victory, GameData gameData) {
+			Log.Information("Player {Winner} has wone a {Victory} victory!",
+				winner, victory.Header());
+
+			gameData.winner = winner;
+			gameData.victoryType = victory;
+
+			new MsgVictory(winner, victory).send();
 		}
 	}
 }

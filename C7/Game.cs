@@ -321,9 +321,7 @@ public partial class Game : Node {
 				break;
 			case MsgCivilizationDestroyed mCivD:
 				popupOverlay.ShowPopup(new CivilizationDestroyed(mCivD.civilization), PopupOverlay.PopupCategory.Advisor);
-
-				// Break out of fast forward mode after interesting events.
-				turnsLeftToFastForward = 0;
+				InterestingEvent();
 				break;
 			case MsgShowMilitaryAdvisorPopup mSMAP:
 				if (!popupOverlay.Visible) {
@@ -380,10 +378,7 @@ public partial class Game : Node {
 				popupOverlay.ShowPopup(
 					new InformationalPopup($"The {mWD.aggressor.civilization.noun} declared war on the {mWD.opponent.civilization.noun}"),
 					PopupOverlay.PopupCategory.Advisor);
-
-				// Break out of the fast forward mode when something
-				// interesting happens.
-				turnsLeftToFastForward = 0;
+				InterestingEvent();
 				break;
 			case MsgShowTemporaryPopup mSTP:
 				Vector2 pos = mapView.screenLocationOfTile(mSTP.location, true);
@@ -407,7 +402,19 @@ public partial class Game : Node {
 						}),
 					PopupOverlay.PopupCategory.Advisor);
 				break;
+			case MsgVictory mv:
+				popupOverlay.ShowPopup(
+					new InformationalPopup(
+						$"The {mv.winner.civilization.noun} have won a {mv.victory.Header()} victory!"),
+					PopupOverlay.PopupCategory.Info);
+				InterestingEvent();
+				break;
 		}
+	}
+
+	private void InterestingEvent() {
+		// Break out of fast forward mode after interesting events.
+		turnsLeftToFastForward = 0;
 	}
 
 	public override void _Process(double delta) {
