@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://gnt0y3og7nk6"]
+[gd_scene load_steps=13 format=3 uid="uid://gnt0y3og7nk6"]
 
 [ext_resource type="Script" uid="uid://dgpuse88jc2hc" path="res://UIElements/MainMenu/MainMenu.cs" id="1_akneh"]
 [ext_resource type="Texture2D" uid="uid://s55xvcaini8h" path="res://title-screen.png" id="2_erxyj"]
@@ -14,13 +14,21 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gmerc"]
 
+[sub_resource type="Theme" id="Theme_brea7"]
+default_font_size = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_brea7"]
+font_size = 10
+font_color = Color(0, 0, 0, 1)
+shadow_color = Color(1, 1, 1, 0.533333)
+
 [node name="MainMenu" type="Node" node_paths=PackedStringArray("LoadDialog", "NoCiv3Options", "SetCiv3HomeDialog", "LoadScenarioDialog", "ButtonContainer", "player")]
 script = ExtResource("1_akneh")
 LoadDialog = NodePath("LoadDialog")
-NoCiv3Options = NodePath("Control/NoCiv3Options")
+NoCiv3Options = NodePath("Control/Background/PanelContainer/MarginContainer/NoCiv3Options")
 SetCiv3HomeDialog = NodePath("SetCiv3HomeDialog")
 LoadScenarioDialog = NodePath("LoadScenarioDialog")
-ButtonContainer = NodePath("Control/MainMenuContainer")
+ButtonContainer = NodePath("Control/Background/PanelContainer/MarginContainer/MainMenuContainer")
 player = NodePath("SoundEffectPlayer")
 
 [node name="Control" type="Control" parent="."]
@@ -50,14 +58,15 @@ stretch_mode = 4
 
 [node name="RichTextLabel" type="RichTextLabel" parent="Control/Background"]
 layout_mode = 0
-offset_left = 226.0
+offset_left = 24.0
 offset_top = 98.0
-offset_right = 828.0
+offset_right = 400.0
 offset_bottom = 158.0
 theme_override_colors/default_color = Color(1, 0.25098, 0, 1)
 theme_override_fonts/normal_font = ExtResource("3_x68dx")
 theme_override_font_sizes/normal_font_size = 18
-text = "v0.3 Dutch Preview 1"
+text = "v0.3 Dutch 2"
+horizontal_alignment = 2
 deselect_on_focus_loss_enabled = false
 drag_and_drop_selection_enabled = false
 
@@ -66,30 +75,36 @@ position = Vector2(249.669, 72)
 scale = Vector2(0.757862, 0.757862)
 texture = ExtResource("4_brea7")
 
-[node name="MainMenuContainer" type="VBoxContainer" parent="Control"]
+[node name="TextureRect" type="ColorRect" parent="Control/Background"]
+visible = false
+clip_children = 2
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.3
-anchor_top = 0.1
-anchor_right = 0.5
-anchor_bottom = 0.2
-offset_left = -85.6
-offset_top = 135.2
-offset_right = 72.4
-offset_bottom = 505.2
-grow_horizontal = 2
-theme_override_constants/separation = 15
-script = ExtResource("3_t1nuq")
+anchor_left = 0.2
+anchor_top = 0.25
+anchor_right = 0.4
+anchor_bottom = 0.6
+color = Color(0, 0, 0, 0.4)
 
-[node name="NoCiv3Options" type="VBoxContainer" parent="Control"]
-layout_mode = 0
-offset_left = 260.0
-offset_top = 200.0
-offset_right = 580.0
-offset_bottom = 500.0
+[node name="PanelContainer" type="PanelContainer" parent="Control/Background"]
+layout_mode = 2
+offset_left = 177.868
+offset_top = 172.0
+offset_right = 177.868
+offset_bottom = 172.0
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/Background/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="NoCiv3Options" type="VBoxContainer" parent="Control/Background/PanelContainer/MarginContainer"]
+layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="NoCiv3Prompt" type="Label" parent="Control/NoCiv3Options"]
+[node name="NoCiv3Prompt" type="Label" parent="Control/Background/PanelContainer/MarginContainer/NoCiv3Options"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -98,7 +113,7 @@ text = "An installation of Civilization III was not found.
 You may provide the location of game files, OR play in standalone mode to use OpenCiv3 files only"
 autowrap_mode = 2
 
-[node name="SetCiv3Home" type="Button" parent="Control/NoCiv3Options"]
+[node name="SetCiv3Home" type="Button" parent="Control/Background/PanelContainer/MarginContainer/NoCiv3Options"]
 custom_minimum_size = Vector2(320, 60)
 layout_mode = 2
 theme_override_constants/h_separation = 50
@@ -108,7 +123,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_e20w6")
 theme_override_styles/normal = SubResource("StyleBoxFlat_gmerc")
 text = "Locate Civilization III files"
 
-[node name="UseStandaloneMode" type="Button" parent="Control/NoCiv3Options"]
+[node name="UseStandaloneMode" type="Button" parent="Control/Background/PanelContainer/MarginContainer/NoCiv3Options"]
 custom_minimum_size = Vector2(320, 60)
 layout_mode = 2
 theme_override_constants/h_separation = 50
@@ -118,7 +133,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_e20w6")
 theme_override_styles/normal = SubResource("StyleBoxFlat_gmerc")
 text = "Play in standalone mode"
 
-[node name="Label" type="Label" parent="Control/NoCiv3Options/UseStandaloneMode"]
+[node name="Label" type="Label" parent="Control/Background/PanelContainer/MarginContainer/NoCiv3Options/UseStandaloneMode"]
 layout_mode = 0
 offset_top = 42.0
 offset_right = 314.0
@@ -126,6 +141,74 @@ offset_bottom = 62.0
 theme_override_font_sizes/font_size = 11
 text = "Notice: standalone mode makes use of AI placeholder art"
 horizontal_alignment = 1
+
+[node name="MainMenuContainer" type="VBoxContainer" parent="Control/Background/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+script = ExtResource("3_t1nuq")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/Background"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_bottom = 302.0
+grow_horizontal = 0
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="PanelContainer2" type="PanelContainer" parent="Control/Background/MarginContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/Background/MarginContainer/PanelContainer2"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="RightSidebar" type="VBoxContainer" parent="Control/Background/MarginContainer/PanelContainer2/MarginContainer"]
+layout_mode = 2
+theme = SubResource("Theme_brea7")
+
+[node name="GameIntro" type="RichTextLabel" parent="Control/Background/MarginContainer/PanelContainer2/MarginContainer/RightSidebar"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+bbcode_enabled = true
+text = "[b]OpenCiv3[/b] is an open-source, cross-platform, mod-oriented, modernized reimagining of [i]Civilization III[/i] by the fan community built with the Godot Engine and C#, with capabilities inspired by the best of the 4X genre and lessons learned from modding Civ3.
+
+Our vision is to make Civ3 as it could have been, rebuilt for today’s modders and players: removing arbitary limits, fixing broken features, expanding mod capabilities, and supporting modern graphics and platforms.
+
+"
+fit_content = true
+
+[node name="WebsiteLink" type="LinkButton" parent="Control/Background/MarginContainer/PanelContainer2/MarginContainer/RightSidebar"]
+layout_direction = 3
+layout_mode = 2
+theme_override_colors/font_color = Color(0.627451, 0, 0, 1)
+text = "Learn more at OpenCiv3.org"
+underline = 1
+uri = "https://openciv3.org"
+
+[node name="RichTextLabel2" type="Label" parent="Control/Background"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -48.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "OpenCiv3 0.3 \"Dutch 2\" © OpenCiv3 contributors
+OpenCiv3 is not affiliated with civfanatics.com, Firaxis Games, BreakAway Games, 
+Hasbro Interactive, Infogrames Interactive, Atari Interactive, or Take-Two Interactive Software.
+All trademarks are property of their respective owners."
+label_settings = SubResource("LabelSettings_brea7")
+horizontal_alignment = 1
+vertical_alignment = 2
+autowrap_mode = 3
 
 [node name="MainMenuMusicPlayer" type="AudioStreamPlayer" parent="."]
 script = ExtResource("4_tqr50")
@@ -147,6 +230,6 @@ visible = false
 [node name="LoadScenarioDialog" parent="." instance=ExtResource("5_rw2g7")]
 visible = false
 
-[connection signal="pressed" from="Control/NoCiv3Options/SetCiv3Home" to="." method="_on_SetCiv3Home_pressed"]
-[connection signal="pressed" from="Control/NoCiv3Options/UseStandaloneMode" to="." method="UseStandaloneModePressed"]
+[connection signal="pressed" from="Control/Background/PanelContainer/MarginContainer/NoCiv3Options/SetCiv3Home" to="." method="_on_SetCiv3Home_pressed"]
+[connection signal="pressed" from="Control/Background/PanelContainer/MarginContainer/NoCiv3Options/UseStandaloneMode" to="." method="UseStandaloneModePressed"]
 [connection signal="dir_selected" from="SetCiv3HomeDialog" to="." method="_on_SetCiv3HomeDialog_dir_selected"]
