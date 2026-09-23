@@ -12950,7 +12950,7 @@
     },
     {
       "id": "Difficulty-8",
-      "name": "Sid",
+      "name": "Creator",
       "numberOfCitizensBornContent": 1,
       "maxAiGovernmentTransitionTime": 1,
       "numberOfAIDefensiveStartingUnits": 12,
