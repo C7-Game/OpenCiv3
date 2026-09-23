@@ -1135,6 +1135,9 @@ namespace C7GameData {
 			if (!gameData.history.ContainsKey(id.ToString()))
 				return;
 
+			if (gameData.gameOver) // Game is already over
+				return;
+
 			int n = gameData.history[id.ToString()].Count;
 			HistTurnRecord lastTurn = gameData.history[id.ToString()].LastOrDefault();
 
@@ -1149,10 +1152,8 @@ namespace C7GameData {
 			// Score is the _average_ of "turn scores".
 			// Here we calculate the cumulative moving average: S[n+1] = S[n] + (x[n+1] - S[N])/(n+1)
 			int lastScore = (lastTurn?.Score ?? 0);
-			// TODO: Victory scoring
-			// float turnScore = ScoreVictory.ComputeTurnScore(this, gameData);
-			// int score = (int) Math.Floor(lastScore + (turnScore - lastScore) / (1f * (n+1)));
-			int score = lastScore;
+			float turnScore = ScoreVictory.ComputeTurnScore(this, gameData);
+			int score = (int) Math.Floor(lastScore + (turnScore - lastScore) / (1f * (n+1)));
 
 			// Culture is "the sum of the cultural value of all your cities"
 			int totalCulture = cities.Sum(c => c.GetCulture());

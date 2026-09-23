@@ -13020,5 +13020,19 @@
       "distanceBetweenCivs": 24,
       "numberOfCivs": 16
     }
-  ]
+  ],
+  "victoryConditions": {
+    "allowDominationVictory": false,
+    "allowSpaceRaceVictory": false,
+    "allowDiplomaticVictory": false,
+    "allowConquestVictory": false,
+    "allowCulturalVictory": false,
+    "allowWonderVictory": false,
+    "cityElimination": false,
+    "regicide": false,
+    "massRegicide": false,
+    "victoryLocations": false,
+    "captureTheFlag": false,
+    "reverseCaptureTheFlag": false
+  }
 }

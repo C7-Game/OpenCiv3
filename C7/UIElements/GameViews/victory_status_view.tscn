@@ -3,12 +3,34 @@
 [ext_resource type="Script" uid="uid://dehyy4c30r04x" path="res://UIElements/GameViews/VictoryStatusView.cs" id="1_m5w0r"]
 [ext_resource type="Script" uid="uid://doqipc4rnaotx" path="res://UIElements/Civ3TextureRect.cs" id="2_xkj2y"]
 
-[node name="VictoryStatusView" type="CenterContainer" node_paths=PackedStringArray("background")]
+[node name="VictoryStatusView" type="CenterContainer" node_paths=PackedStringArray("background", "gridHeader", "grid")]
 mouse_filter = 0
 script = ExtResource("1_m5w0r")
 background = NodePath("VictoryStatusBG")
+gridHeader = NodePath("VictoryStatusBG/GridHeader")
+grid = NodePath("VictoryStatusBG/Grid")
 
 [node name="VictoryStatusBG" type="TextureRect" parent="."]
 layout_mode = 2
 script = ExtResource("2_xkj2y")
 metadata/_custom_type_script = "uid://doqipc4rnaotx"
+
+[node name="GridHeader" type="GridContainer" parent="VictoryStatusBG"]
+layout_mode = 2
+offset_left = 160.0
+offset_top = 100.0
+offset_right = 931.0
+offset_bottom = 125.0
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 6
+columns = 3
+
+[node name="Grid" type="GridContainer" parent="VictoryStatusBG"]
+layout_mode = 2
+offset_left = 160.0
+offset_top = 125.0
+offset_right = 931.0
+offset_bottom = 650.0
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 6
+columns = 6

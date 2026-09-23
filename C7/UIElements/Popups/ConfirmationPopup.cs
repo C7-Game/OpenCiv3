@@ -58,11 +58,14 @@ public partial class ConfirmationPopup : Popup {
 		//Maybe there's an awesomer control we can user instead
 		warningMessage.Text = message; //"Disband " + unitType + "?  Pardon me but these are OUR people. Do \nyou really want to disband them?";
 
+		var multirow = message.Count(System.Environment.NewLine) >= 2;
+		var multirowShift = multirow ? 20 : 0;
+
 		warningMessage.SetPosition(new Vector2(25, 170));
 		AddChild(warningMessage);
 
-		AddButton(yesText, 215, confirmed);
-		AddButton(noText, 245, cancel);
+		AddButton(yesText, 215 + multirowShift, confirmed);
+		AddButton(noText, 245 + multirowShift, cancel);
 
 		loadTimer.Stop();
 		TimeSpan stopwatchElapsed = loadTimer.Elapsed;
