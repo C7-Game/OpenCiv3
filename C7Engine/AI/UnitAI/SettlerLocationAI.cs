@@ -30,7 +30,7 @@ namespace C7Engine {
 			Dictionary<Tile, float> scores = new();
 			var memo = new Dictionary<string, float>();
 
-			candidates = candidates.Where(t => !SettlerAlreadyMovingTowardsTile(t, playerSettlers) && t.IsAllowCities());
+			candidates = candidates.Where(t => !SettlerAlreadyMovingTowardsTile(t, playerSettlers) && t.IsAllowCities() && !HasForeignUnitOnTile(t, player));
 
 			foreach (Tile t in candidates) {
 				float score = GetTileYieldScore(t, player, memo);
@@ -143,6 +143,18 @@ namespace C7Engine {
 				}
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// Returns true if a foreign unit is on the supplied tile. A settler
+		/// cannot share a tile with another civ's unit, so it can never build
+		/// a city there, and it must not be chosen as a destination.
+		/// </summary>
+		/// <param name="tile">The tile under consideration for a future city.</param>
+		/// <param name="player">The settler's owner.</param>
+		/// <returns></returns>
+		private static bool HasForeignUnitOnTile(Tile tile, Player player) {
+			return tile.unitsOnTile.Any(u => u.owner != player);
 		}
 	}
 }
