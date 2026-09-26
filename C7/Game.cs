@@ -241,6 +241,10 @@ public partial class Game : Node {
 				log.Debug("RelativeModPath ", scenarioSearchPath);
 				return Util.Civ3MediaPath("Text/PediaIcons.txt");
 			},
+			GetCivilopediaTextPath = (scenarioSearchPath) => {
+				Util.setModPath(scenarioSearchPath);
+				return Util.Civ3MediaPath("Text/Civilopedia.txt");
+			},
 			GameModeLoader = (config) => {
 				Global.ActivateGameMode(config);
 				return Global.GameMode.behaviors;

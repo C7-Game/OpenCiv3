@@ -50,6 +50,7 @@ namespace C7GameData {
 		public Rules rules;
 		public TimeOptions timeOptions;
 		public Dictionary<string, List<HistTurnRecord>> history;
+		public Codex Codex;
 
 		public BarbarianInfo barbarianInfo = new BarbarianInfo();
 

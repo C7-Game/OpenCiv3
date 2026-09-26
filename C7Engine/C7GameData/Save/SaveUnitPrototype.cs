@@ -14,6 +14,7 @@ namespace C7GameData.Save {
 		}
 
 		public string name { get; set; }
+		public string civilopediaEntry { get; set; }
 		public Art art { get; set; }
 		public int shieldCost { get; set; }
 		public int populationCost { get; set; }
@@ -54,6 +55,8 @@ namespace C7GameData.Save {
 			(proto.name, proto.art, proto.shieldCost, proto.populationCost, proto.unproducible,
 			 proto.attack, proto.defense, proto.bombard, proto.bombardRange, proto.rateOfFire, proto.movement,
 			 proto.capacity, proto.hpBonus);
+
+			civilopediaEntry = proto.civilopediaEntry;
 
 			if (proto.requiredTech != null)
 				requiredTech = proto.requiredTech.id;
