@@ -107,6 +107,13 @@ public partial class ScienceAdvisor : Control {
 	}
 
 	void DrawTechTree(string eraName, Player player, List<Tech> allTechs, HashSet<Tech> availableTechsToResearch) {
+		// clear all tech-box items so we don't draw new ones over the old ones
+		foreach (TechBox tb in techBoxes) {
+			background.RemoveChild(tb);
+			tb.QueueFree();
+		}
+		techBoxes.Clear();
+
 		HashSet<ID> knownTechs = player.knownTechs;
 		previousEra.Show();
 		nextEra.Show();
