@@ -1,11 +1,10 @@
-[gd_scene load_steps=11 format=3 uid="uid://gnt0y3og7nk6"]
+[gd_scene load_steps=10 format=3 uid="uid://gnt0y3og7nk6"]
 
 [ext_resource type="Script" uid="uid://dgpuse88jc2hc" path="res://UIElements/MainMenu/MainMenu.cs" id="1_akneh"]
 [ext_resource type="Texture2D" uid="uid://s55xvcaini8h" path="res://title-screen.png" id="2_erxyj"]
 [ext_resource type="Script" uid="uid://ca14gkdccjfcg" path="res://UIElements/MainMenu/MenuButtonContainer.cs" id="3_t1nuq"]
 [ext_resource type="FontFile" uid="uid://b1xkj8g82jbx5" path="res://Fonts/NotoSans-BoldItalic.ttf" id="3_x68dx"]
 [ext_resource type="Texture2D" uid="uid://ovwv08a53d7k" path="res://title.png" id="4_brea7"]
-[ext_resource type="Script" uid="uid://dauceqein40wj" path="res://UIElements/MainMenu/MainMenuMusicPlayer.cs" id="4_tqr50"]
 [ext_resource type="PackedScene" uid="uid://bvncm1bgcii5e" path="res://UIElements/civ3_file_dialog.tscn" id="5_rw2g7"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbij8"]
@@ -126,9 +125,6 @@ offset_bottom = 62.0
 theme_override_font_sizes/font_size = 11
 text = "Notice: standalone mode makes use of AI placeholder art"
 horizontal_alignment = 1
-
-[node name="MainMenuMusicPlayer" type="AudioStreamPlayer" parent="."]
-script = ExtResource("4_tqr50")
 
 [node name="SoundEffectPlayer" type="AudioStreamPlayer" parent="."]
 

@@ -16,10 +16,9 @@ public partial class MainMenu : Node {
 	Civ3FileDialog LoadScenarioDialog;
 	[Export]
 	MenuButtonContainer ButtonContainer;
-	[Export]
-	AudioStreamPlayer player;
 
 	GlobalSingleton Global;
+	AudioManager AudioManager;
 
 	public override void _Ready() {
 		log = LogManager.ForContext<MainMenu>();
@@ -29,6 +28,8 @@ public partial class MainMenu : Node {
 
 		try {
 			DisplayTitleScreen();
+			AudioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
+			PlayMusic();
 		} catch (Exception ex) {
 			log.Error(ex, "Could not set up the main menu");
 		}
@@ -148,16 +149,6 @@ public partial class MainMenu : Node {
 		GetTree().Quit(); // no need to notify the scene tree
 	}
 
-	private void PlayButtonPressedSound() {
-		AudioStream stream = AudioLoader.Load("buttons.button_1");
-
-		if (stream == null)
-			return;
-
-		player.Stream = stream;
-		player.Play();
-	}
-
 	private void _on_SetCiv3Home_pressed() {
 		SetCiv3HomeDialog.Popup();
 	}
@@ -173,5 +164,13 @@ public partial class MainMenu : Node {
 	private void UseStandaloneModePressed() {
 		Global.ActivateGameMode(GamePaths.standalone);
 		DisplayTitleScreen();
+	}
+
+	private void PlayMusic() {
+		AudioManager.PlayMusic("menu.main_menu_1");
+	}
+
+	private void PlayButtonPressedSound() {
+		AudioManager.PlaySound("buttons.button_1");
 	}
 }

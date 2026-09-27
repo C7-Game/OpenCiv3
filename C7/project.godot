@@ -21,6 +21,7 @@ config/icon="res://icon.png"
 
 GlobalSingleton="*res://GlobalSingleton.cs"
 LogManager="*res://LogManager.cs"
+GlobalAudioManager="*res://Audio/AudioManager.tscn"
 
 [display]
 
