@@ -963,7 +963,8 @@ namespace C7GameData {
 
 			// Each citizen lost to pop rushing has a 20 turn penalty, so
 			// multiple citizens lost causes multiple unhappy faces.
-			if (turnsOfUnhappinessDueToPopRushing > 0) {
+			// Only decrement if greater than 0, only add unhappiness if greater than 0 after decrement
+			if (turnsOfUnhappinessDueToPopRushing > 0 && --turnsOfUnhappinessDueToPopRushing > 0) {
 				contentToHappyMoves -= (turnsOfUnhappinessDueToPopRushing - 1) / gameData.rules.TurnPenaltyForEachHurrySacrifice + 1;
 			}
 
