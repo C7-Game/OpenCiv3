@@ -110,7 +110,9 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 12
 text = "An installation of Civilization III was not found.
-You may provide the location of game files, OR play in standalone mode to use OpenCiv3 files only"
+You may provide the location of game files,
+OR play in standalone mode to use OpenCiv3 files only"
+horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="SetCiv3Home" type="Button" parent="Control/Background/PanelContainer/MarginContainer/NoCiv3Options"]
@@ -177,7 +179,7 @@ theme = SubResource("Theme_brea7")
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 bbcode_enabled = true
-text = "[b]OpenCiv3[/b] is an open-source, cross-platform, mod-oriented, modernized reimagining of [i]Civilization III[/i] by the fan community built with the Godot Engine and C#, with capabilities inspired by the best of the 4X genre and lessons learned from modding Civ3.
+text = "[b]OpenCiv3[/b] is an open-source, cross-platform, mod-oriented, modernized reimagining of [i]Civilization III[/i] by the fan community. Built with the Godot Engine and C#, it has capabilities inspired by the best of the 4X genre and lessons learned from modding Civ3.
 
 Our vision is to make Civ3 as it could have been, rebuilt for today’s modders and players: removing arbitary limits, fixing broken features, expanding mod capabilities, and supporting modern graphics and platforms.
 
