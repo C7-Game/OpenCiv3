@@ -101,9 +101,9 @@ public partial class MainMenu : Node {
 
 	private void SetToggleGraphicsText() {
 		if (C7Settings.UseStandaloneMode()) {
-			ButtonContainer.ToggleGraphics.Text = "Import Civilization III Graphics";
+			ButtonContainer.ToggleGraphics.Text = "Use Civilization III Media";
 		} else {
-			ButtonContainer.ToggleGraphics.Text = "Use OpenCiv3 Graphics";
+			ButtonContainer.ToggleGraphics.Text = "Use OpenCiv3 Media";
 		}
 	}
 
