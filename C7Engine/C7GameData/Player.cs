@@ -1037,6 +1037,14 @@ namespace C7GameData {
 			}
 		}
 
+		// Call once at turn advance, decrement penalty turns of unhappiness for drafting / whipping
+		public void DecrementCityUnhappinessPenalties(GameData gameData) {
+			foreach (City c in cities) {
+				// TODO: Add drafting unhappiness decrement when implemented
+				c.turnsOfUnhappinessDueToPopRushing -= (c.turnsOfUnhappinessDueToPopRushing > 0) ? 1 : 0;
+			}
+		}
+
 		public void RecalculateCitizenMoods(GameData gameData, bool goIntoDisorderIfUnhappy = false) {
 			foreach (City c in cities) {
 				City.Mood cityMood = c.RecalculateCitizenMoods(gameData);
