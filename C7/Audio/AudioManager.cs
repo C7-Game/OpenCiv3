@@ -10,17 +10,25 @@ public partial class AudioManager : Node {
 
 	[Export] AudioStreamPlayer musicPlayer;
 	[Export] AudioStreamPlayer sfxPlayer;
+	[Export] AudioStreamPlayer uiPlayer;
+	[Export] AudioStreamPlayer ambiencePlayer;
 
-	private string MusicBus = "Music";
-	private string SfxBus = "Sfx";
+	public static string MusicBus = "Music";
+	public static string SfxBus = "Sfx";
+	public static string UIBus = "UI";
+	public static string AmbienceBus = "Ambience";
 
 	private bool musicEnabled = true;
 	private bool soundEnabled = true;
+	private bool uiEnabled = true;
+	private bool ambienceEnabled = true;
 
 	public override void _Ready() {
 		log = LogManager.ForContext<AudioManager>();
 		ConfigureMusic();
 		ConfigureSound();
+		ConfigureUI();
+		ConfigureAmbience();
 	}
 
 	private void ConfigureMusic() {
@@ -61,6 +69,44 @@ public partial class AudioManager : Node {
 		}
 	}
 
+	private void ConfigureUI() {
+		try {
+			string volume = C7Settings.GetSettingValue("audio", "uiVolume");
+			float volumeDb = LogicalVolumeAsDecibel(volume);
+
+			if (volumeDb == float.MinValue) {
+				uiEnabled = false;
+			}
+
+			if (uiEnabled) {
+				log.Debug("setting UI volume to {volume}, which is {offset} decibel (offset)", volume, volumeDb);
+				int busIndex = AudioServer.GetBusIndex(UIBus);
+				AudioServer.SetBusVolumeDb(busIndex, volumeDb);
+			}
+		} catch (ApplicationException ex) {
+			log.Error(ex, "could not configure UI audio");
+		}
+	}
+
+	private void ConfigureAmbience() {
+		try {
+			string volume = C7Settings.GetSettingValue("audio", "ambienceVolume");
+			float volumeDb = LogicalVolumeAsDecibel(volume);
+
+			if (volumeDb == float.MinValue) {
+				ambienceEnabled = false;
+			}
+
+			if (ambienceEnabled) {
+				log.Debug("setting ambience volume to {volume}, which is {offset} decibel (offset)", volume, volumeDb);
+				int busIndex = AudioServer.GetBusIndex(AmbienceBus);
+				AudioServer.SetBusVolumeDb(busIndex, volumeDb);
+			}
+		} catch (ApplicationException ex) {
+			log.Error(ex, "could not configure ambience audio");
+		}
+	}
+
 	/**
 	 * Godot uses a decibel offset volume system, described at https://docs.godotengine.org/en/stable/tutorials/audio/audio_buses.html
 	 * This is what audio professionals would use, but is not intuitive to end users.
@@ -89,6 +135,9 @@ public partial class AudioManager : Node {
 	// TODO: playlists, mixing, transitions
 	// See: https://www.youtube.com/watch?app=desktop&v=07Kyqqg31FI&t=346s
 
+	// TODO: polyphony via AudioStreamPolyphonic + AudioStreamPlaybackPolyphonic
+	// https://docs.godotengine.org/en/4.0/classes/class_audiostreampolyphonic.html
+
 	public void PlayMusic(string configKey) {
 		AudioStream stream = AudioLoader.Load(configKey);
 
@@ -109,9 +158,27 @@ public partial class AudioManager : Node {
 		if (stream == null)
 			return;
 
-		// TODO: play queue? player pool?
-
 		sfxPlayer.Stream = stream;
 		sfxPlayer.Play();
+	}
+
+	public void PlayUI(string configKey) {
+		AudioStream stream = AudioLoader.Load(configKey);
+
+		if (stream == null)
+			return;
+
+		uiPlayer.Stream = stream;
+		uiPlayer.Play();
+	}
+
+	public void PlayAmbience(string configKey) {
+		AudioStream stream = AudioLoader.Load(configKey);
+
+		if (stream == null)
+			return;
+
+		ambiencePlayer.Stream = stream;
+		ambiencePlayer.Play();
 	}
 }

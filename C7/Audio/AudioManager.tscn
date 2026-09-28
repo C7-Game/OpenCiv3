@@ -2,13 +2,21 @@
 
 [ext_resource type="Script" uid="uid://eyk3k7dd7tcy" path="res://Audio/AudioManager.cs" id="1_l0aok"]
 
-[node name="AudioManager" type="Node" node_paths=PackedStringArray("musicPlayer", "sfxPlayer")]
+[node name="AudioManager" type="Node" node_paths=PackedStringArray("musicPlayer", "sfxPlayer", "uiPlayer", "ambiencePlayer")]
 script = ExtResource("1_l0aok")
 musicPlayer = NodePath("MusicPlayer")
 sfxPlayer = NodePath("SfxPlayer")
+uiPlayer = NodePath("UIPlayer")
+ambiencePlayer = NodePath("AmbiencePlayer")
 
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
 bus = &"Music"
 
 [node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
 bus = &"Sfx"
+
+[node name="UIPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"UI"
+
+[node name="AmbiencePlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Ambience"
