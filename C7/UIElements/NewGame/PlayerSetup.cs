@@ -22,6 +22,8 @@ public partial class PlayerSetup : Control {
 	[Export] GridContainer opponentListContainer;
 	List<OptionButton> opponentSelectors = new();
 
+	[Export] GridContainer rulesContainer;
+
 	[Export] GridContainer difficultyContainer;
 
 	ButtonGroup difficultyButtonGroup = new();
@@ -35,6 +37,7 @@ public partial class PlayerSetup : Control {
 
 	Civilization selectedCivilization;
 	Difficulty selectedDifficulty;
+	VictoryConditions victoryConditions;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -74,6 +77,9 @@ public partial class PlayerSetup : Control {
 		// Set up the options for opponents.
 		AddOpponentSelectors(global.WorldCharacteristics.worldSize.numberOfCivs);
 
+		// Set up game rules
+		AddRules();
+
 		// Set up the difficulty buttons
 		difficultyContainer.Columns = save.Difficulties.Count;
 		string initiallySelectedDifficulty = save.Difficulties.Any(x => x.Name == "Regent") ? "Regent" : save.Difficulties[0].Name;
@@ -97,6 +103,14 @@ public partial class PlayerSetup : Control {
 
 		confirm.Pressed += CreateGame;
 		cancel.Pressed += BackToMainMenu;
+	}
+
+	private void AddRules() {
+		victoryConditions = new VictoryConditions();
+		rulesContainer.Columns = 2;
+		rulesContainer.AddThemeConstantOverride("v_separation", 0);
+
+		// TODO: Add Civ3Checkbox in rulesContainer for each victory condition, wire up to victoryConditions
 	}
 
 	private void BackToMainMenu() {
@@ -217,7 +231,8 @@ public partial class PlayerSetup : Control {
 			playerCivilization = selectedCivilization,
 			difficulty = selectedDifficulty,
 			worldCharacteristics = global.WorldCharacteristics,
-			opponents = CollectSelectedOpponents()
+			opponents = CollectSelectedOpponents(),
+			victoryConditions = victoryConditions
 		};
 
 		PersistGameSettings(gameSetup);

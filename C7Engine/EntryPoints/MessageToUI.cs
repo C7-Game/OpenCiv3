@@ -174,4 +174,14 @@ namespace C7Engine {
 			this.city = city;
 		}
 	}
+
+	public class MsgVictory : MessageToUI {
+		public Player winner;
+		public IVictory victory;
+
+		public MsgVictory(Player winner, IVictory victory) {
+			this.winner = winner;
+			this.victory = victory;
+		}
+	}
 }

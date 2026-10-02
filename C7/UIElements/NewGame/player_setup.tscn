@@ -20,7 +20,7 @@ events = [SubResource("InputEventKey_klcu1")]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ld2d8"]
 
-[node name="Control" type="CenterContainer" node_paths=PackedStringArray("background", "playerListContainer", "civLabel", "opponentListContainer", "difficultyContainer", "confirm", "cancel", "loadingLabel")]
+[node name="Control" type="CenterContainer" node_paths=PackedStringArray("background", "playerListContainer", "civLabel", "opponentListContainer", "rulesContainer", "difficultyContainer", "confirm", "cancel", "loadingLabel")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -31,6 +31,7 @@ background = NodePath("Background")
 playerListContainer = NodePath("Background/CenterContainer/PlayerListContainer")
 civLabel = NodePath("Background/CivLabel")
 opponentListContainer = NodePath("Background/OpponentListScroller/OpponentListContainer")
+rulesContainer = NodePath("Background/RulesContainer")
 difficultyContainer = NodePath("Background/DifficultyContainer")
 confirm = NodePath("Background/Confirm")
 cancel = NodePath("Background/Cancel")
@@ -83,6 +84,16 @@ theme_override_font_sizes/font_size = 15
 text = "DIFFICULTY"
 vertical_alignment = 1
 
+[node name="Label5" type="Label" parent="Background"]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 468.0
+offset_right = 257.0
+offset_bottom = 497.0
+theme_override_font_sizes/font_size = 15
+text = "RULES"
+vertical_alignment = 1
+
 [node name="OpponentListScroller" type="ScrollContainer" parent="Background"]
 layout_mode = 0
 offset_left = 630.0
@@ -105,6 +116,14 @@ layout_mode = 2
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 3
+
+[node name="RulesContainer" type="GridContainer" parent="Background"]
+layout_mode = 2
+offset_left = 69.0
+offset_top = 511.0
+offset_right = 694.0
+offset_bottom = 632.0
+columns = 2
 
 [node name="DifficultyContainer" type="GridContainer" parent="Background"]
 layout_mode = 0

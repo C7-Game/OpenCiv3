@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="OpenCiv3"
+config/version="0.3 Dutch 2"
 run/main_scene="res://UIElements/MainMenu/main_menu.tscn"
 config/features=PackedStringArray("4.4", "C#")
 boot_splash/fullsize=false
