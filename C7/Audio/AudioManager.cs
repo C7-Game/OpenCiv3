@@ -9,101 +9,62 @@ public partial class AudioManager : Node {
 	private ILogger log;
 
 	[Export] AudioStreamPlayer musicPlayer;
-	[Export] AudioStreamPlayer sfxPlayer;
-	[Export] AudioStreamPlayer uiPlayer;
-	[Export] AudioStreamPlayer ambiencePlayer;
+	[Export] AudioStreamPlayer sfxAudioPlayer;
+	[Export] AudioStreamPlayer uiAudioPlayer;
+	[Export] AudioStreamPlayer ambienceAudioPlayer;
+
+	private PolyphonicAudioPlayer _polyMusicPlayer;
+	private PolyphonicAudioPlayer _polySfxAudioPlayer;
+	private PolyphonicAudioPlayer _polyUiAudioPlayer;
+	private PolyphonicAudioPlayer _polyAmbienceAudioPlayer;
+
+	private static string AudioSettingsSection = "audio";
 
 	public static string MusicBus = "Music";
-	public static string SfxBus = "Sfx";
-	public static string UIBus = "UI";
-	public static string AmbienceBus = "Ambience";
+	public static string SfxAudioBus = "Sfx";
+	public static string UIAudioBus = "UI";
+	public static string AmbienceAudioBus = "Ambience";
 
 	private bool musicEnabled = true;
-	private bool soundEnabled = true;
-	private bool uiEnabled = true;
-	private bool ambienceEnabled = true;
+	private bool sfxAudioEnabled = true;
+	private bool uiAudioEnabled = true;
+	private bool ambienceAudioEnabled = true;
 
 	public override void _Ready() {
 		log = LogManager.ForContext<AudioManager>();
-		ConfigureMusic();
-		ConfigureSound();
-		ConfigureUI();
-		ConfigureAmbience();
+
+		musicEnabled = ConfigureVolume("musicVolume", MusicBus);
+		_polyMusicPlayer = new PolyphonicAudioPlayer(musicPlayer, 2);
+
+		sfxAudioEnabled = ConfigureVolume("sfxAudioVolume", SfxAudioBus);
+		_polySfxAudioPlayer = new PolyphonicAudioPlayer(sfxAudioPlayer, 32);
+
+		uiAudioEnabled = ConfigureVolume("uiAudioVolume", UIAudioBus);
+		_polyUiAudioPlayer = new PolyphonicAudioPlayer(uiAudioPlayer, 8);
+
+		ambienceAudioEnabled = ConfigureVolume("ambienceAudioVolume", AmbienceAudioBus);
+		_polyAmbienceAudioPlayer = new PolyphonicAudioPlayer(ambienceAudioPlayer, 8);
 	}
 
-	private void ConfigureMusic() {
+	private bool ConfigureVolume(string volumeKey, string audioBus) {
 		try {
-			string volume = C7Settings.GetSettingValue("audio", "musicVolume");
-			float volumeDb = LogicalVolumeAsDecibel(volume);
+			string volume = C7Settings.GetSettingValue(AudioSettingsSection, volumeKey);
+			float volumeDb = LogicalVolumeAsDecibel(volume, volumeKey);
 
 			if (volumeDb == float.MinValue) {
-				musicEnabled = false;
+				return false;
 			}
 
-			if (musicEnabled) {
-				log.Debug("setting music volume to {volume}, which is {offset} decibel (offset)", volume, volumeDb);
-				int busIndex = AudioServer.GetBusIndex(MusicBus);
-				AudioServer.SetBusVolumeDb(busIndex, volumeDb);
-			}
+			log.Debug("setting {volumeKey} to {volume}, which is {offset} decibel (offset)",
+				volumeKey, volume, volumeDb);
+
+			int busIndex = AudioServer.GetBusIndex(audioBus);
+			AudioServer.SetBusVolumeDb(busIndex, volumeDb);
+
+			return true;
 		} catch (ApplicationException ex) {
-			log.Error(ex, "could not configure music");
-		}
-	}
-
-	private void ConfigureSound() {
-		try {
-			string volume = C7Settings.GetSettingValue("audio", "soundVolume");
-			float volumeDb = LogicalVolumeAsDecibel(volume);
-
-			if (volumeDb == float.MinValue) {
-				soundEnabled = false;
-			}
-
-			if (soundEnabled) {
-				log.Debug("setting sound volume to {volume}, which is {offset} decibel (offset)", volume, volumeDb);
-				int busIndex = AudioServer.GetBusIndex(SfxBus);
-				AudioServer.SetBusVolumeDb(busIndex, volumeDb);
-			}
-		} catch (ApplicationException ex) {
-			log.Error(ex, "could not configure sound");
-		}
-	}
-
-	private void ConfigureUI() {
-		try {
-			string volume = C7Settings.GetSettingValue("audio", "uiVolume");
-			float volumeDb = LogicalVolumeAsDecibel(volume);
-
-			if (volumeDb == float.MinValue) {
-				uiEnabled = false;
-			}
-
-			if (uiEnabled) {
-				log.Debug("setting UI volume to {volume}, which is {offset} decibel (offset)", volume, volumeDb);
-				int busIndex = AudioServer.GetBusIndex(UIBus);
-				AudioServer.SetBusVolumeDb(busIndex, volumeDb);
-			}
-		} catch (ApplicationException ex) {
-			log.Error(ex, "could not configure UI audio");
-		}
-	}
-
-	private void ConfigureAmbience() {
-		try {
-			string volume = C7Settings.GetSettingValue("audio", "ambienceVolume");
-			float volumeDb = LogicalVolumeAsDecibel(volume);
-
-			if (volumeDb == float.MinValue) {
-				ambienceEnabled = false;
-			}
-
-			if (ambienceEnabled) {
-				log.Debug("setting ambience volume to {volume}, which is {offset} decibel (offset)", volume, volumeDb);
-				int busIndex = AudioServer.GetBusIndex(AmbienceBus);
-				AudioServer.SetBusVolumeDb(busIndex, volumeDb);
-			}
-		} catch (ApplicationException ex) {
-			log.Error(ex, "could not configure ambience audio");
+			log.Error(ex, "could not configure {volumeKey}", volumeKey);
+			return false;
 		}
 	}
 
@@ -114,10 +75,10 @@ public partial class AudioManager : Node {
 	 * Our users are probably more used to a 0% to 100% system.
 	 * So this method converts between them.
 	 */
-	private float LogicalVolumeAsDecibel(string volume) {
+	private float LogicalVolumeAsDecibel(string volume, string volumeKey) {
 		if (volume == null) {
 			//First run.  Save the setting.
-			C7Settings.SetValue("audio", "musicVolume", "100");
+			C7Settings.SetValue(AudioSettingsSection, volumeKey, "100");
 			C7Settings.SaveSettings();
 			return 0;
 		}
@@ -138,47 +99,40 @@ public partial class AudioManager : Node {
 	// TODO: polyphony via AudioStreamPolyphonic + AudioStreamPlaybackPolyphonic
 	// https://docs.godotengine.org/en/4.0/classes/class_audiostreampolyphonic.html
 
+	private long currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
+
 	public void PlayMusic(string configKey) {
 		AudioStream stream = AudioLoader.Load(configKey);
 
 		if (stream == null)
 			return;
 
-		musicPlayer.Stream = stream;
-		musicPlayer.Play();
+		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
+			_polyMusicPlayer.Stop(currentMusicId);
+		}
+
+		currentMusicId = _polyMusicPlayer.Play(stream);
 	}
 
 	public void StopMusic() {
-		musicPlayer.Stop();
+		_polyMusicPlayer.StopAll();
 	}
 
-	public void PlaySound(string configKey) {
-		AudioStream stream = AudioLoader.Load(configKey);
-
-		if (stream == null)
-			return;
-
-		sfxPlayer.Stream = stream;
-		sfxPlayer.Play();
+	public void PlaySfxAudio(string configKey) {
+		var stream = AudioLoader.Load(configKey);
+		if (stream != null)
+			_polySfxAudioPlayer.Play(stream);
 	}
 
-	public void PlayUI(string configKey) {
-		AudioStream stream = AudioLoader.Load(configKey);
-
-		if (stream == null)
-			return;
-
-		uiPlayer.Stream = stream;
-		uiPlayer.Play();
+	public void PlayUIAudio(string configKey) {
+		var stream = AudioLoader.Load(configKey);
+		if (stream != null)
+			_polyUiAudioPlayer.Play(stream);
 	}
 
-	public void PlayAmbience(string configKey) {
-		AudioStream stream = AudioLoader.Load(configKey);
-
-		if (stream == null)
-			return;
-
-		ambiencePlayer.Stream = stream;
-		ambiencePlayer.Play();
+	public void PlayAmbienceAudio(string configKey) {
+		var stream = AudioLoader.Load(configKey);
+		if (stream != null)
+			_polyAmbienceAudioPlayer.Play(stream);
 	}
 }

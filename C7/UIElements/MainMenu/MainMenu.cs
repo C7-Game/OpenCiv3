@@ -171,6 +171,6 @@ public partial class MainMenu : Node {
 	}
 
 	private void PlayButtonPressedSound() {
-		AudioManager.PlaySound("buttons.button_1");
+		AudioManager.PlaySfxAudio("buttons.button_1");
 	}
 }
