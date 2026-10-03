@@ -7,7 +7,10 @@ using Serilog;
 using C7Engine.Pathing;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using C7.UIElements.Popups;
+using static AdvisorHead;
 using static C7GameData.MapUnit;
 
 public class GotoInfo {
@@ -96,6 +99,7 @@ public partial class Game : Node {
 	[Signal] public delegate void PlayerTurnStartEventHandler();
 	[Signal] public delegate void PlayerTurnEndEventHandler();
 	[Signal] public delegate void GameInitializedEventHandler();
+	[Signal] public delegate void InteractivePopUpEventHandler();
 
 	[Signal] public delegate void UnitMovedEventHandler();
 
@@ -114,6 +118,8 @@ public partial class Game : Node {
 	private GameViews gameViews;
 	[Export]
 	private Diplomacy diplomacy;
+	[Export]
+	private InteractablePopUpController interactablePopUpController;
 
 	[Export]
 	private DoubleClickHandler doubleClickHandler;
@@ -225,6 +231,11 @@ public partial class Game : Node {
 
 		EmitSignal(SignalName.GameInitialized);
 
+		if (Global.LoadGamePath == null) {
+			new MsgNewGame(controller.id).send();
+			await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
+		}
+
 		Global.ResetLoadGameFields();
 	}
 
@@ -314,8 +325,20 @@ public partial class Game : Node {
 		GameData gameData = EngineStorage.gameData;
 
 		switch (msg) {
+			case MsgNewGame mNGP:
+				EmitDawnOfCivilizationSignal(mNGP);
+				break;
 			case MsgStartTurn mST:
 				OnPlayerStartTurn();
+				break;
+			case MsgMainMenu mMM:
+				EmitMainMenuSignal();
+				break;
+			case MsgDiplomacyPopUp mDP:
+				EmitDiplomacyPopUpSignal();
+				break;
+			case MsgScienceGuidance mSG:
+				EmitScienceGuidanceSignal();
 				break;
 			case MsgShowCityScreen mSCS:
 				ShowCityScreenForCity(gameData, mSCS.city);
@@ -324,17 +347,29 @@ public partial class Game : Node {
 				ShowCityScreenForCity(gameData, mCC.city);
 				break;
 			case MsgCityDestroyed mCD:
-				mapView.cityLayer.UpdateAfterCityDestruction(mCD.city);
+				this.ensureLocationIsInView(mCD.city.location);
+				this.mapView.cityLayer.UpdateAfterCityDestruction(mCD.city);
+				break;
+			case MsgCityRaised mCR:
+				this.ensureLocationIsInView(mCR.city.location);
+				this.mapView.cityLayer.UpdateAfterCityDestruction(mCR.city);
+				this.EmitCityRaisedSignal(mCR);
+				break;
+			case MsgCityRansacked mCRS:
+				this.ensureLocationIsInView(mCRS.city.location);
+				this.EmitCityRansackedSignal(mCRS);
 				break;
 			case MsgCivilizationDestroyed mCivD:
-				popupOverlay.ShowPopup(new CivilizationDestroyed(mCivD.civilization), PopupOverlay.PopupCategory.Advisor);
-				InterestingEvent();
+				this.EmitCivilizationDestroyedSignal(mCivD);
+				// Break out of fast forward mode after interesting events.
+				turnsLeftToFastForward = 0;
 				break;
 			case MsgShowMilitaryAdvisorPopup mSMAP:
 				if (!popupOverlay.Visible) {
-					var mood = mSMAP.happy ? AdvisorHead.Mood.Happy : AdvisorHead.Mood.Angry;
-					var pop = new InformationalPopup(mSMAP.message, AdvisorHead.Advisor.Military, mood);
-					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Advisor);
+					var mood = mSMAP.happy ? Mood.Happy : Mood.Angry;
+					var pop = new InformationalPopup(mSMAP.message, Advisor.Military, mood);
+					// popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Advisor);
+					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Info);
 				}
 				break;
 			case MsgShowScienceAdvisor mSSA:
@@ -354,38 +389,48 @@ public partial class Game : Node {
 					humanWants: mSTO.aiGive);
 				break;
 			case MsgDisplayHurryProductionPopup mDHPP:
-				if (mDHPP.details.errorMessage != null) {
-					popupOverlay.ShowPopup(
-						new InformationalPopup(mDHPP.details.errorMessage),
-						PopupOverlay.PopupCategory.Advisor);
-				} else {
-					popupOverlay.ShowPopup(
-						new ConfirmationPopup(message: mDHPP.details.costMessage,
-												yesText: "Yes I'm sure!",
-												noText: "Maybe you're right. Nevermind.",
-												yesAction: () => {
-													new MsgDoHurryProduction(mDHPP.city).send();
-												}),
-						PopupOverlay.PopupCategory.Advisor);
-				}
+				EmitHurryProductionSignal(mDHPP);
 				break;
 			case MsgDisplayStopWorkerActionPopup mDSWA:
-				popupOverlay.ShowPopup(
-					new ConfirmationPopup(
-						$"This worker has been ordered to {C7Action.ToTooltip(mDSWA.workerJob.UIAction)} and will be done in {mDSWA.turnsLeft} turns." +
-						$"\nDo you want them to stop?",
-						"Yes, there is more important work to do!",
-						"No, carry on.",
-						() => {
-							new MsgDoStopWorkerAction(mDSWA.worker).send();
-						}),
-					PopupOverlay.PopupCategory.Advisor);
+				EmitConfirmStopWorkerActionSignal(mDSWA);
 				break;
-			case MsgWarDeclaration mWD:
-				popupOverlay.ShowPopup(
-					new InformationalPopup($"The {mWD.aggressor.civilization.noun} declared war on the {mWD.opponent.civilization.noun}"),
-					PopupOverlay.PopupCategory.Advisor);
-				InterestingEvent();
+			// this should come before MsgWarDeclarationConfirmation
+			// as this message class inherits from it
+			// and otherwise MsgWarDeclarationConfirmation
+			// will catch both before reaching this
+			case MsgDiplomacyWarDeclarationConfirmation mDWDC:
+				EmitDiplomaticWarDeclarationConfirmationSignal(mDWDC);
+				// Break out of the fast forward mode when something interesting happens.
+				turnsLeftToFastForward = 0;
+				break;
+			case MsgWarDeclarationNotification mWDN:
+				EmitWarDeclarationNotificationSignal(mWDN);
+				// Break out of the fast forward mode when something interesting happens.
+				turnsLeftToFastForward = 0;
+				break;
+			case MsgWarDeclarationConfirmation mWD:
+				EmitWarDeclarationConfirmationSignal(mWD);
+				// Break out of the fast forward mode when something interesting happens.
+				turnsLeftToFastForward = 0;
+				break;
+			case MsgRefuseContact mRC:
+				EmitRefuseContactSignal(mRC);
+				break;
+			case MsgCityRiotWarning mRW:
+				this.ensureLocationIsInView(mRW.city.location);
+				EmitCityRiotWarningSignal(mRW);
+				break;
+			case MsgSelectGovernment mSG:
+				EmitSelectGovernmentSignal(mSG);
+				break;
+			case MsgConfirmStartRevolution mSR:
+				EmitStartARevolutionSignal(mSR);
+				break;
+			case MsgDescendIntoAnarchy mDIA:
+				EmitDescendIntoAnarchySignal(mDIA);
+				break;
+			case MsgAlreadyInRevolution mAIR:
+				EmitAlreadyInRevolutionSignal(mAIR);
 				break;
 			case MsgShowTemporaryPopup mSTP:
 				Vector2 pos = mapView.screenLocationOfTile(mSTP.location, true);
@@ -399,15 +444,11 @@ public partial class Game : Node {
 				EmitSignal(SignalName.UnitMoved, new ParameterWrapper<MapUnit>(mTU.Unit));
 				break;
 			case MsgDisplayAbandonCityPopup mDACP:
-				popupOverlay.ShowPopup(
-					new ConfirmationPopup(
-						$"Are you sure you want to abandon {mDACP.city.name}?",
-						"Yes, we don't want it anymore.",
-						"No, sorry.",
-						() => {
-							CityInteractions.DestroyCity(mDACP.city);
-						}),
-					PopupOverlay.PopupCategory.Advisor);
+				this.ensureLocationIsInView(mDACP.city.location);
+				EmitConfirmAbandonCitySignal(mDACP);
+				break;
+			case MsgNameCity mNC:
+				EmitNameCitySignal(mNC);
 				break;
 			case MsgVictory mV:
 				var endMsg =
@@ -475,9 +516,7 @@ public partial class Game : Node {
 			// ideal, but we don't yet have a general purpose "show a popup and
 			// wait for the player to acknowledge it" system.
 			if (controller.government.transitionType && TurnHandling.GetTurnNumber() >= controller.inAnarchyUntilTurn) {
-				popupOverlay.ShowPopup(
-					new GovernmentSelection(controller, controller.GetAvailableGovernments(gameData)),
-					PopupOverlay.PopupCategory.Info);
+				new MsgSelectGovernment(this.controller.id).send();
 			}
 
 			// If the player can pick a new tech to research, prompt them to do so
@@ -522,15 +561,7 @@ public partial class Game : Node {
 
 				City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
 				if (cityMood == City.Mood.Unhappy) {
-					popupOverlay.ShowPopup(
-						new ConfirmationPopup(
-							$"{city.name} will riot! Are you sure?",
-							"Yes, let them riot!",
-							"No. Maybe you are right, advisor.",
-							() => {
-								DoActualEndTurn();
-							}),
-						PopupOverlay.PopupCategory.Advisor);
+					new MsgCityRiotWarning(this.controller.id, city).send();
 					doEndTurn = false;
 					return;
 				}
@@ -813,6 +844,9 @@ public partial class Game : Node {
 	}
 
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {
+		if (interactablePopUpController.Visible)
+			return;
+
 		if (eventKeyDown.Keycode == Godot.Key.O && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
 			ToggleObserverMode();
 		}
@@ -970,6 +1004,16 @@ public partial class Game : Node {
 	}
 
 	private void ProcessAction(string currentAction) {
+		if (currentAction == C7Action.Escape && interactablePopUpController.Visible) {
+			interactablePopUpController.Visible = false;
+			return;
+		}
+
+		// GD.Print("Processing action: " + currentAction);
+		if (interactablePopUpController.Visible) {
+			return;
+		}
+
 		if (currentAction == C7Action.Escape && tileInfo != null) {
 			HideTileInfo();
 			return;
@@ -986,7 +1030,7 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.Escape && advisor.Visible) {
-			advisor.Hide();
+			advisor.OnHide();
 			return;
 		}
 
@@ -1035,7 +1079,8 @@ public partial class Game : Node {
 
 		if (currentAction == C7Action.Escape && this.gotoInfo == null) {
 			log.Debug("Got request for escape/quit");
-			popupOverlay.ShowPopup(new EscapeQuitPopup(), PopupOverlay.PopupCategory.Info);
+			// popupOverlay.ShowPopup(new EscapeQuitPopup(), PopupOverlay.PopupCategory.Info);
+			EmitQuitGameSignal();
 		}
 
 		if (currentAction == C7Action.ToggleZoom) {
@@ -1114,10 +1159,11 @@ public partial class Game : Node {
 			EngineStorage.ReadGameData((GameData gameData) => {
 				MapUnit currentUnit = gameData.GetUnit(CurrentlySelectedUnit.id);
 				log.Debug(currentUnit.Describe());
-				if (currentUnit.canBuildCity()) {
-					popupOverlay.ShowPopup(new BuildCityDialog(controller.GetNextCityName()),
-						PopupOverlay.PopupCategory.Advisor);
-				}
+				new MsgNameCity(controller.id, controller.GetNextCityName()).send();
+				// if (currentUnit.canBuildCity()) {
+				// 	popupOverlay.ShowPopup(new BuildCityDialog(controller.GetNextCityName()),
+				// 		PopupOverlay.PopupCategory.Advisor);
+				// }
 			});
 		}
 
@@ -1213,7 +1259,7 @@ public partial class Game : Node {
 			// war for them, clear out the player, and call this method again.
 			if (info.requiresWarDeclarationOnPlayer != null) {
 				GotoInfo stashed = info;
-				this.MaybeDeclareWar(stashed.requiresWarDeclarationOnPlayer, gameData.turn, () => {
+				this.MaybeDeclareWar(stashed.requiresWarDeclarationOnPlayer, () => {
 					stashed.requiresWarDeclarationOnPlayer = null;
 					this.ResolveMovement(stashed);
 					this.SetGotoMode(false);
@@ -1224,12 +1270,8 @@ public partial class Game : Node {
 		});
 	}
 
-	private void MaybeDeclareWar(Player player, int currentTurn, Action callback) {
-		popupOverlay.ShowPopup(new WarConfirmation(player,
-			() => {
-				controller.DeclareWarOn(player, currentTurn);
-				callback();
-			}), PopupOverlay.PopupCategory.Advisor);
+	private void MaybeDeclareWar(Player player, Action callback) {
+		new MsgWarDeclarationConfirmation(controller.id, player.id, callback).send();
 	}
 
 	private Tile lastTile = null;
@@ -1311,13 +1353,15 @@ public partial class Game : Node {
 			return;
 		}
 
+		Action bombard = () => {new MsgBombard(CurrentlySelectedUnit.id, tile).send();};
+
 		EngineStorage.ReadGameData((GameData gameData) => {
 			if (info.RequiresWarDeclaration(tile, out var player)) {
-				MaybeDeclareWar(player, gameData.turn, () => {
-					new MsgBombard(CurrentlySelectedUnit.id, tile).send();
+				MaybeDeclareWar(player, () => {
+					bombard.Invoke();
 				});
 			} else {
-				new MsgBombard(CurrentlySelectedUnit.id, tile).send();
+				bombard.Invoke();
 			}
 		});
 	}
@@ -1342,5 +1386,612 @@ public partial class Game : Node {
 
 	public void OnDiplomacySelected(ParameterWrapper<ID> opponentPlayer) {
 		diplomacy.ShowTalkScreenForPlayer(controller.id, opponentPlayer.Value);
+	}
+
+	public void ShowInteractivePopUp(ParameterWrapper<InteractablePopUp> interactablePopUp) {
+		interactablePopUpController.OnShowInteractablePopUp(interactablePopUp);
+	}
+
+	public void EmitDawnOfCivilizationSignal(MsgNewGame msg) {
+		var message = "PLACEHOLDER MSG";
+		var delimeter = "and";
+		EngineStorage.ReadGameData(data => {
+			var controller = data.players.First(p => p.id == msg.controllerId);
+			var year = data.timeOptions.GetDisplayTime(data.turn);
+			var knownTechs = controller.knownTechs;
+
+			var sb = new StringBuilder();
+			for (int i = 0; i < controller.civilization.traits.Count; i++) {
+				var trait = controller.civilization.traits.ElementAt(i);
+				if (i > 0) {
+					sb.Append(delimeter).Append(" ");
+				}
+				sb.Append($"[url={trait}][color=Blue]");
+				sb.Append(trait);
+				sb.Append("[/color][/url]");
+				sb.Append(" ");
+			}
+
+			var traits = sb.ToString();
+
+			var sbt = new StringBuilder();
+			// [url=whatever][color=Blue]wrap[/color][/url]
+			for (int i = 0; i < knownTechs.Count; i++) {
+				var tech = data.techs.First(t => t.id == knownTechs.ElementAt(i));
+				if (i > 0) {
+					sbt.Append(delimeter).Append(" ");
+				}
+				sbt.Append($"[url={tech.CivilopediaEntry}][color=Blue]");
+				sbt.Append(tech.Name);
+				sbt.Append("[/color][/url]");
+				sbt.Append(" ");
+			}
+
+			var techs = sbt.ToString();
+
+			// TODO: make this dynamic, it's in the civ data
+			var king = "[b]Caesar[/b]";
+
+			message = $"It is the year {year}. Your ancestors were nomads. " +
+					  $"But over the generations your people have learned the secrets of [i]farming," +
+					  $" road-building[/i], and [i]irrigation[/i], and they are ready to settle down." +
+					  $"\n\n{king}, your people are {traits}and have recently mastered {techs}." +
+					  $"\n\nThe people have vested [i]absolute power[/i] in you, trusting that you can build a Civilization to stand the test of time!";
+		});
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Dawn of Civilization",
+				message,
+				Advisor.None,
+				Mood.None,
+				630,
+				margins: new Margins(top: 50)
+			)
+		));
+	}
+
+	public void EmitMainMenuSignal() {
+		// var options = new List<ButtonAction>();
+		//
+		// var mapBtn = new ButtonAction() {
+		//     message = "Map",
+		//     // TODO: implement this option properly
+		//     action = null
+		// };
+		// options.Add(mapBtn);
+		//
+		// GD.Print($"{this.GetChildCount()}");
+		//
+		// var loadGameBtn = new ButtonAction() {
+		//     message = "Load Game",
+		//     action = () => {
+		//         
+		//         PackedScene scene = GD.Load<PackedScene>("res://UIElements/civ3_file_dialog.tscn");
+		//         var inst = scene.Instantiate<Civ3FileDialog>();
+		//         // inst.ali
+		//         AddChild(inst);
+		//         
+		//         // var loadDialog = GetNode<Civ3FileDialog>("res://UIElements/civ3_file_dialog.tscn");
+		//         // loadDialog.SetDirectoryForLoading(@"Conquests/Saves");
+		//         //
+		//         // // TODO: The main menu does sound playing but we don't know our path in
+		//         // // the scene, which makes this hard.
+		//         // // PlayButtonPressedSound();
+		//         // // GetParent().EmitSignal(PopupOverlay.SignalName.HidePopup);
+		//         // loadDialog.Popup();
+		//     }
+		// };
+		// options.Add(loadGameBtn);
+		//
+		// var retireBtn = new ButtonAction() {
+		//     message = "Retire",
+		//     // TODO: implement this option properly
+		//     action = () => {
+		//         EmitSignal(PopupOverlay.SignalName.Retire);
+		//     }
+		// };
+		// options.Add(retireBtn);
+		//
+		// var saveBtn = new ButtonAction() {
+		//     message = "Save Game",
+		//     // TODO: implement this option properly
+		//     action = () =>
+		//     {
+		//         var loadDialog = GetNode<Civ3FileDialog>("../%LoadDialog");
+		//         // TODO: this should go to our own saves directory.
+		//         loadDialog.SetDirectoryForSaving(@"Conquests/Saves");
+		//
+		//         // TODO: The main menu does sound playing but we don't know our path in
+		//         // the scene, which makes this hard.
+		//         // PlayButtonPressedSound();
+		//         // GetParent().EmitSignal(PopupOverlay.SignalName.HidePopup);
+		//
+		//         loadDialog.Popup();
+		//     }
+		// };
+		// options.Add(saveBtn);
+		//
+		// var quitBtn = new ButtonAction() {
+		//     message = "Quit Game (ESC)",
+		//     // TODO: implement this option properly
+		//     action = () => {
+		//         EmitSignal(PopupOverlay.SignalName.Quit);
+		//     }
+		// };
+		// options.Add(quitBtn);
+		//
+		// EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+		//     new OptionsPopUp(
+		//         controller.id,
+		//         "Main Menu",
+		//         null,
+		//         options,
+		//         Advisor.None,
+		//         Mood.None,
+		//         hSize: 350,
+		//         margins: new Margins(top: 100)
+		//     )
+		// ));
+	}
+
+	public void EmitDiplomacyPopUpSignal() {
+		var options = new List<ButtonAction>();
+
+		EngineStorage.ReadGameData(data => {
+			var allPlayers = data.players;
+			var buttons = new List<ButtonAction>();
+			foreach (KeyValuePair<ID, PlayerRelationship> kvp in controller.playerRelationships) {
+				string status = kvp.Value.AtWar() ? "War" : "Peace";
+
+				var btn = new ButtonAction() {
+					message = $"{allPlayers.Find(x => x.id == kvp.Key).civilization.noun} (at {status})",
+					action = () => {
+                        // EmitSignal(PopupOverlay.SignalName.HidePopup);
+                        OnDiplomacySelected(new ParameterWrapper<ID>(kvp.Key));
+                        // EmitSignal(PopupOverlay.SignalName.DiplomacySelection, new ParameterWrapper<ID>(kvp.Key));
+                    }
+				};
+				buttons.Add(btn);
+			}
+			options = buttons;
+		});
+
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Pick the civilization...",
+				null,
+				options,
+				Advisor.None,
+				Mood.None,
+				hSize: 550,
+				margins: new Margins(top: 150)
+			)
+		));
+	}
+
+	public void EmitScienceGuidanceSignal() {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Science Advisor",
+				"Sir, out Prophets need guidance. What shall we research?",
+				Advisor.Science,
+				Mood.Sad,
+				350
+			)
+		));
+	}
+
+	public void EmitConfirmStopWorkerActionSignal(MsgDisplayStopWorkerActionPopup msg) {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Domestic Advisor",
+				$"This worker has been ordered to {C7Action.ToTooltip(msg.workerJob.UIAction)} and will be done in {msg.turnsLeft} turns." +
+				$"\nDo you want them to stop?",
+				Advisor.Domestic,
+				Mood.Happy,
+				"Yes, there is more important work to do!",
+				"No, carry on.",
+				() => {
+					new MsgDoStopWorkerAction(msg.worker).send();
+				},
+				hSize: 350
+			)
+		));
+	}
+
+	public void EmitHurryProductionSignal(MsgDisplayHurryProductionPopup msg) {
+		if (msg.details.errorMessage != null) {
+			EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+				new InformationPopup(
+					controller.id,
+					"Domestic Advisor",
+					msg.details.errorMessage,
+					Advisor.Domestic,
+					Mood.Sad,
+					hSize: 300
+				)
+			));
+			return;
+		}
+
+		string yesText = "Yes";
+		string noText = "No";
+		var mood = Mood.Sad;
+		if (msg.details.hurryProductionType == Government.HurryProductionType.ForcedLabor) {
+			yesText = "It's that important. Get out my whip!";
+			noText = "Never mind.";
+		}
+		if (msg.details.hurryProductionType == Government.HurryProductionType.PaidLabor) {
+			yesText = "Don't argue with me. Start counting!";
+			noText = "Oh, I see. Never mind..";
+			mood = Mood.Surprised;
+		}
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Domestic Advisor",
+				msg.details.costMessage,
+				Advisor.Domestic,
+				mood,
+				yesText,
+				noText,
+				() => {
+					new MsgDoHurryProduction(msg.city).send();
+				},
+				hSize: 350
+			)
+		));
+	}
+
+	public void EmitCityRansackedSignal(MsgCityRansacked msg) {
+		var ransacked = $"[url=no idea][color=Blue]ransacked[/color][/url]";
+		var message = $"{msg.city.name} was {ransacked} by {msg.barbTribe} tribe!" +
+					  $" They have carried away {msg.goldLiberated} gold!\nWe [i]must build[/i] our military!";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Military Advisor",
+				message,
+				Advisor.Military,
+				Mood.Angry,
+				350
+			)
+		));
+	}
+
+	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
+		var friend = false;
+		EngineStorage.ReadGameData(data => {
+			var destroyedPlayer = data.players.First(p => p.civilization == msg.civilization);
+			if (controller.IsAtPeaceWith(destroyedPlayer))
+				friend = true;
+		});
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Military Advisor",
+				$"The {msg.civilization.noun} have been destroyed.",
+				Advisor.Military,
+				friend ? Mood.Sad : Mood.Happy,
+				350
+			)
+		));
+	}
+
+	public void EmitCityRaisedSignal(MsgCityRaised msg) {
+		Player attacker = null;
+		Player defender = null;
+
+		EngineStorage.ReadGameData(data => {
+			attacker = data.players.First(p => p.id == msg.controllerId);
+			defender = data.players.First(p => p.id == msg.ownerId);
+		});
+
+		var winningMessage =
+			$"Supreme Lord, once again our magnificent armies are victorious!\n" +
+			$"We have destroyed {msg.city.name} and \"liberated\" {msg.goldTaken} gold!";
+
+		var winningMood = Mood.Happy;
+
+		var losingMessage =
+			$"Terrible news, Sir!\n" +
+			$"The evil {attacker.civilization.adjective} have stolen " +
+			$"[i]{msg.goldTaken} gold[/i] from {msg.city.name} and burned it to the ground!\n" +
+			$"They should pay dearly for this atrocity!";
+
+		var losingMood = Mood.Angry;
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Military Advisor",
+				msg.controllerWon ? winningMessage : losingMessage,
+				Advisor.Military,
+				msg.controllerWon ? winningMood : losingMood,
+				350
+			)
+		));
+	}
+
+	private void EmitWarDeclarationNotificationSignal(MsgWarDeclarationNotification msg) {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Military Advisor",
+				$"The {msg.aggressor.civilization.noun} declared war on the {msg.opponent.civilization.noun}",
+				Advisor.Military,
+				Mood.Sad,
+				400
+			)
+		));
+	}
+
+	private void EmitWarDeclarationConfirmationSignal(MsgWarDeclarationConfirmation msg) {
+		Player aggressor = null;
+		Player opponent = null;
+
+		Action yesAction = null;
+		// "I said [i]DO IT![/i]",
+		string yesText = "I said DO IT!";
+
+		Action nosAction = null;
+		string noText = "No. You're right, perhaps we should re-consider.";
+
+		var message = "PLACEHOLDER MSG";
+
+		EngineStorage.ReadGameData(data => {
+			aggressor = data.players.First(p => p.id == controller.id);
+			opponent = data.players.First(p => p.id == msg.opponentId);
+
+			var currentTurn = data.turn;
+
+			message = $"Sir, this will cause war with the {opponent.civilization.adjective} people.\nAre you sure?";
+
+			yesAction = () => {
+				aggressor.DeclareWarOn(opponent, currentTurn);
+				msg.callback();
+			};
+		});
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Foreign Advisor",
+				message,
+				Advisor.Foreign,
+				Mood.Sad,
+				yesText,
+				noText,
+				yesAction
+			)
+		));
+	}
+
+	private void EmitDiplomaticWarDeclarationConfirmationSignal(MsgWarDeclarationConfirmation msg) {
+		Player aggressor = null;
+		Player opponent = null;
+
+		Action yesAction = null;
+		// "I said [i]DO IT![/i]",
+		string yesText = "You 're right! They are scum!";
+
+		Action nosAction = null;
+		string noText = "No. We should respect our neighbors.";
+
+		var message = "PLACEHOLDER MSG";
+
+		EngineStorage.ReadGameData(data => {
+			aggressor = data.players.First(p => p.id == controller.id);
+			opponent = data.players.First(p => p.id == msg.opponentId);
+
+			var currentTurn = data.turn;
+
+			message = $"Let us destroy them, sir!";
+
+			yesAction = () => {
+				aggressor.DeclareWarOn(opponent, currentTurn);
+				msg.callback();
+			};
+		});
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Military Advisor",
+				message,
+				Advisor.Military,
+				Mood.Angry,
+				yesText,
+				noText,
+				yesAction,
+				hSize: 350,
+				layoutPreset: Control.LayoutPreset.Center,
+				margins: new Margins(top: -350, left: 650)
+			)
+		));
+	}
+
+	private void EmitRefuseContactSignal(MsgRefuseContact msg) {
+		var noun = "Australians";
+		EngineStorage.ReadGameData(data => {
+			noun = data.players.First(p => p.id == msg.opponentId).civilization.noun;
+		});
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Foreign Advisor",
+				$"The {noun} refused to acknowledge our envoy!",
+				Advisor.Foreign,
+				Mood.Angry,
+				350
+			)
+		));
+	}
+
+	private void EmitCityRiotWarningSignal(MsgCityRiotWarning msg) {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Domestic Advisor",
+				$"[i]{msg.city.name}[/i] will riot! Are you sure you want to end your turn?",
+				Advisor.Domestic,
+				Mood.Angry,
+				"Yes, let them riot!",
+				"No, you are right, I will handle it.",
+				yesAction: () => { DoActualEndTurn(); },
+				hSize: 350
+			)
+		));
+	}
+
+	private void EmitSelectGovernmentSignal(MsgSelectGovernment msg) {
+
+		var options = new List<ButtonAction>();
+
+		EngineStorage.ReadGameData(data => {
+			var player = data.players.First(p => p.id == msg.controllerId);
+			var governments = player.GetAvailableGovernments(data);
+			var buttons = new List<ButtonAction>();
+			foreach (Government g in governments) {
+				var btn = new ButtonAction() {
+					message = $"{g.name}",
+					action = () => {
+						new SelectGovernmentMsg(player, g).send();
+					}
+				};
+				buttons.Add(btn);
+			}
+
+			options = buttons;
+		});
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Government Types",
+				$"Select a new government type.",
+				options,
+				Advisor.None,
+				Mood.None,
+				350,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	private void EmitAlreadyInRevolutionSignal(MsgAlreadyInRevolution msg) {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Domestic Advisor",
+				$"Sir! We are already undergoing a revolt..!\n\nDid you take your medication?",
+				Advisor.Domestic,
+				Mood.Angry,
+				350
+			)
+		));
+	}
+
+	private void EmitDescendIntoAnarchySignal(MsgDescendIntoAnarchy msg) {
+		EngineStorage.ReadGameData(data => {
+			var player = data.players.First(p => p.id == msg.controllerId);
+			EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+				new InformationPopup(
+					controller.id,
+					"Domestic Advisor",
+					$"Our people are overthrowing our {msg.government.name}. Our Civilization is descending into Anarchy!",
+					Advisor.Domestic,
+					Mood.Surprised,
+					350
+				)
+			));
+		});
+	}
+
+	private void EmitStartARevolutionSignal(MsgConfirmStartRevolution msgConfirm) {
+		Player controller = null;
+		Government controllerGov = null;
+		EngineStorage.ReadGameData(data => {
+			controller = data.players.First(p => p.id == msgConfirm.controllerId);
+			controllerGov = controller.government;
+		});
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Domestic Advisor",
+				$"You say you want a Revolution?!",
+				Advisor.Domestic,
+				Mood.Happy,
+				"Yes. You know it's gonna be alright.",
+				"No. You can count me out.",
+				yesAction: () => {
+					new MsgDescendIntoAnarchy(controller.id, controllerGov).send();
+				},
+				yesCallback: async () => {
+					await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
+					new StartGovernmentTransitionMsg(controller).send();
+				},
+				hSize: 350
+			)
+		));
+	}
+
+	private void EmitConfirmAbandonCitySignal(MsgDisplayAbandonCityPopup msg) {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Domestic Advisor",
+				$"Are you sure you want to abandon {msg.city.name}?",
+				Advisor.Domestic,
+				Mood.Angry,
+				"Yes, we don't want it anymore.",
+				"No. Sorry.",
+				yesAction: () => {
+					CityInteractions.DestroyCity(msg.city);
+				},
+				hSize: 350
+			)
+		));
+	}
+
+	private void EmitQuitGameSignal() {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Oh No!",
+				$"Do you really want to quit?",
+				Advisor.None,
+				Mood.None,
+				"Yes, immediately.",
+				"No, not really",
+				yesAction: () => {
+					OnQuitTheGame();
+				},
+				hSize: 350,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	private void EmitNameCitySignal(MsgNameCity msg) {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new TextInputPopUp(
+				controller.id,
+				"Name this town?",
+				"Name:",
+				msg.nextCityName,
+				callback: OnBuildCity,
+				Advisor.Culture,
+				Mood.Happy,
+				hSize: 550
+			)
+		));
 	}
 }

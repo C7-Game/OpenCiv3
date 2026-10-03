@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://cldl5nk4n61m2"]
+[gd_scene load_steps=31 format=3 uid="uid://cldl5nk4n61m2"]
 
 [ext_resource type="Script" uid="uid://yxhiwx46tety" path="res://Game.cs" id="1"]
 [ext_resource type="Script" uid="uid://cfenrvu7tnp40" path="res://DoubleClickHandler.cs" id="2_t735q"]
@@ -29,8 +29,9 @@
 [ext_resource type="Script" uid="uid://bw62py00o3x5a" path="res://UIElements/GameViews/GameViews.cs" id="24_hwb67"]
 [ext_resource type="PackedScene" uid="uid://bwe87nwkg01n1" path="res://UIElements/GameViews/space_race_view.tscn" id="25_y31gw"]
 [ext_resource type="PackedScene" uid="uid://dvrx5adwjd0w4" path="res://UIElements/GameViews/demographics_view.tscn" id="27_gbxbf"]
+[ext_resource type="PackedScene" uid="uid://pj6wd6kxfd12" path="res://UIElements/Popups/InteractablePopUpController.tscn" id="29_v3pw1"]
 
-[node name="C7Game" type="Node" node_paths=PackedStringArray("Toolbar", "popupOverlay", "cityScreen", "advisor", "gameViews", "diplomacy", "doubleClickHandler", "animationController", "unitSelector")]
+[node name="C7Game" type="Node" node_paths=PackedStringArray("Toolbar", "popupOverlay", "cityScreen", "advisor", "gameViews", "diplomacy", "interactablePopUpController", "doubleClickHandler", "animationController", "unitSelector")]
 script = ExtResource("1")
 Toolbar = NodePath("CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer")
 popupOverlay = NodePath("CanvasLayer/PopupOverlay")
@@ -38,6 +39,7 @@ cityScreen = NodePath("CanvasLayer/CityScreen")
 advisor = NodePath("CanvasLayer/Advisor")
 gameViews = NodePath("CanvasLayer/GameViews")
 diplomacy = NodePath("CanvasLayer/Diplomacy")
+interactablePopUpController = NodePath("CanvasLayer/InteractablePopUpController")
 doubleClickHandler = NodePath("DoubleClickHandler")
 animationController = NodePath("AnimationController")
 unitSelector = NodePath("UnitSelector")
@@ -302,18 +304,22 @@ control = NodePath("../Control")
 
 [node name="PopupSound" type="AudioStreamPlayer" parent="CanvasLayer/PopupOverlay"]
 
+[node name="InteractablePopUpController" parent="CanvasLayer" instance=ExtResource("29_v3pw1")]
+visible = false
+
 [node name="LoadDialog" parent="." instance=ExtResource("12_yjlfl")]
 unique_name_in_owner = true
 visible = false
 
 [connection signal="GameInitialized" from="." to="CanvasLayer/Control/UnitButtons" method="SetUpControlButtons"]
+[connection signal="InteractivePopUp" from="." to="." method="ShowInteractivePopUp"]
 [connection signal="ShowCityScreen" from="." to="CanvasLayer/CityScreen" method="OnShowCityScreen"]
 [connection signal="ShowGameView" from="." to="CanvasLayer/Advisor" method="OnShowGameView"]
 [connection signal="ShowGameView" from="." to="CanvasLayer/GameViews" method="OnShowGameView"]
 [connection signal="ShowSpecificAdvisor" from="." to="CanvasLayer/Advisor" method="OnShowSpecificAdvisor"]
 [connection signal="ShowSpecificAdvisor" from="." to="CanvasLayer/GameViews" method="OnShowSpecificAdvisor"]
-[connection signal="TurnEnded" from="." to="CanvasLayer/Control/GameStatus/LowerRightInfoBox" method="PleaseWait"]
 [connection signal="TurnEnded" from="." to="CanvasLayer/Control/GameStatus/LowerRightInfoBox" method="StopToggling"]
+[connection signal="TurnEnded" from="." to="CanvasLayer/Control/GameStatus/LowerRightInfoBox" method="PleaseWait"]
 [connection signal="UnitMoved" from="." to="CanvasLayer/Control/UnitButtons" method="OnUnitMoved"]
 [connection signal="UnitMoved" from="." to="CanvasLayer/Control/GameStatus/LowerRightInfoBox" method="OnUnitMoved"]
 [connection signal="NewAutoselectedUnit" from="UnitSelector" to="CanvasLayer/Control/UnitButtons" method="OnNewUnitSelected"]
