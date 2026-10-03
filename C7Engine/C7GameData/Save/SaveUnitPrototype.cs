@@ -11,6 +11,7 @@ namespace C7GameData.Save {
 			LethalLandBombardment,
 			LethalSeaBombardment,
 			Radar,
+			Leader,
 		}
 
 		public string name { get; set; }

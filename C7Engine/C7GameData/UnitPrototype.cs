@@ -118,7 +118,14 @@ namespace C7GameData {
 
 		public HashSet<UnitAction> actions = [];
 
+		// Leader kinds are tags so a mod can add one without a code change;
+		// whether a prototype is a leader at all is the imported Flag.Leader.
+		public const string MILITARY_LEADER_ATTRIBUTE = "militaryLeader";
+		public const string SCIENTIFIC_LEADER_ATTRIBUTE = "scientificLeader";
+
 		public HashSet<string> attributes = new HashSet<string>();
+
+		public bool HasAttribute(string attribute) => attributes.Contains(attribute);
 
 		public HashSet<Resource> requiredResources { get; set; } = [];
 
@@ -127,7 +134,6 @@ namespace C7GameData {
 		// terraformActions.Count > 0 is not enough, as for example the Crusader unit can build a Fortress
 		public bool isWorker => terraformActions.Count > 0 && actions.Contains(UnitAction.Automate);
 		public bool isSettler => actions.Contains(UnitAction.BuildCity);
-
 
 		public UnitPrototype() { }
 

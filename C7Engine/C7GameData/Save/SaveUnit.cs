@@ -68,7 +68,7 @@ namespace C7GameData.Save {
 				isAutomated = isAutomated,
 				facingDirection = facingDirection,
 				WorkerProgressTowardsJob = WorkerProgressTowardsJob,
-				WorkerJob = WorkerJob == null ? null:terraforms.Find(tf => tf.Id == WorkerJob)
+				WorkerJob = WorkerJob == null ? null:terraforms.Find(tf => tf.Id == WorkerJob),
 			};
 			unit.location.unitsOnTile.Add(unit);
 			unit.movementPoints.reset(movePointsRemaining);

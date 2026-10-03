@@ -13,6 +13,7 @@ mono_crash.*.blob
 # Exports folder ignores
 C7/Exports
 Exports/
+Saves/
 
 # Test runtime files
 EngineTests/data/

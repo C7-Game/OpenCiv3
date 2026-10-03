@@ -24,5 +24,17 @@ namespace C7GameData {
 		public float ShieldRateForDisbanding; // per cent
 		public bool AllowLesserUnitProduction; // for example, allow building a Spearman/Pikeman when we can build a Musketman (simultaneously)
 		public int RadarTileVisibility; // how many tiles, a unit with the Radar ability, can see ahead
+
+		public bool AllowScientificLeaders = true;
+		public int GoldenAgeDuration;
+
+		// Chance of a Scientific leader appearing when a technology is
+		// researched. Community-sourced Civ3 figures, not read from the BIQ.
+		public float ScientificLeaderChance = .03f;
+		public float ScientificTraitLeaderChance = .05f;
+
+		// The two leader types gate independently, so each gets its own cap.
+		public int MaxScientificLeaders = 2;
+		public int MaxMilitaryLeaders = 1;
 	}
 }
