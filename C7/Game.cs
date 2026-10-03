@@ -205,6 +205,13 @@ public partial class Game : Node {
 		}
 
 		InitializeMapView();
+		InitializeAudio();
+	}
+
+	private void InitializeAudio() {
+		AudioManager audio = GetNode<AudioManager>("/root/GlobalAudioManager");
+		audio.StopMusic();
+		// TODO: switch to in-game playlist / music logic
 	}
 
 	private async Task StartGame() {

@@ -28,6 +28,7 @@ public partial class MainMenu : Node {
 
 		try {
 			DisplayTitleScreen();
+
 			AudioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
 			PlayMusic();
 		} catch (Exception ex) {
@@ -171,6 +172,6 @@ public partial class MainMenu : Node {
 	}
 
 	private void PlayButtonPressedSound() {
-		AudioManager.PlaySfxAudio("buttons.button_1");
+		AudioManager.PlayUIAudio("buttons.button_1");
 	}
 }

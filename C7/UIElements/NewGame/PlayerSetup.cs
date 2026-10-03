@@ -271,10 +271,6 @@ public partial class PlayerSetup : Control {
 	}
 
 	private void StartGame() {
-		AudioManager audio = GetNode<AudioManager>("/root/GlobalAudioManager");
-		audio.StopMusic();
-		// TODO: switch to in-game playlist / music logic
-
 		GetTree().ChangeSceneToFile("res://C7Game.tscn");
 	}
 }
