@@ -112,6 +112,10 @@ public partial class ScenarioSetup : Control {
 										Util.setModPath(scenarioSearchPath);
 										log.Debug("RelativeModPath ", scenarioSearchPath);
 										return Util.Civ3MediaPath("Text/PediaIcons.txt");
+									},
+									(string scenarioSearchPath) => {
+										Util.setModPath(scenarioSearchPath);
+										return Util.Civ3MediaPath("Text/Civilopedia.txt");
 									});
 	}
 

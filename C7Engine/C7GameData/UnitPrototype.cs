@@ -56,6 +56,7 @@ namespace C7GameData {
 	 **/
 	public class UnitPrototype : IProducible {
 		public string name { get; set; }
+		public string civilopediaEntry { get; set; }
 		public Art art { get; set; }
 		public int shieldCost { get; set; }
 		public int populationCost { get; set; }
@@ -134,6 +135,8 @@ namespace C7GameData {
 		public UnitPrototype(SaveUnitPrototype proto, IEnumerable<Terraform> terraforms) {
 			(name, art, shieldCost, populationCost)
 				= (proto.name, proto.art, proto.shieldCost, proto.populationCost);
+
+			civilopediaEntry = proto.civilopediaEntry;
 
 			(attack, defense, bombard, bombardRange, rateOfFire)
 				= (proto.attack, proto.defense, proto.bombard, proto.bombardRange, proto.rateOfFire);

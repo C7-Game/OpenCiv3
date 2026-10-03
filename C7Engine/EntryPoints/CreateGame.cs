@@ -12,6 +12,7 @@ public class GameParams {
 	public Func<GameMode.Config, BehaviorEngine> GameModeLoader;
 
 	public Func<string, string> GetPediaIconsPath = s => s;
+	public Func<string, string> GetCivilopediaTextPath = s => s;
 
 	public GameParams(string DefaultBicPath) {
 		this.DefaultBicPath = DefaultBicPath;
@@ -26,7 +27,7 @@ public class CreateGame {
 		* hopefully it won't be too much of a goose hunt to refactor it later if we decide to do so.
 		**/
 	public static async Task<Player> createGame(string loadFilePath, GameParams options) {
-		SaveGame save = SaveManager.LoadSave(loadFilePath, options.DefaultBicPath, options.GetPediaIconsPath);
+		SaveGame save = SaveManager.LoadSave(loadFilePath, options.DefaultBicPath, options.GetPediaIconsPath, options.GetCivilopediaTextPath);
 
 		return await createGame(save, options.GameModeLoader);
 	}

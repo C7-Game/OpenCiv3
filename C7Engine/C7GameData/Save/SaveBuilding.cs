@@ -31,6 +31,7 @@ namespace C7GameData.Save {
 		}
 
 		public string name;
+		public string civilopediaEntry;
 		public int shieldCost;
 		public int populationCost;
 		public ID requiredTech;
