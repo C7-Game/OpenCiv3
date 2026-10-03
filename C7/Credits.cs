@@ -3,6 +3,8 @@ using Serilog;
 
 public partial class Credits : Node2D {
 	private string creditsText = "Could not load credits file";
+	private string assetCreditsText = "Could not load asset credits file";
+	private string licencesText = "Could not load licences file";
 
 	private static ILogger log = Log.ForContext<Credits>();
 
@@ -13,6 +15,16 @@ public partial class Credits : Node2D {
 			creditsText = System.IO.File.ReadAllText("./Text/credits.txt");
 		} catch (System.Exception ex) {
 			log.Error(ex, "Failed to read from credits.txt!");
+		}
+		try {
+			assetCreditsText = System.IO.File.ReadAllText("./Text/asset_credits.txt");
+		} catch (System.Exception ex) {
+			log.Warning(ex, "Failed to read from asset_credits.txt!");
+		}
+		try {
+			licencesText = System.IO.File.ReadAllText("./Text/licences.txt");
+		} catch (System.Exception ex) {
+			log.Warning(ex, "Failed to read from licences.txt!");
 		}
 		ShowCredits();
 	}
@@ -38,10 +50,7 @@ public partial class Credits : Node2D {
 		boldFont.Data = ResourceLoader.Load<FontFile>("res://Fonts/NotoSans-Bold.ttf").Data;
 		italicFont.Data = ResourceLoader.Load<FontFile>("res://Fonts/NotoSans-Italic.ttf").Data;
 		boldItalicFont.Data = ResourceLoader.Load<FontFile>("res://Fonts/NotoSans-BoldItalic.ttf").Data;
-		regularFont.FixedSize = 14;
-		boldFont.FixedSize = 14;
-		italicFont.FixedSize = 14;
-		boldItalicFont.FixedSize = 14;
+
 		Theme theme = new Theme();
 		theme.SetFont("normal_font", "RichTextLabel", regularFont);
 		theme.SetFont("bold_font", "RichTextLabel", boldFont);
@@ -49,7 +58,7 @@ public partial class Credits : Node2D {
 		theme.SetFont("bold_italics_font", "RichTextLabel", boldItalicFont);
 
 		creditsLabel.Theme = theme;
-		creditsLabel.Text = creditsText;
+		creditsLabel.Text = creditsText + assetCreditsText + licencesText;
 		AddChild(creditsLabel);
 
 		TextureButton goBackButton = new TextureButton();
