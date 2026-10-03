@@ -1,5 +1,6 @@
+using C7Engine;
 using Godot;
-using ConvertCiv3Media;
+using static TemporaryPopup;
 
 [Tool]
 public partial class MenuButton : Civ3TextureButton {
@@ -8,13 +9,14 @@ public partial class MenuButton : Civ3TextureButton {
 	private PopupOverlay popupOverlay;
 
 	public override void _Ready() {
-		ImageTexture menuTexture = TextureLoader.Load("upper_left_navigation.menu");
-		this.TextureNormal = menuTexture;
+		TextureLoader.SetButtonTextures(this, "upper_left_navigation.menu");
+		this.TooltipText = "Main Menu";
+		this.Theme = GetToolTipTheme();
 	}
 
 	public override void _Pressed() {
+		// new MsgMainMenu().send();
 		popupOverlay.ShowPopup(new GameMenu(), PopupOverlay.PopupCategory.Info);
-		ReleaseFocus();
 	}
 
 }

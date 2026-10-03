@@ -470,4 +470,7 @@ namespace C7Engine {
 	public class MsgDiplomacyCompleted : MessageToEngine {
 		public override void process() { }
 	}
+	public class MsgUiDisengaged : MessageToEngine {
+		public override void process() { }
+	}
 }

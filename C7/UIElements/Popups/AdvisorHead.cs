@@ -3,6 +3,7 @@ using System;
 
 public class AdvisorHead {
 	public enum Mood {
+		None,
 		Happy,
 		Angry,
 		Sad,
@@ -10,6 +11,7 @@ public class AdvisorHead {
 	};
 
 	public enum Advisor {
+		None,
 		Domestic,
 		Trade,
 		Military,

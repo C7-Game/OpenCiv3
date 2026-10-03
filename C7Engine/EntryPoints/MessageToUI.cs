@@ -51,21 +51,92 @@ namespace C7Engine {
 		}
 	}
 
-	public class MsgStartTurn : MessageToUI { }
+	public class MsgNewGame : MessageToUI {
+		public ID controllerId;
 
+		public MsgNewGame(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+	public class MsgStartTurn : MessageToUI { }
+	public class MsgMainMenu : MessageToUI { }
+
+	public class MsgDiplomacyPopUp : MessageToUI { }
+
+	public class MsgRefuseContact : MessageToUI {
+		public ID opponentId;
+
+		public MsgRefuseContact(ID opponentId) {
+			this.opponentId = opponentId;
+		}
+	}
+
+	public class MsgAlreadyInRevolution : MessageToUI {
+		public ID controllerId;
+
+		public MsgAlreadyInRevolution(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+
+	public class MsgConfirmStartRevolution : MessageToUI {
+		public ID controllerId;
+
+		public MsgConfirmStartRevolution(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+	public class MsgDescendIntoAnarchy : MessageToUI {
+		public ID controllerId;
+		public Government government;
+
+		public MsgDescendIntoAnarchy(ID controllerId, Government government) {
+			this.controllerId = controllerId;
+			this.government = government;
+		}
+	}
+
+	public class MsgScienceGuidance : MessageToUI { }
 	public class MsgShowScienceAdvisor : MessageToUI { }
 
 	public class MsgUpdateUiAfterDomesticChange : MessageToUI { }
 
-	public class MsgWarDeclaration : MessageToUI {
+	public class MsgWarDeclarationNotification : MessageToUI {
 		public Player aggressor;
 		public Player opponent;
 
-		public MsgWarDeclaration(Player aggressor, Player opponent) {
+		public MsgWarDeclarationNotification(Player aggressor, Player opponent) {
 			this.aggressor = aggressor;
 			this.opponent = opponent;
 		}
 	}
+
+	public class MsgNameCity : MessageToUI {
+		public ID controllerId;
+		public string nextCityName;
+
+		public MsgNameCity(ID controllerId, string nextCityName) {
+			this.controllerId = controllerId;
+			this.nextCityName = nextCityName;
+		}
+	}
+
+	// Foreign
+	public class MsgWarDeclarationConfirmation : MessageToUI {
+		public ID aggressorId;
+		public ID opponentId;
+		public Action callback;
+
+		public MsgWarDeclarationConfirmation(ID aggressorId, ID opponentId, Action callback) {
+			this.aggressorId = aggressorId;
+			this.opponentId = opponentId;
+			this.callback = callback;
+		}
+	}
+
+	// Military
+	public class MsgDiplomacyWarDeclarationConfirmation(ID aggressorId, ID opponentId, Action callback)
+		: MsgWarDeclarationConfirmation(aggressorId, opponentId, callback);
 
 	public class MsgCityDestroyed : MessageToUI {
 		public City city;
@@ -75,10 +146,60 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgCityRaised : MessageToUI {
+		public ID controllerId;
+		public ID ownerId;
+		public City city;
+		public int goldTaken;
+		public bool controllerWon;
+
+		public MsgCityRaised(ID controllerId, ID ownerId, City city, int goldTaken, bool controllerWon) {
+			this.controllerId = controllerId;
+			this.ownerId = ownerId;
+			this.city = city;
+			this.goldTaken = goldTaken;
+			this.controllerWon = controllerWon;
+		}
+	}
+
+	public class MsgCityRansacked : MessageToUI {
+		public ID controllerId;
+		public City city;
+		public string barbTribe;
+		public int goldLiberated;
+
+		public MsgCityRansacked(ID controllerId, City city, string barbTribe, int goldLiberated) {
+			this.controllerId = controllerId;
+			this.city = city;
+			this.barbTribe = barbTribe;
+			this.goldLiberated = goldLiberated;
+		}
+	}
+
+	public class MsgCityRiotWarning : MessageToUI {
+		public ID controllerId;
+		public City city;
+
+		public MsgCityRiotWarning(ID controllerId, City city) {
+			this.controllerId = controllerId;
+			this.city = city;
+		}
+	}
+
+	public class MsgSelectGovernment : MessageToUI {
+		public ID controllerId;
+
+		public MsgSelectGovernment(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+
 	public class MsgCivilizationDestroyed : MessageToUI {
+		public ID controllerId;
 		public Civilization civilization;
 
-		public MsgCivilizationDestroyed(Civilization civ) {
+		public MsgCivilizationDestroyed(ID controllerId, Civilization civ) {
+			this.controllerId = controllerId;
 			this.civilization = civ;
 		}
 	}
