@@ -109,13 +109,18 @@ public partial class AudioManager : Node {
 
 		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
 			_polyMusicPlayer.Stop(currentMusicId);
+			currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
 		}
 
 		currentMusicId = _polyMusicPlayer.Play(stream);
 	}
 
+
 	public void StopMusic() {
-		_polyMusicPlayer.StopAll();
+		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
+			_polyMusicPlayer.Stop(currentMusicId);
+			currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
+		}
 	}
 
 	public void PlaySfxAudio(string configKey) {

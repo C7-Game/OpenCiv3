@@ -2,7 +2,7 @@ using Godot;
 
 public class PolyphonicAudioPlayer {
 	private readonly AudioStreamPlayer player;
-	private readonly AudioStreamPlaybackPolyphonic playback;
+	private AudioStreamPlaybackPolyphonic playback;
 
 	public PolyphonicAudioPlayer(AudioStreamPlayer player, int polyphony = 32) {
 		this.player = player;
@@ -27,5 +27,9 @@ public class PolyphonicAudioPlayer {
 
 	public void StopAll() {
 		player.Stop();
+		player.Play();
+
+		playback = player.GetStreamPlayback()
+			as AudioStreamPlaybackPolyphonic;
 	}
 }
