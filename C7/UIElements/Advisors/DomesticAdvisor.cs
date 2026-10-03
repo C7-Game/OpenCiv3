@@ -279,19 +279,11 @@ public partial class DomesticAdvisor : Control {
 			Player player = gameData.GetFirstHumanPlayer();
 
 			if (player.government.transitionType) {
-				popupOverlay.ShowPopup(
-					new InformationalPopup("You already started a revolution. Remember?"),
-					PopupOverlay.PopupCategory.Advisor);
+				new MsgAlreadyInRevolution(playerController.id).send();
 				return;
 			}
 
-			popupOverlay.ShowPopup(
-				new ConfirmationPopup(
-					"You say you want a revolution?",
-					"Yes, you know it's gonna be alright.",
-					"No. You can count me out.",
-					() => { new StartGovernmentTransitionMsg(player).send(); }),
-				PopupOverlay.PopupCategory.Advisor);
+			new MsgConfirmStartRevolution(playerController.id).send();
 		});
 	}
 

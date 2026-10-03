@@ -50,6 +50,13 @@ public partial class TemporaryPopup : Label {
 		return styleBox;
 	}
 
+	public static Theme GetToolTipTheme() {
+		var customTheme = new Theme();
+		customTheme.SetStylebox("panel", "TooltipPanel", PopupTechStyleBox());
+		customTheme.SetColor("font_color", "TooltipLabel", Colors.Black);
+		return customTheme;
+	}
+
 	public static void Show(Node parent, string msg, Vector2 rootPosition) {
 		TemporaryPopup popup = new(msg, 2);
 		popup.SetPosition(rootPosition);
