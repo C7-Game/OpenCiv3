@@ -66,7 +66,7 @@ jobs:
         dotnet format C7/C7.sln whitespace --verify-no-changes
     - name: Generate Asset Credits
       run: |
-        python3 .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
+        python .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
     - name: Copy Static Files
       run: |
         if cp -r ${PROJECT_DIR}/Text build/${FOLDER_NAME}/Text && \\
@@ -116,7 +116,7 @@ jobs:
         dotnet format C7/C7.sln whitespace --verify-no-changes
     - name: Generate Asset Credits
       run: |
-          python3 .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
+          python .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
     - name: Copy Static Files
       run: |
         if cp -r ${PROJECT_DIR}/Text build/${FOLDER_NAME}/Text && \\
@@ -169,7 +169,7 @@ jobs:
         dotnet format C7/C7.sln whitespace --verify-no-changes
     - name: Generate Asset Credits
       run: |
-          python3 .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
+          python .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
     - name: Copy Static Files
       run: |
         cd ${PROJECT_DIR}
