@@ -52,21 +52,3 @@ public class LineEditComponent {
 	public string placeholderText;
 	public Action<string> callback;
 }
-
-// public partial class SpecificPopUp : Control {
-//     public TextureRect advisorTextureRect;
-//     public Label headerLabel;
-//     public TextureRect bgTextureRect;
-//     
-//     protected void AddTexture(ImageTexture image) {
-//         advisorTextureRect = new TextureRect() {
-//             Texture = image
-//         };
-//     }
-//
-//     protected void AddHeaderLabel(string text) {
-//         headerLabel = new Label() {
-//             Text = text
-//         };
-//     }
-// }
