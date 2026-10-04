@@ -114,6 +114,8 @@ public partial class Game : Node {
 	private GameViews gameViews;
 	[Export]
 	private Diplomacy diplomacy;
+	[Export]
+	private Preferences preferences;
 
 	[Export]
 	private DoubleClickHandler doubleClickHandler;
@@ -581,6 +583,11 @@ public partial class Game : Node {
 		FileDialog.Popup();
 	}
 
+		public void OnOpenPreferences() {
+		popupOverlay.OnHidePopup();
+		preferences.ShowPreferences();
+	}
+
 	public void OnResolved() {
 		popupOverlay.OnHidePopup();
 	}
@@ -955,7 +962,7 @@ public partial class Game : Node {
 		if (popupOverlay.Visible || cityScreen.Visible || diplomacy.Visible)
 			return true;
 
-		if (advisor.Visible || gameViews.Visible)
+		if (advisor.Visible || gameViews.Visible || preferences.Visible)
 			return true;
 
 		return false;
@@ -987,6 +994,16 @@ public partial class Game : Node {
 
 		if (currentAction == C7Action.Escape && advisor.Visible) {
 			advisor.Hide();
+			return;
+		}
+
+		if (currentAction == C7Action.OpenPreferences) {
+			preferences.ShowPreferences();
+			return;
+		}
+
+		if (currentAction == C7Action.Escape && preferences.Visible) {
+			preferences.HidePreferences();
 			return;
 		}
 

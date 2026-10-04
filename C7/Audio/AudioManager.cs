@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections.Generic;
 using C7Engine;
 using Godot;
 using Serilog;
@@ -29,6 +30,16 @@ public partial class AudioManager : Node {
 	private bool sfxAudioEnabled = true;
 	private bool uiAudioEnabled = true;
 	private bool ambienceAudioEnabled = true;
+	// Maps a bus to the settings key holding its volume. Public so settings UI
+	// can drive a bus without repeating the magic strings.
+	public static readonly Dictionary<string, string> BusVolumeKeys = new() {
+		{ MusicBus, "musicVolume" },
+		{ SfxAudioBus, "sfxAudioVolume" },
+		{ UIAudioBus, "uiAudioVolume" },
+		{ AmbienceAudioBus, "ambienceAudioVolume" },
+	};
+
+
 
 	public override void _Ready() {
 		log = LogManager.ForContext<AudioManager>();
@@ -49,7 +60,7 @@ public partial class AudioManager : Node {
 	private bool ConfigureVolume(string volumeKey, string audioBus) {
 		try {
 			string volume = C7Settings.GetSettingValue(AudioSettingsSection, volumeKey);
-			float volumeDb = LogicalVolumeAsDecibel(volume, volumeKey);
+			float volumeDb = LogicalVolumeAsDecibel(int.Parse(volume));
 
 			if (volumeDb == float.MinValue) {
 				return false;
@@ -75,22 +86,14 @@ public partial class AudioManager : Node {
 	 * Our users are probably more used to a 0% to 100% system.
 	 * So this method converts between them.
 	 */
-	private float LogicalVolumeAsDecibel(string volume, string volumeKey) {
-		if (volume == null) {
-			//First run.  Save the setting.
-			C7Settings.SetValue(AudioSettingsSection, volumeKey, "100");
-			C7Settings.SaveSettings();
-			return 0;
-		}
-		int userVolumeSetting = int.Parse(volume);
-		if (userVolumeSetting == 100) {
-			return 0;
-		} else if (userVolumeSetting == 0) {
+		public static float LogicalVolumeAsDecibel(int volume) {
+		if (volume <= 0) {
 			return float.MinValue;
-		} else {
-			//Conversion math based on https://stackoverflow.com/a/37810295/3534605
-			return 20.0f * (float)(Math.Log10(userVolumeSetting / 100.0f));
 		}
+		if (volume >= 100) {
+			return 0;
+		}
+		return 20.0f * (float)(Math.Log10(volume / 100.0f));
 	}
 
 	// TODO: playlists, mixing, transitions
@@ -123,6 +126,44 @@ public partial class AudioManager : Node {
 		}
 	}
 
+
+	/// <summary>
+	/// The user's volume for a bus, as a 0-100 percentage, or -1 if the bus is
+	/// unknown.
+	/// </summary>
+	public int GetBusVolume(string bus) {
+		if (!BusVolumeKeys.TryGetValue(bus, out string key)) {
+			log.Warning("No volume setting known for bus {bus}", bus);
+			return -1;
+		}
+		string stored = C7Settings.GetSettingsValueOrDefault(AudioSettingsSection, key, "100");
+		return int.TryParse(stored, out int volume) ? volume : 100;
+	}
+
+	public void SetBusVolume(string bus, int volume) {
+		if (!BusVolumeKeys.TryGetValue(bus, out string key)) {
+			log.Warning("No volume setting known for bus {bus}", bus);
+			return;
+		}
+		volume = Mathf.Clamp(volume, 0, 100);
+		C7Settings.SetValue(AudioSettingsSection, key, volume.ToString());
+		C7Settings.SaveSettings();
+		SetBusVolumeDb(bus, LogicalVolumeAsDecibel(volume));
+	}
+
+	public void SetBusVolumePercent(string bus, int volume) {
+		SetBusVolumeDb(bus, LogicalVolumeAsDecibel(Mathf.Clamp(volume, 0, 100)));
+	}
+
+	private void SetBusVolumeDb(string bus, float volumeDb) {
+		int busIndex = AudioServer.GetBusIndex(bus);
+		if (busIndex < 0) {
+			log.Warning("Audio bus {bus} not found", bus);
+			return;
+		}
+		AudioServer.SetBusVolumeDb(busIndex, volumeDb);
+		AudioServer.SetBusMute(busIndex, volumeDb == float.MinValue);
+	}
 	public void PlaySfxAudio(string configKey) {
 		var stream = AudioLoader.Load(configKey);
 		if (stream != null)

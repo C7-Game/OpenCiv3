@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://b1xkj8g82jbx5" path="res://Fonts/NotoSans-BoldItalic.ttf" id="3_x68dx"]
 [ext_resource type="Texture2D" uid="uid://ovwv08a53d7k" path="res://title.png" id="4_brea7"]
 [ext_resource type="PackedScene" uid="uid://bvncm1bgcii5e" path="res://UIElements/civ3_file_dialog.tscn" id="5_rw2g7"]
+[ext_resource type="PackedScene" path="res://UIElements/preferences.tscn" id="6_prefs"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbij8"]
 
@@ -226,6 +227,9 @@ access = 2
 visible = false
 
 [node name="LoadScenarioDialog" parent="." instance=ExtResource("5_rw2g7")]
+visible = false
+
+[node name="Preferences" parent="." instance=ExtResource("6_prefs")]
 visible = false
 
 [connection signal="pressed" from="Control/Background/PanelContainer/MarginContainer/NoCiv3Options/SetCiv3Home" to="." method="_on_SetCiv3Home_pressed"]

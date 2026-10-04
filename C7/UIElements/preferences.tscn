@@ -1,0 +1,213 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://UIElements/Preferences.cs" id="1_prefs"]
+[ext_resource type="Script" uid="uid://b4grm7mhaqgri" path="res://UIElements/Civ3Checkbox.cs" id="2_checkbox"]
+[ext_resource type="Script" uid="uid://clv4mgavtlrul" path="res://UIElements/Civ3HSlider.cs" id="3_slider"]
+[ext_resource type="Script" uid="uid://dcrdcjop64t6t" path="res://UIElements/Civ3TextureButton.cs" id="4_close"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.117647, 0.101961, 0.0784314, 0.941176)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.72549, 0.643137, 0.439216, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="Preferences" type="Control" node_paths=PackedStringArray("promptForResearch", "musicVolume", "sfxVolume", "uiVolume", "ambienceVolume", "musicVolumeLabel", "sfxVolumeLabel", "uiVolumeLabel", "ambienceVolumeLabel", "musicVolumeRow", "sfxVolumeRow", "uiVolumeRow", "ambienceVolumeRow", "close")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_prefs")
+promptForResearch = NodePath("Margin/Panel/Rows/PromptForResearch")
+musicVolume = NodePath("Margin/Panel/Rows/MusicVolumeRow/MusicVolume")
+sfxVolume = NodePath("Margin/Panel/Rows/SfxVolumeRow/SfxVolume")
+uiVolume = NodePath("Margin/Panel/Rows/UiVolumeRow/UiVolume")
+ambienceVolume = NodePath("Margin/Panel/Rows/AmbienceVolumeRow/AmbienceVolume")
+musicVolumeLabel = NodePath("Margin/Panel/Rows/MusicVolumeRow/MusicVolumeValue")
+sfxVolumeLabel = NodePath("Margin/Panel/Rows/SfxVolumeRow/SfxVolumeValue")
+uiVolumeLabel = NodePath("Margin/Panel/Rows/UiVolumeRow/UiVolumeValue")
+ambienceVolumeLabel = NodePath("Margin/Panel/Rows/AmbienceVolumeRow/AmbienceVolumeValue")
+musicVolumeRow = NodePath("Margin/Panel/Rows/MusicVolumeRow")
+sfxVolumeRow = NodePath("Margin/Panel/Rows/SfxVolumeRow")
+uiVolumeRow = NodePath("Margin/Panel/Rows/UiVolumeRow")
+ambienceVolumeRow = NodePath("Margin/Panel/Rows/AmbienceVolumeRow")
+close = NodePath("Margin/Panel/Rows/Footer/Close")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 48
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 48
+
+[node name="Panel" type="PanelContainer" parent="Margin"]
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Rows" type="VBoxContainer" parent="Margin/Panel"]
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "PREFERENCES"
+
+[node name="Separator" type="HSeparator" parent="Margin/Panel/Rows"]
+layout_mode = 2
+
+[node name="GameHeading" type="Label" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Game"
+
+[node name="PromptForResearch" type="CheckBox" parent="Margin/Panel/Rows"]
+layout_mode = 2
+toggle_mode = true
+script = ExtResource("2_checkbox")
+Text = "Ask which tech to research"
+FontSize = 13
+
+[node name="UnitsHeading" type="Label" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Units"
+
+[node name="UnitsNote" type="Label" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "No unit options available yet."
+autowrap_mode = 2
+
+[node name="AudioHeading" type="Label" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Audio"
+
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MusicVolumeLabel" type="Label" parent="Margin/Panel/Rows/MusicVolumeRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Music"
+
+[node name="MusicVolume" type="HSlider" parent="Margin/Panel/Rows/MusicVolumeRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("3_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="MusicVolumeValue" type="Label" parent="Margin/Panel/Rows/MusicVolumeRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="SfxVolumeRow" type="HBoxContainer" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SfxVolumeLabel" type="Label" parent="Margin/Panel/Rows/SfxVolumeRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Sound effects"
+
+[node name="SfxVolume" type="HSlider" parent="Margin/Panel/Rows/SfxVolumeRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("3_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="SfxVolumeValue" type="Label" parent="Margin/Panel/Rows/SfxVolumeRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="UiVolumeRow" type="HBoxContainer" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="UiVolumeLabel" type="Label" parent="Margin/Panel/Rows/UiVolumeRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Interface"
+
+[node name="UiVolume" type="HSlider" parent="Margin/Panel/Rows/UiVolumeRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("3_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="UiVolumeValue" type="Label" parent="Margin/Panel/Rows/UiVolumeRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="AmbienceVolumeRow" type="HBoxContainer" parent="Margin/Panel/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="AmbienceVolumeLabel" type="Label" parent="Margin/Panel/Rows/AmbienceVolumeRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Ambience"
+
+[node name="AmbienceVolume" type="HSlider" parent="Margin/Panel/Rows/AmbienceVolumeRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("3_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="AmbienceVolumeValue" type="Label" parent="Margin/Panel/Rows/AmbienceVolumeRow"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="FooterSeparator" type="HSeparator" parent="Margin/Panel/Rows"]
+layout_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="Margin/Panel/Rows"]
+layout_mode = 2
+alignment = 2
+
+[node name="Close" type="TextureButton" parent="Margin/Panel/Rows/Footer"]
+custom_minimum_size = Vector2(72, 19)
+layout_mode = 2
+script = ExtResource("4_close")

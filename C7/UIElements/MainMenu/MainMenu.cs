@@ -16,6 +16,8 @@ public partial class MainMenu : Node {
 	Civ3FileDialog LoadScenarioDialog;
 	[Export]
 	MenuButtonContainer ButtonContainer;
+	[Export]
+	Preferences preferences;
 
 	GlobalSingleton Global;
 	AudioManager AudioManager;
@@ -63,9 +65,8 @@ public partial class MainMenu : Node {
 		ButtonContainer.LoadScenario.Pressed += LoadScenario;
 		ButtonContainer.HallOfFame.Pressed += HallOfFame;
 		ButtonContainer.HallOfFame.Visible = false;
-		ButtonContainer.Preferences.Pressed += Preferences;
-		ButtonContainer.Preferences.Visible = false;
-		ButtonContainer.AudioPreferences.Pressed += Preferences;
+		ButtonContainer.Preferences.Pressed += ShowPreferences;
+		ButtonContainer.AudioPreferences.Pressed += ShowPreferences;
 		ButtonContainer.AudioPreferences.Visible = false;
 		ButtonContainer.Credits.Pressed += showCredits;
 		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
@@ -142,8 +143,9 @@ public partial class MainMenu : Node {
 		PlayButtonPressedSound();
 	}
 
-	public void Preferences() {
+	public void ShowPreferences() {
 		PlayButtonPressedSound();
+		preferences.ShowPreferences();
 	}
 
 	public void _on_Exit_pressed() {

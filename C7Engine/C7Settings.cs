@@ -51,6 +51,14 @@ namespace C7Engine {
 			return settings[section][key];
 		}
 
+
+		public static bool GetBoolOrDefault(string section, string key, bool defaultValue) {
+			return GetSettingsValueOrDefault(section, key, defaultValue ? "true" : "false") == "true";
+		}
+
+		public static void SetBool(string section, string key, bool value) {
+			SetValue(section, key, value ? "true" : "false");
+		}
 		public static string GetSettingsValueOrDefault(string section, string key, string defaultValue) {
 			if (settings == null) {
 				LoadSettings();
