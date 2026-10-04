@@ -576,58 +576,40 @@ public partial class Game {
 	}
 
 	private void EmitTerrainImprovementReplacementConfirmationSignal(MsgReplaceTerrainImprovementConfirmation msg) {
-		var endMsg = $"A previous terrain enhancement ({msg.terrainImprovement.key.Capitalize()}) will be replaced \nby this operation. Do you wish to continue?";
-
-		var options = new List<ButtonAction>();
-
-		var yesBtn = new ButtonAction() {
-			message = "Do as I say!",
-			action = () => new MsgStartWorkerJob(CurrentlySelectedUnit.id, msg.terraform).send(),
-		};
-		var noBtn = new ButtonAction() {
-			message = "No, don't let all that hard work go to waste.",
-		};
-
-		options.Add(yesBtn);
-		options.Add(noBtn);
+		var message = $"A previous terrain enhancement ({msg.terrainImprovement.key.Capitalize()}) will be replaced \nby this operation. Do you wish to continue?";
 
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
-			new OptionsPopUp(
+			new ConfirmPopUp(
 				controller.id,
 				"Domestic Advisor",
-				endMsg,
-				options,
+				message,
 				Advisor.Domestic,
 				Mood.Sad,
+				"Do as I say!",
+				"No, don't let all that hard work go to waste.",
+				() => {
+					new MsgStartWorkerJob(CurrentlySelectedUnit.id, msg.terraform).send();
+				},
 				hSize: 500
 			)
 		));
 	}
 
 	private void EmitDisbandUnitConfirmationSignal(MsgDisbandUnitConfirmation msg) {
-		var endMsg = $"Disband {msg.mapUnit.name}? Pardon me but these are OUR people.\nDo you really want to disband them?";
-
-		var options = new List<ButtonAction>();
-
-		var yesBtn = new ButtonAction() {
-			message = "Yes, we need to!",
-			action = () => new ActionToEngineMsg(async () => await CurrentlySelectedUnit.Disband()).send(),
-		};
-		var noBtn = new ButtonAction() {
-			message = "No. Maybe you are right, advisor."
-		};
-
-		options.Add(yesBtn);
-		options.Add(noBtn);
+		var message = $"Disband {msg.mapUnit.name}? Pardon me but these are OUR people.\nDo you really want to disband them?";
 
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
-			new OptionsPopUp(
+			new ConfirmPopUp(
 				controller.id,
 				"Domestic Advisor",
-				endMsg,
-				options,
+				message,
 				Advisor.Domestic,
 				Mood.Surprised,
+				"Yes, we need to!",
+				"No. Maybe you are right, advisor.",
+				() => {
+					new ActionToEngineMsg(async () => await CurrentlySelectedUnit.Disband()).send();
+				},
 				hSize: 500
 			)
 		));
