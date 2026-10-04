@@ -65,7 +65,11 @@ namespace C7Engine {
 						unit.movementPoints.onConsumeAll();
 						return C7GameData.UnitAI.Result.InProgress;
 					} else {
-						return this.TryToMoveAlongPath(unit, ref data.pathToDestination);
+						C7GameData.UnitAI.MoveResult moveResult = this.TryToMoveAlongPath(unit, ref data.pathToDestination);
+						if (moveResult.Result == C7GameData.UnitAI.Result.Error) {
+							return FindNewDestination(unit, player);
+						}
+						return moveResult;
 					}
 					break;
 				case SettlerAIData.SettlerGoal.JOIN_CITY:
@@ -98,6 +102,29 @@ namespace C7Engine {
 
 		public string SummarizePlan() {
 			return "SettlerAI: " + data.ToString();
+		}
+
+		// The destination became unreachable (issue #213); pick a new one, or
+		// fall back to JOIN_CITY if nothing is left.
+		// TODO: prefer path-checking at selection time over exclude-and-repick.
+		public C7GameData.UnitAI.MoveResult FindNewDestination(MapUnit unit, Player player) {
+			data.unreachableDestinations.Add(data.destination);
+			log.Information($"Settler {unit.id} cannot reach {data.destination}, retargeting");
+
+			Tile newDestination = SettlerLocationAI.FindSettlerLocation(unit.location, player, data.unreachableDestinations);
+			if (newDestination == Tile.NONE) {
+				data.goal = SettlerAIData.SettlerGoal.JOIN_CITY;
+				log.Information($"Settler {unit.id} has no reachable destination left, joining a city instead");
+			} else {
+				data.destination = newDestination;
+				PathingAlgorithm algorithm = PathingAlgorithmChooser.GetAlgorithm(unit);
+				data.pathToDestination = algorithm.PathFrom(unit.location, newDestination, unit);
+				log.Information($"Settler {unit.id} retargeting from an unreachable tile to {newDestination}");
+			}
+
+			// Consume movement so PlayTurn does not retry the failed move this turn.
+			unit.movementPoints.onConsumeAll();
+			return C7GameData.UnitAI.Result.InProgress;
 		}
 	}
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace C7GameData.AIData {
 	/**
 	 * I'm playing around with different possibilities for AI here.
@@ -24,6 +26,9 @@ namespace C7GameData.AIData {
 		public Tile destination;
 		public TilePath pathToDestination;
 		public MapUnit escort;
+
+		// Tiles the settler could not reach (issue #213). Cleared when the AI is re-created.
+		public HashSet<Tile> unreachableDestinations = new();
 
 		public override string ToString() {
 			return goal + " at " + destination;
