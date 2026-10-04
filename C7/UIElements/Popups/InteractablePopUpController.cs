@@ -51,57 +51,60 @@ public partial class InteractablePopUpController : Control {
 
 	private Dictionary<(int, int), ImageTexture> backgroundCache = new Dictionary<(int, int), ImageTexture>();
 
+	AudioManager audioManager;
+
 	public override void _Ready() {
 		base._Ready();
 
-		defaultOffsetTop = mainContainer.OffsetTop;
-		defaultOffsetBottom = mainContainer.OffsetBottom;
-		defaultOffsetLeft = mainContainer.OffsetLeft;
-		defaultOffsetRight = mainContainer.OffsetRight;
+		this.audioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
 
-		CloseAndDelete();
+		this.defaultOffsetTop = mainContainer.OffsetTop;
+		this.defaultOffsetBottom = mainContainer.OffsetBottom;
+		this.defaultOffsetLeft = mainContainer.OffsetLeft;
+		this.defaultOffsetRight = mainContainer.OffsetRight;
 
-		SetUpConfirmButton();
-		SetUpCancelButton();
+		this.CloseAndDelete();
 
-		confirm.Pressed += this.OnConfirm;
-		cancel.Pressed += this.OnCancel;
+		this.SetUpConfirmButton();
+		this.SetUpCancelButton();
+
+		this.confirm.Pressed += this.OnConfirm;
+		this.cancel.Pressed += this.OnCancel;
+		this.lineEdit.TextSubmitted += this.LineTextSubmitted;
+	}
+
+	// An intermediary method so that we can edit and submit text without having to grab/release focus
+	private void LineTextSubmitted(string text) {
+		this.OnConfirm();
 	}
 
 	public override void _UnhandledInput(InputEvent @event) {
 		base._UnhandledInput(@event);
 		if (this.Visible && @event is InputEventKey eventKey && eventKey.Pressed) {
 			if (eventKey.Keycode == Key.Enter || eventKey.Keycode == Key.KpEnter) {
-				OnConfirm();
+				this.OnConfirm();
 			}
 			if (eventKey.Keycode == Key.Up) {
-				Cycle(false);
+				this.Cycle(false);
 			}
 			if (eventKey.Keycode == Key.Down) {
-				Cycle(true);
+				this.Cycle(true);
 			}
 		}
 	}
 
 	public void OnShowInteractablePopUp(ParameterWrapper<InteractablePopUp> interactablePopUp) {
-		CloseAndDelete();
+		this.CloseAndDelete();
 		OnShowInteractablePopUpLocked(interactablePopUp.Value);
 		// this.mainContainer.SetAnchorsPreset(interactablePopUp.Value.layoutPreset);
 	}
 
 	private async void OnShowInteractablePopUpLocked(InteractablePopUp value) {
-		// this.mainContainer.SetAnchorsPreset(value.layoutPreset);
-		// this.mainContainer.SetAnchorsPreset(value.layoutPreset);
-		// this.mainContainer.SetAnchorsAndOffsetsPreset(value.layoutPreset, LayoutPresetMode.KeepSize);
-		// this.mainBgContainer.CustomMinimumSize = new Vector2(value.hSize, mainBgContainer.GetSize().Y);
 		this.mainBgContainer.CustomMinimumSize = new Vector2(value.hSize, 0);
 		this.headerContainer.CustomMinimumSize = new Vector2(value.hSize, 0);
 		this.mainTextContainer.CustomMinimumSize = new Vector2(value.hSize, 0);
-		// this.panel.CustomMinimumSize = new Vector2(value.hSize, mainBgContainer.GetSize().Y);
 		this.panel.CustomMinimumSize = new Vector2(value.hSize, 0);
 		this.bgTextureRect.CustomMinimumSize = new Vector2(value.hSize, 0);
-		// this.buttonContainer.CustomMinimumSize = new Vector2(value.hSize, 0);
-		// this.confirmAndExitContainer.CustomMinimumSize = new Vector2(value.hSize, 0);
 
 		if (value.advisorDetails.advisor != AdvisorHead.Advisor.None) {
 			this.advisorIconContainer.Show();
@@ -136,8 +139,6 @@ public partial class InteractablePopUpController : Control {
 			this.lineEdit.SelectAll();
 			this.lineEdit.GrabFocus();
 		}
-		// if (string.IsNullOrEmpty(this.lineEditLabel.Text)) {
-		// }
 
 		if (value.buttonActions is { Count: > 0 }) {
 			this.buttonContainer.Show();
@@ -145,10 +146,9 @@ public partial class InteractablePopUpController : Control {
 			foreach (var buttonAction in value.buttonActions) {
 				var hContainer = new HBoxContainer();
 				hContainer.SetSize(this.mainBgContainer.GetSize());
-				// var button = AddOptionButton(hContainer, buttonAction.message,  buttonAction.pressed, () => {GD.Print(buttonAction.message); }, buttonGroup);
 				var button = AddOptionButton(hContainer, buttonAction.message,  buttonAction.pressed, buttonAction.action, buttonGroup);
 				button.ButtonPressed = buttonAction.pressed;
-				buttonContainer.AddChild(hContainer);
+				this.buttonContainer.AddChild(hContainer);
 			}
 			this.buttons.Show();
 		} else {
@@ -156,22 +156,22 @@ public partial class InteractablePopUpController : Control {
 		}
 
 		if (value.hasConfirm) {
-			confirmAndExitMargin.Show();
-			AddConfirmButton();
+			this.confirmAndExitMargin.Show();
+			this.AddConfirmButton();
 		}
 
 		if (value.hasCancel) {
-			confirmAndExitMargin.Show();
-			AddCancelButton();
+			this.confirmAndExitMargin.Show();
+			this.AddCancelButton();
 		}
 
-		mainContainer.SetAnchorsPreset(value.layoutPreset);
-		mainContainer.SetOffsetsPreset(value.layoutPreset, LayoutPresetMode.KeepSize);
+		this.mainContainer.SetAnchorsPreset(value.layoutPreset);
+		this.mainContainer.SetOffsetsPreset(value.layoutPreset, LayoutPresetMode.KeepSize);
 
-		mainContainer.OffsetTop += value.margins.top;
-		mainContainer.OffsetBottom += value.margins.bottom;
-		mainContainer.OffsetLeft += value.margins.left;
-		mainContainer.OffsetRight += value.margins.right;
+		this.mainContainer.OffsetTop += value.margins.top;
+		this.mainContainer.OffsetBottom += value.margins.bottom;
+		this.mainContainer.OffsetLeft += value.margins.left;
+		this.mainContainer.OffsetRight += value.margins.right;
 
 		this.Show();
 
@@ -179,7 +179,7 @@ public partial class InteractablePopUpController : Control {
 		await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
 		// this should always be done at the very end, so the height is correct based on the dynamic elements
-		bgTextureRect.Texture = CreateTextureBackGround((int)this.mainBgContainer.GetSize().X, (int)this.mainBgContainer.GetSize().Y);
+		this.bgTextureRect.Texture = this.CreateTextureBackGround((int)this.mainBgContainer.GetSize().X, (int)this.mainBgContainer.GetSize().Y);
 	}
 
 	protected BaseButton AddOptionButton(Node parent, string label, bool pressed, Action action, ButtonGroup buttonGroup = null) {
@@ -204,9 +204,8 @@ public partial class InteractablePopUpController : Control {
 
 	private void Toggle(BaseButton button, Action action) {
 		if (this.lastPressedButton == button) {
-			CloseAndDelete();
+			this.CloseAndDelete();
 			action?.Invoke();
-			log.Warning("Ui was disengaged - Toggle");
 			new MsgUiDisengaged().send();
 		} else {
 			this.lastPressedButton = button;
@@ -216,7 +215,6 @@ public partial class InteractablePopUpController : Control {
 
 	private void Cycle(bool forward = true) {
 		var btns = buttonGroup.GetButtons();
-		GD.Print(btns.Count);
 		if (btns.Count < 1) {
 			return;
 		}
@@ -230,32 +228,32 @@ public partial class InteractablePopUpController : Control {
 	}
 
 	private void AddConfirmButton() {
-		confirm.Show();
+		this.confirm.Show();
 	}
 
 	private void SetUpConfirmButton() {
 		ImageTexture circleTexture= TextureLoader.Load("ui.confirm.normal");
 		ImageTexture circleHover = TextureLoader.Load("ui.confirm.hover");
 		ImageTexture circlePressed = TextureLoader.Load("ui.confirm.pressed");
-		confirm.TextureNormal = circleTexture;
-		confirm.TextureHover = circleHover;
-		confirm.TexturePressed = circlePressed;
+		this.confirm.TextureNormal = circleTexture;
+		this.confirm.TextureHover = circleHover;
+		this.confirm.TexturePressed = circlePressed;
 
-		confirm.TooltipText = "OK";
-		confirm.Theme = GetToolTipTheme();
+		this.confirm.TooltipText = "OK";
+		this.confirm.Theme = GetToolTipTheme();
 	}
 
 	private void OnConfirm() {
-		if (lastPressedButton != null)
-			lastPressedButton.EmitSignal(BaseButton.SignalName.Pressed);
+		if (this.lastPressedButton != null)
+			this.lastPressedButton.EmitSignal(BaseButton.SignalName.Pressed);
 
 		if (this.lineEditComponent != null) {
 			this.lineEditComponent.callback.Invoke(this.lineEdit.Text.StripEdges());
 		}
 
+		this.audioManager.PlayUIAudio("buttons.button_ok");
 		this.Hide();
 		this.CloseAndDelete();
-		log.Warning("Ui was disengaged - OnConfirm");
 		new MsgUiDisengaged().send();
 	}
 
@@ -267,31 +265,31 @@ public partial class InteractablePopUpController : Control {
 		ImageTexture xTexture = TextureLoader.Load("ui.cancel.normal");
 		ImageTexture xHover = TextureLoader.Load("ui.cancel.hover");
 		ImageTexture xPressed = TextureLoader.Load("ui.cancel.pressed");
-		cancel.TextureNormal = xTexture;
-		cancel.TextureHover = xHover;
-		cancel.TexturePressed = xPressed;
+		this.cancel.TextureNormal = xTexture;
+		this.cancel.TextureHover = xHover;
+		this.cancel.TexturePressed = xPressed;
 
-		cancel.TooltipText = "CANCEL";
-		cancel.Theme = GetToolTipTheme();
+		this.cancel.TooltipText = "CANCEL";
+		this.cancel.Theme = GetToolTipTheme();
 	}
 
 	private void OnCancel() {
+		this.audioManager.PlayUIAudio("buttons.button_cancel");
 		this.Hide();
 		this.CloseAndDelete();
-		log.Warning("Ui was disengaged - OnCancel");
 		new MsgUiDisengaged().send();
 	}
 
 	private void CloseAndDelete() {
 		this.Hide();
 
-		layoutPreset = DEFAULT_LAYOUT_PRESET;
-		mainContainer.SetAnchorsPreset(layoutPreset);
+		this.layoutPreset = DEFAULT_LAYOUT_PRESET;
+		this.mainContainer.SetAnchorsPreset(layoutPreset);
 
-		mainContainer.OffsetTop = defaultOffsetTop;
-		mainContainer.OffsetBottom = defaultOffsetBottom;
-		mainContainer.OffsetLeft = defaultOffsetLeft;
-		mainContainer.OffsetRight = defaultOffsetRight;
+		this.mainContainer.OffsetTop = defaultOffsetTop;
+		this.mainContainer.OffsetBottom = defaultOffsetBottom;
+		this.mainContainer.OffsetLeft = defaultOffsetLeft;
+		this.mainContainer.OffsetRight = defaultOffsetRight;
 
 		this.buttonContainer.Hide();
 		this.lastPressedButton = null;
@@ -304,24 +302,23 @@ public partial class InteractablePopUpController : Control {
 			buttonContainer.RemoveChild(child);
 			child.QueueFree();
 		}
-		confirmAndExitMargin.Hide();
-		cancel.Hide();
-		confirm.Hide();
+		this.confirmAndExitMargin.Hide();
+		this.cancel.Hide();
+		this.confirm.Hide();
 	}
 
 	public override void _ExitTree() {
 		base._ExitTree();
-		confirm.Pressed -= this.OnConfirm;
-		cancel.Pressed -= this.OnCancel;
+		this.confirm.Pressed -= this.OnConfirm;
+		this.cancel.Pressed -= this.OnCancel;
 	}
-
 
 	const int HTILE_SIZE = 61;
 	const int VTILE_SIZE = 44;
 
 	protected ImageTexture CreateTextureBackGround(int width, int height) {
-		if (backgroundCache.ContainsKey((width, height))) {
-			return backgroundCache[(width, height)];
+		if (this.backgroundCache.ContainsKey((width, height))) {
+			return this.backgroundCache[(width, height)];
 		}
 
 		Image image = Image.Create(width, height, false, Image.Format.Rgba8);
@@ -354,7 +351,7 @@ public partial class InteractablePopUpController : Control {
 		DrawRow(image, vOffset, width, bottomLeftPopup, bottomCenterPopup, bottomRightPopup);
 
 		ImageTexture texture = ImageTexture.CreateFromImage(image);
-		backgroundCache.Add((width, height), texture);
+		this.backgroundCache.Add((width, height), texture);
 
 		return texture;
 	}

@@ -59,7 +59,7 @@ namespace C7Engine {
 		}
 	}
 	public class MsgStartTurn : MessageToUI { }
-	public class MsgMainMenu : MessageToUI { }
+	public class MsgGameMainMenu : MessageToUI { }
 
 	public class MsgDiplomacyPopUp : MessageToUI { }
 
@@ -293,6 +293,22 @@ namespace C7Engine {
 		public City city;
 		public MsgDisplayAbandonCityPopup(City city) {
 			this.city = city;
+		}
+	}
+
+	public class MsgDisbandUnitConfirmation : MessageToUI {
+		public MapUnit mapUnit;
+		public MsgDisbandUnitConfirmation(MapUnit mapUnit) {
+			this.mapUnit = mapUnit;
+		}
+	}
+
+	public class MsgReplaceTerrainImprovementConfirmation : MessageToUI {
+		public TerrainImprovement terrainImprovement;
+		public Terraform terraform;
+		public MsgReplaceTerrainImprovementConfirmation(TerrainImprovement terrainImprovement, Terraform terraform) {
+			this.terrainImprovement = terrainImprovement;
+			this.terraform = terraform;
 		}
 	}
 

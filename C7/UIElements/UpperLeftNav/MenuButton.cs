@@ -15,8 +15,7 @@ public partial class MenuButton : Civ3TextureButton {
 	}
 
 	public override void _Pressed() {
-		// new MsgMainMenu().send();
-		popupOverlay.ShowPopup(new GameMenu(), PopupOverlay.PopupCategory.Info);
+		new MsgGameMainMenu().send();
 	}
 
 }

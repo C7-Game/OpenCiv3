@@ -28,8 +28,6 @@ public class ConfirmPopUp : InformationPopup {
 			new ButtonAction() {
 				buttonGroup = btnGroup,
                 // TODO: we can't support RichTextLabel text using the Civ3MenuButton class yet
-                // message = "I said [i]DO IT![/i]",
-                // message = "I said DO IT!",
                 message = yesText,
 				action = async () => {
 					yesAction();
@@ -41,8 +39,7 @@ public class ConfirmPopUp : InformationPopup {
 			},
 			new ButtonAction() {
 				buttonGroup = btnGroup,
-                // message = "No. You're right, perhaps we should re-consider.",
-                message = noText,
+				message = noText,
 				action = async () => {
 					noAction?.Invoke();
                     // wait for the previous pop up to close so that we can call the callback
