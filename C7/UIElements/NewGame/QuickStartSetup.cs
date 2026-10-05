@@ -5,7 +5,6 @@ using System.Linq;
 using C7GameData;
 using C7Engine;
 using C7Engine.Lua;
-using C7GameData.Save;
 using Serilog;
 
 public partial class QuickStartSetup : Node {
@@ -42,7 +41,8 @@ public partial class QuickStartSetup : Node {
 			playerCivilization = player,
 			difficulty = difficulty,
 			worldCharacteristics = global.WorldCharacteristics,
-			opponents = opponents
+			opponents = opponents,
+			victoryConditions = new VictoryConditions() // TODO: preferred victory conditions
 		};
 
 		gameSetup.Populate(save);

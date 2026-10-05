@@ -70,6 +70,7 @@ public partial class LowerRightInfoBox : Civ3TextureRect {
 		// and center the camera on the unit or end the turn
 		boxRightRectangleButton.SetSize(new Vector2(228, 108));
 		boxRightRectangleButton.SetPosition(new Vector2(40, 17));
+		boxRightRectangleButton.FocusMode = FocusModeEnum.None;
 		AddChild(boxRightRectangleButton);
 		boxRightRectangleButton.Pressed += HandleBoxClick;
 
@@ -80,6 +81,7 @@ public partial class LowerRightInfoBox : Civ3TextureRect {
 		nextTurnButton.TextureNormal = nextTurnOffTexture;
 		nextTurnButton.TextureHover = nextTurnOnTexture;
 		nextTurnButton.SetPosition(new Vector2(0, 0));
+		nextTurnButton.FocusMode = FocusModeEnum.None;
 		AddChild(nextTurnButton);
 		nextTurnButton.Pressed += TurnEnded;
 

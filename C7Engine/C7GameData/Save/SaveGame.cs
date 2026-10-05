@@ -81,6 +81,9 @@ namespace C7GameData.Save {
 				Rules = data.rules,
 				TimeOptions = data.timeOptions,
 				History = data.history,
+				VictoryConditions = data.victoryConditions,
+				GameOver = data.gameOver,
+				Winner = data.winner != null ? new SavePlayer(data.winner) : null,
 				TerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
 				GameModeConfig = data.gameModeConfig,
 			};
@@ -139,6 +142,12 @@ namespace C7GameData.Save {
 			ConvertAlliances(data);
 			ConvertAllianceWars(data);
 
+			ConvertVictoryConditions(data);
+
+			// TODO: Redo victory state recording
+			data.winner = data.players?.FirstOrDefault(p => p.civilization?.name == Winner?.civilization);
+			data.gameOver = GameOver;
+
 			BeginHistory(data);
 
 			data.defaultExperienceLevelKey = DefaultExperienceLevel;
@@ -159,6 +168,21 @@ namespace C7GameData.Save {
 						data.history[player.id.ToString()] = new List<HistTurnRecord>();
 				}
 			}
+		}
+
+		private void ConvertVictoryConditions(GameData data) {
+			VictoryConditions conditions = data.victoryConditions;
+
+			// TODO: add victory options to data.victories based on data.victoryConditions
+			// NOTE: Order matters
+
+			// There is no "score victory", but we can treat score as if it were, so
+			// we can render the current score alongside the state of other conditions
+			data.victories.Add(new ScoreVictory());
+
+			// TODO: Does the original have a switch to have the game never end?
+			// Always add a time limit
+			data.victories.Add(new TimeLimitVictory(data.timeOptions.turnLimit));
 		}
 
 		private void OnGameCreation() {
@@ -205,6 +229,7 @@ namespace C7GameData.Save {
 				experienceLevels = ExperienceLevels,
 				rules = Rules,
 				timeOptions = TimeOptions,
+				victoryConditions = VictoryConditions,
 				history = History,
 				GreatWondersBuilt = GreatWondersBuilt,
 			};
@@ -457,6 +482,9 @@ namespace C7GameData.Save {
 		public Dictionary<string, int> HealRates = new Dictionary<string, int>();
 		public Rules Rules = new();
 		public TimeOptions TimeOptions = new();
+		public VictoryConditions VictoryConditions = new();
+		public bool GameOver { get; set; }
+		public SavePlayer Winner { get; set; }
 		public List<SaveTech> Techs = new();
 		public List<CitizenType> CitizenTypes = new();
 		public List<SaveTerraform> TerraForms = new();

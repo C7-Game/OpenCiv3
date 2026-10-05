@@ -19,11 +19,14 @@ public class GameSetup {
 	public Difficulty difficulty { get; init; }
 	public WorldCharacteristics worldCharacteristics { get; init; }
 	public List<SelectedOpponent> opponents { get; init; } = [];
+	public VictoryConditions victoryConditions { get; set; }
 
 	ID.Factory ids;
 
 	public void Populate(SaveGame save) {
 		save.GameDifficulty = difficulty;
+
+		save.VictoryConditions = victoryConditions;
 
 		if (save.Map.tiles.Count == 0) {
 			log.Information("Starting map generation");

@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://4hh28tdyqvfg"]
+
+[ext_resource type="Script" uid="uid://eyk3k7dd7tcy" path="res://Audio/AudioManager.cs" id="1_l0aok"]
+
+[node name="AudioManager" type="Node" node_paths=PackedStringArray("musicPlayer", "sfxAudioPlayer", "uiAudioPlayer", "ambienceAudioPlayer")]
+script = ExtResource("1_l0aok")
+musicPlayer = NodePath("MusicPlayer")
+sfxAudioPlayer = NodePath("SfxAudioPlayer")
+uiAudioPlayer = NodePath("UIAudioPlayer")
+ambienceAudioPlayer = NodePath("AmbienceAudioPlayer")
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Music"
+
+[node name="SfxAudioPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Sfx"
+
+[node name="UIAudioPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"UI"
+
+[node name="AmbienceAudioPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Ambience"

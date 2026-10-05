@@ -1,5 +1,5 @@
 [color=black][center]
-[b]OpenCiv3 0.3 "Dutch" Preview 1[/b]
+[b]OpenCiv3 0.3 "Dutch 2"[/b]
 © OpenCiv3 contributors
 [url]www.openciv3.org[/url]
 
@@ -16,28 +16,41 @@ maxpetul
 pcen
 Tom Werner
 Yegor Budylin
+Kright
+craven
+ajhalme
 
 [b]Developers[/b]
 
+ajhalme
+albertone
 Armageddon1
 benskywalker
+Billytifft
+bmgxyz
 Caro-Kann
 craven
 David1Socha
 Flintlock / maxpetul
+fragmede
 JimOfLeisure
 Kright
 KulkoBSW
 Lanzelot
 lt-brlara
+lucienmaloney
+mcraiha
+mizuirorivi
 pcen
 Quintillus
 rchoffardet
+richardspink2
 steviek
 Tom Werner
 TomKode
 WildWeazel
 Yegor Budylin
+zack-the-coding-actuary
 
 [b]Artists[/b]
 
@@ -54,6 +67,9 @@ ShiroKobbure
 utahjazz7
 Virote_Considon
 Vuldacon
+
+[b]Music[/b]
+'Icarus' by Scott Buckley
 
 [b]Co-conspirators[/b]
 
