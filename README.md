@@ -11,10 +11,11 @@
 > [!NOTE]
 > OpenCiv3 Copyright (c) OpenCiv3 contributors
 >
-> OpenCiv3 is not affiliated with civfanatics.com,
-> Firaxis Games, BreakAway Games, Hasbro Interactive, Infogrames Interactive,
-> Atari Interactive, or Take-Two Interactive Software.
+> OpenCiv3 is not affiliated with or endorsed by civfanatics.com, Firaxis Games,  BreakAway Games,
+> Hasbro Interactive, Infogrames Interactive, Atari Interactive, or Take-Two Interactive Software.
+> CIV and CIVILIZATION are registered trademarks of Take-Two Interactive Software, Inc.
 > All trademarks are property of their respective owners.
+
 
 ## Status
 
