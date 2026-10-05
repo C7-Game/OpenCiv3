@@ -33,6 +33,7 @@ craven
 David1Socha
 Flintlock / maxpetul
 fragmede
+FranklinFFR
 JimOfLeisure
 Kright
 KulkoBSW
@@ -54,22 +55,8 @@ zack-the-coding-actuary
 
 [b]Artists[/b]
 
-aaglo
-embryodead
-imperator1961
-Kyriakos
-Micaelus
-Orthanc
-Plotinus
-register
-Sandris
-ShiroKobbure
-utahjazz7
-Virote_Considon
-Vuldacon
-
-[b]Music[/b]
-'Icarus' by Scott Buckley
+FranklinFFR
+Tom Werner
 
 [b]Co-conspirators[/b]
 
@@ -92,56 +79,6 @@ SuedeCivIII for promotional media
 Thunderfall and leif erikson for the development forum at CivFanatics
 Sid Meier for creating [i]Civilization[/i]
 Soren Johnson and Firaxis for [i]Civilization III[/i]
-[/center]
-
-{{NOTICES}}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[center]YUMBO?[/center]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-[/color]
+[/center][/color]
