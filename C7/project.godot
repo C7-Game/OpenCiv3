@@ -35,6 +35,10 @@ window/per_pixel_transparency/allowed=true
 
 project/assembly_name="C7"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/markdownlabel/plugin.cfg")
+
 [global]
 
 limit=false

@@ -116,3 +116,13 @@ This product contains 'Noto Sans'
 https://fonts.google.com/noto/specimen/Noto+Sans  
 Copyright 2022 The Noto Project Authors  
 Licensed under the SIL Open Font License Version 1.1 available at https://fonts.google.com/noto/specimen/Noto+Sans/license
+
+---
+
+### MarkdownLabel
+
+This product contains 'MarkdownLabel'
+https://github.com/daenvil/MarkdownLabel
+Copyright (c) 2023 Daenvil
+Licensed under The MIT License, available at https://github.com/daenvil/MarkdownLabel/blob/main/LICENSE
+

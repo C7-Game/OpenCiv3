@@ -1,0 +1,107 @@
+[gd_scene load_steps=21 format=3 uid="uid://bka0d50qmnb8y"]
+
+[ext_resource type="Script" uid="uid://bm7huuxd3k4yu" path="res://addons/markdownlabel/example.gd" id="1_7b8dd"]
+[ext_resource type="Script" uid="uid://dbap0gqox0ty1" path="res://addons/markdownlabel/markdownlabel.gd" id="2_opcio"]
+[ext_resource type="Script" uid="uid://dcx7crs23nf4" path="res://addons/markdownlabel/header_formats/h1_format.gd" id="3_kbjha"]
+[ext_resource type="Script" uid="uid://d0sin64i4v3op" path="res://addons/markdownlabel/header_formats/h2_format.gd" id="4_tqhuu"]
+[ext_resource type="Script" uid="uid://dlok0dv1tq2bf" path="res://addons/markdownlabel/header_formats/h3_format.gd" id="5_us0p7"]
+[ext_resource type="Script" uid="uid://bayuh2vafablg" path="res://addons/markdownlabel/header_formats/h4_format.gd" id="6_8ublj"]
+[ext_resource type="Script" uid="uid://dfr1w7u3jgni3" path="res://addons/markdownlabel/header_formats/h5_format.gd" id="7_42de6"]
+[ext_resource type="Script" uid="uid://bsi6dexoofpe6" path="res://addons/markdownlabel/header_formats/h6_format.gd" id="8_y8fds"]
+
+[sub_resource type="Resource" id="Resource_s4fot"]
+resource_local_to_scene = true
+script = ExtResource("3_kbjha")
+
+[sub_resource type="Resource" id="Resource_qroun"]
+resource_local_to_scene = true
+script = ExtResource("4_tqhuu")
+
+[sub_resource type="Resource" id="Resource_dgj8w"]
+resource_local_to_scene = true
+script = ExtResource("5_us0p7")
+
+[sub_resource type="Resource" id="Resource_cuayb"]
+resource_local_to_scene = true
+script = ExtResource("6_8ublj")
+
+[sub_resource type="Resource" id="Resource_vxc6j"]
+resource_local_to_scene = true
+script = ExtResource("7_42de6")
+
+[sub_resource type="Resource" id="Resource_fxeak"]
+resource_local_to_scene = true
+script = ExtResource("8_y8fds")
+
+[sub_resource type="Resource" id="Resource_trsiu"]
+resource_local_to_scene = true
+script = ExtResource("3_kbjha")
+
+[sub_resource type="Resource" id="Resource_dn6jj"]
+resource_local_to_scene = true
+script = ExtResource("4_tqhuu")
+
+[sub_resource type="Resource" id="Resource_udkf7"]
+resource_local_to_scene = true
+script = ExtResource("5_us0p7")
+
+[sub_resource type="Resource" id="Resource_uvlpk"]
+resource_local_to_scene = true
+script = ExtResource("6_8ublj")
+
+[sub_resource type="Resource" id="Resource_55s74"]
+resource_local_to_scene = true
+script = ExtResource("7_42de6")
+
+[sub_resource type="Resource" id="Resource_evn0a"]
+resource_local_to_scene = true
+script = ExtResource("8_y8fds")
+
+[node name="Example" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7b8dd")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarkdownLabel" type="RichTextLabel" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+script = ExtResource("2_opcio")
+markdown_text = "This is a **test** of a simple [color=green]*MarkdownLabel*[/color] [u]set in the editor[/u]. Below is a MarkdownLabel displaying a text read from a file.
+
+---
+"
+h1 = SubResource("Resource_s4fot")
+h2 = SubResource("Resource_qroun")
+h3 = SubResource("Resource_dgj8w")
+h4 = SubResource("Resource_cuayb")
+h5 = SubResource("Resource_vxc6j")
+h6 = SubResource("Resource_fxeak")
+metadata/_custom_type_script = "uid://dbap0gqox0ty1"
+
+[node name="MarkdownLabelFile" type="RichTextLabel" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+script = ExtResource("2_opcio")
+h1 = SubResource("Resource_trsiu")
+h2 = SubResource("Resource_dn6jj")
+h3 = SubResource("Resource_udkf7")
+h4 = SubResource("Resource_uvlpk")
+h5 = SubResource("Resource_55s74")
+h6 = SubResource("Resource_evn0a")
+metadata/_custom_type_script = "uid://dbap0gqox0ty1"
