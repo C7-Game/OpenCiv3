@@ -172,13 +172,15 @@ namespace C7GameData {
 
 			// Special case building cost formula for center-of-empire buildings
 			// Hardcoded to match Civ 3 Conquests values
+			// TODO: Make configurable and expose via Lua instead of hardcoding values
 			if (this.isCenterOfEmpire) {
 				int centerOfEmpireFactor = 6 * player.cities.Count / EngineStorage.gameData.map.optimalNumberOfCities;
 				centerOfEmpireFactor = Math.Clamp(centerOfEmpireFactor, 3, 10);
 				costAdj *= centerOfEmpireFactor;
 			}
 
-			return (int)(shieldCost * costFactor * costAdj);
+			// Round final cost in case of floating point drift causing truncation
+			return (int)Math.Round(shieldCost * costFactor * costAdj);
 		}
 
 		public bool isGreatWonderObsolete(Player owner) {

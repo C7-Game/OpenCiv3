@@ -5,7 +5,7 @@ using Xunit;
 
 namespace EngineTests.GameData;
 
-public class PlayerTest {
+public class BldgTest {
 	private const int OptimalNumberOfCities = 12;
 
 	private static Player CreatePlayerWithCities(int numCities) {
