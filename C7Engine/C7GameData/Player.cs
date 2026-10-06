@@ -1136,14 +1136,7 @@ namespace C7GameData {
 			Difficulty difficulty = EngineStorage.gameData.gameDifficulty;
 			float costFactor = isHuman ? 1.0f : difficulty.AiCostFactor / (float)(difficulty.HumanCostFactor);
 
-			// Special case for center-of-empire buildings, hardcoded to match game logic
-			if (producible is Building b && b.isCenterOfEmpire) {
-				int palaceFactor = 6 * cities.Count / EngineStorage.gameData.map.optimalNumberOfCities;
-				palaceFactor = Math.Clamp(palaceFactor, 3, 10);
-				return palaceFactor * producible.ShieldCost(civilization.traits, costFactor);
-			}
-
-			return producible.ShieldCost(civilization.traits, costFactor);
+			return producible.ShieldCost(this, costFactor);
 		}
 
 		public void UpdateHistory(GameData gameData) {
