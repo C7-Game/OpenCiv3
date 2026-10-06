@@ -1584,6 +1584,9 @@
         "Mounted Warrior"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -2507,6 +2510,9 @@
         "Trebuchet"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -2584,6 +2590,9 @@
         "Hwach'a"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -4860,6 +4869,9 @@
         "Knight"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -5743,6 +5755,7 @@
       ],
       "unproducible": false,
       "flags": [
+        "wheeled",
         "lethalLandBombardment",
         "lethalSeaBombardment"
       ],
@@ -6913,6 +6926,9 @@
         "Knight"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -7235,6 +7251,9 @@
         "Cannon"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -11233,7 +11252,27 @@
     "shieldCostPerGold": 4,
     "shieldRateForDisbanding": 0.25,
     "allowLesserUnitProduction": false,
-    "radarTileVisibility": 2
+    "radarTileVisibility": 2,
+    "passability": {
+      "wheeled": {
+        "mountains": [
+          "road",
+          "railroad"
+        ],
+        "jungle": [
+          "road",
+          "railroad"
+        ],
+        "marsh": [
+          "road",
+          "railroad"
+        ],
+        "volcano": [
+          "road",
+          "railroad"
+        ]
+      }
+    }
   },
   "timeOptions": {
     "baseUnit": "years",

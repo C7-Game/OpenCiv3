@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using C7Engine;
+using C7GameData.Save;
 using static C7GameData.City;
 using static C7GameData.TerrainImprovement;
 using static C7GameData.Tile.TileOverlays;
@@ -164,6 +165,38 @@ namespace C7GameData {
 		// that actually exists on the tile.
 		public bool IsImpassable() {
 			return overlayTerrainType.impassable;
+		}
+
+		// Whether this tile's terrain stops the given unit type from entering.
+		//
+		// Terrain that is impassable to every unit blocks everyone. Terrain that
+		// is only impassable to some units is described by the ruleset's
+		// passability matrix, which also lists the improvements that grant
+		// passage - in Civ3 a wheeled unit may enter mountains, jungle, marsh and
+		// volcano once the tile is roaded or railed.
+		public bool IsImpassableTo(UnitPrototype unitType) {
+			if (overlayTerrainType.impassable)
+				return true;
+
+			Rules rules = EngineStorage.gameData?.rules;
+			if (rules?.passability == null)
+				return false;
+
+			foreach ((SaveUnitPrototype.Flag flag, Dictionary<string, string[]> requirements) in rules.passability) {
+				if (!unitType.flags.Contains(flag))
+					continue;
+
+				if (!requirements.TryGetValue(overlayTerrainType.Key, out string[] improvements))
+					continue;
+
+				return !improvements.Any(HasImprovementWithKey);
+			}
+
+			return false;
+		}
+
+		private bool HasImprovementWithKey(string key) {
+			return overlays.GetImprovements().Any(i => i.key == key);
 		}
 
 		//This should be used when we want to check if land tiles are next to water tiles.

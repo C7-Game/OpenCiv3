@@ -1438,6 +1438,7 @@ namespace C7GameData {
 				if (prto.LethalLandBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalLandBombardment);
 				if (prto.LethalSeaBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalSeaBombardment);
 				if (prto.Radar) prototype.flags.Add(SaveUnitPrototype.Flag.Radar);
+				if (prto.Wheeled) prototype.flags.Add(SaveUnitPrototype.Flag.Wheeled);
 
 				prototype.actions.UnionWith(GetUnitActions(prto));
 				prototype.terraformActions.UnionWith(GetUnitTerraforms(prto).Select(tfKey => terraformIdByCiv3Key[tfKey]));
@@ -1743,6 +1744,17 @@ namespace C7GameData {
 					}
 				}
 				AddYieldBonusesForTerrainImprovements(c7TerrainType.Key, terrain);
+
+				// Civ3's only unit-specific terrain restriction. It isn't absolute:
+				// a road or railroad on the tile lets wheeled units through, so
+				// record both the restriction and what lifts it.
+				if (terrain.ImpassableByWheeled != 0) {
+					if (!save.Rules.passability.ContainsKey(SaveUnitPrototype.Flag.Wheeled))
+						save.Rules.passability[SaveUnitPrototype.Flag.Wheeled] = [];
+
+					save.Rules.passability[SaveUnitPrototype.Flag.Wheeled][c7TerrainType.Key] = [ROAD, RAILROAD];
+				}
+
 				save.TerrainTypes.Add(c7TerrainType);
 				civ3Index++;
 			}

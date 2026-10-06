@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using C7Engine;
 using C7GameData;
 using C7GameData.Save;
 
@@ -31,6 +32,14 @@ public class MapBase {
 		return result;
 	}
 
+	// Wheeled units (chariots, catapults, cannon, ...) can't enter terrain that
+	// Civ3 marks as impassable to wheeled units.
+	protected static MapUnit MakeWheeledLandUnit(int movementPoints = 1) {
+		MapUnit result = MakeLandUnit(movementPoints);
+		result.unitType.wheeled = true;
+		return result;
+	}
+
 	protected void InitilizeStartTile(Tile start, TileLocation tileLocation) {
 		startTile = start;
 		startTile.XCoordinate = tileLocation.X;
@@ -51,9 +60,26 @@ public class MapBase {
 	}
 
 	protected static Rules MakeTestRules() {
+		// Mirror the shipped ruleset: wheeled units may not enter mountains,
+		// jungle, marsh or volcano unless the tile is roaded or railed.
 		return new Rules() {
-			MaxRankOfWorkableTiles = 2
+			MaxRankOfWorkableTiles = 2,
+			passability = new() {
+				[SaveUnitPrototype.Flag.Wheeled] = new() {
+					["mountains"] = ["road", "railroad"],
+					["jungle"] = ["road", "railroad"],
+					["marsh"] = ["road", "railroad"],
+					["volcano"] = ["road", "railroad"],
+				}
+			},
 		};
+	}
+
+	// Sets up the global game data the engine reads its rules from. Tests of
+	// rules-driven behaviour, such as terrain passability, need this.
+	protected void InitializeTestGameData() {
+		EngineStorage.InitializeGameDataForTests(new C7GameData.GameData(1234));
+		EngineStorage.gameData.rules = MakeTestRules();
 	}
 
 	private TileDirection[] directions = {
@@ -157,8 +183,12 @@ public class MapBase {
 	}
 
 	protected TerrainImprovement road = new("road", TerrainImprovement.Layer.Roads, movementCost: 1.0f / 3);
+	protected TerrainImprovement railroad = new("railroad", TerrainImprovement.Layer.Roads, movementCost: 0);
 
 	protected Tile MakeMountainTile() {
+		// Civ3 marks mountains as impassable to wheeled units, but passable to
+		// foot and mounted units. That restriction lives in Rules.passability,
+		// so tests that rely on it need InitializeTestGameData().
 		return new(ID.None("")) {
 			baseTerrainType = new() { Key = "mountains" },
 			overlayTerrainType = new() { Key = "mountains", movementCost = 3 }
