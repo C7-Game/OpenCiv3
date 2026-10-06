@@ -25,7 +25,7 @@ public partial class LogManager : Node {
 		// filter += " OR SourceContext like 'C7Engine.AI.%'"; // (insert the namespace you need to debug)
 
 		Log.Logger = new LoggerConfiguration()
-			.WriteTo.File("log.txt", buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(2500), fileSizeLimitBytes: 52428800, //50 MB
+			.WriteTo.File(GamePaths.LogFilePath, buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(2500), fileSizeLimitBytes: 52428800, //50 MB
 						  outputTemplate: "[{Level:u3}] {Timestamp:HH:mm:ss} {SourceContext}: {Message:lj} {NewLine}{Exception}")
 			.Filter.ByIncludingOnly(filter)
 			.MinimumLevel.Debug()
