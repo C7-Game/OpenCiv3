@@ -141,6 +141,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 3,
       "allowCities": false,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Mountains",
         "amount": 1
@@ -189,6 +195,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 3,
       "allowCities": true,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Jungle",
         "amount": 0.25
@@ -213,6 +225,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 2,
       "allowCities": false,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Marsh",
         "amount": 0.2
@@ -234,6 +252,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 3,
       "allowCities": false,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Volcano",
         "amount": 0.8
@@ -1584,6 +1608,9 @@
         "Mounted Warrior"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -2507,6 +2534,9 @@
         "Trebuchet"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -2584,6 +2614,9 @@
         "Hwach'a"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -4860,6 +4893,9 @@
         "Knight"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -5743,6 +5779,7 @@
       ],
       "unproducible": false,
       "flags": [
+        "wheeled",
         "lethalLandBombardment",
         "lethalSeaBombardment"
       ],
@@ -6913,6 +6950,9 @@
         "Knight"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -7235,6 +7275,9 @@
         "Cannon"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],

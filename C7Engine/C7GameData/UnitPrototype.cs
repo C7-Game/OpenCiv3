@@ -114,6 +114,19 @@ namespace C7GameData {
 			}
 		}
 
+		// Wheeled units cannot enter terrain that Civ3 marks as impassable to
+		// wheeled units (mountains, jungle, marsh and volcano in the base game).
+		public bool wheeled {
+			get => flags.Contains(SaveUnitPrototype.Flag.Wheeled);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.Wheeled);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.Wheeled);
+				}
+			}
+		}
+
 		public HashSet<string> categories = new HashSet<string>();
 
 		public HashSet<UnitAction> actions = [];
