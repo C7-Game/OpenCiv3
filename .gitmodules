@@ -1,3 +1,6 @@
 [submodule "C7/Assets"]
 	path = C7/Assets
 	url = git@github.com:C7-Game/Assets.git
+[submodule "C7/addons/markdownlabel"]
+	path = C7/addons/markdownlabel
+	url = https://github.com/daenvil/MarkdownLabel.git
