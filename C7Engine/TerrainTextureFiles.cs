@@ -34,12 +34,13 @@ namespace C7Engine {
 					terrainCounts.Add(tt.Key, 0);
 				}
 
-				// Count the terrain types of ourself and our neighbors.
+				// Count the terrain types of ourself and our neighbors. Flood
+				// plains use the desert graphics, so they count as desert here.
 				string[] neighbors = {
 					GetNeighborTerrain(t, TileDirection.NORTH),
 					GetNeighborTerrain(t, TileDirection.NORTHWEST),
 					GetNeighborTerrain(t, TileDirection.NORTHEAST),
-					t.baseTerrainType.Key,
+					TextureTerrainKey(t),
 				};
 				foreach (string s in neighbors) {
 					terrainCounts[s] += 1;
@@ -203,7 +204,15 @@ namespace C7Engine {
 			if (neighbor == Tile.NONE) {
 				return "coast";
 			}
-			return neighbor.baseTerrainType.Key;
+			return TextureTerrainKey(neighbor);
+		}
+
+		// The Civ3 terrain a tile renders as, for the purposes of the base
+		// terrain textures. Flood plains only appear next to rivers, which
+		// Civ3 draws with the desert terrain graphics - and the triple sheets
+		// have no flood plain entry - so they use the desert files.
+		private static string TextureTerrainKey(Tile t) {
+			return t.baseTerrainType.Key == "flood plain" ? "desert" : t.baseTerrainType.Key;
 		}
 	}
 }

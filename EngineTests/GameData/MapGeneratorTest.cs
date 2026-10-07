@@ -21,6 +21,7 @@ public class GameMapGeneratorTest {
 		Bgra32 mountainBrown = new((byte)70, (byte)65, (byte)40);
 		Bgra32 tundra = new((byte)241, (byte)245, (byte)241);
 		Bgra32 desert = new((byte)231, (byte)161, (byte)112);
+		Bgra32 floodPlain = new((byte)250, (byte)210, (byte)110);
 		Bgra32 plains = new((byte)88, (byte)57, (byte)39);
 		Bgra32 jungle = new((byte)0, (byte)60, (byte)0);
 		Bgra32 forest = new((byte)107,(byte)142,(byte)35);
@@ -43,6 +44,8 @@ public class GameMapGeneratorTest {
 							color = tundra;
 						} else if (t.overlayTerrainType.Key == "desert") {
 							color = desert;
+						} else if (t.overlayTerrainType.Key == "flood plain") {
+							color = floodPlain;
 						} else if (t.overlayTerrainType.Key == "plains") {
 							color = plains;
 						} else if (t.overlayTerrainType.Key == "forest") {
@@ -103,6 +106,7 @@ public class GameMapGeneratorTest {
 		terrainTypes.Add(new TerrainType() { Key = "grassland" });
 		terrainTypes.Add(new TerrainType() { Key = "plains" });
 		terrainTypes.Add(new TerrainType() { Key = "desert" });
+		terrainTypes.Add(new TerrainType() { Key = "flood plain" });
 		terrainTypes.Add(new TerrainType() { Key = "tundra" });
 		terrainTypes.Add(new TerrainType() { Key = "coast" });
 		terrainTypes.Add(new TerrainType() { Key = "sea" });
