@@ -1,8 +1,6 @@
 namespace C7GameData {
-	using QueryCiv3;
 	using QueryCiv3.Biq;
 	using System.Collections.Generic;
-	using System.Linq;
 
 	public class TerrainType {
 		//The "key" is a language-independent name for the terrain.  Civ3 relies on their index in the list to know
@@ -21,6 +19,10 @@ namespace C7GameData {
 		public StrengthBonus defenseBonus;
 		public HashSet<string> allowedResources = new();
 		public int height = -1;
+
+		// This only affects our map generation, nothing else.
+		// Also, it's currently only applicable to the 3 "vegetation" terrain types: forest, marsh, jungle
+		public HashSet<string> allowedInTerrain = new();
 
 		// These enum and field are kept for compatibility with CIV3 saves.
 		public enum Civ3FoliageAction {

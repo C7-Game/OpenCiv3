@@ -179,7 +179,12 @@
         "Game"
       ],
       "height": 1,
-      "allowedFoliageAction": "clearForest"
+      "allowedFoliageAction": "clearForest",
+      "allowedInTerrain": [
+        "plains",
+        "grassland",
+        "tundra"
+      ]
     },
     {
       "key": "jungle",
@@ -203,7 +208,10 @@
         "Tropical Fruit"
       ],
       "height": 1,
-      "allowedFoliageAction": "clearWetlands"
+      "allowedFoliageAction": "clearWetlands",
+      "allowedInTerrain": [
+        "grassland"
+      ]
     },
     {
       "key": "marsh",
@@ -224,7 +232,10 @@
         "Fish"
       ],
       "height": -2,
-      "allowedFoliageAction": "clearWetlands"
+      "allowedFoliageAction": "clearWetlands",
+      "allowedInTerrain": [
+        "grassland"
+      ]
     },
     {
       "key": "volcano",

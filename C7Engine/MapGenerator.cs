@@ -725,15 +725,23 @@ namespace C7Engine {
 				double normalizedY = (double)t.YCoordinate / (m.numTilesTall - 1.0);
 				double latitude = Math.Abs(90.0 - (normalizedY * 180.0));
 
-				if (height >= forestLowerBound && height < forestUpperBound && rand.Next(100) < forestProbability) {
-					// Forests can go on any terrain type.
+				if (height >= forestLowerBound && height < forestUpperBound && rand.Next(100) < forestProbability
+						&& forest.allowedInTerrain.Contains(t.baseTerrainType.Key)) {
+					if (t.baseTerrainType.Key == "tundra") {
+						t.isPineForest = true;
+					} else {
+						// 40% probability to be pine. This is not an official value.
+						// TODO: this can probably be refined in order to get clusters of pine/broadleaf trees
+						// rather than randomly selecting them
+						if (rand.NextDouble() > 0.6)
+							t.isPineForest = true;
+					}
 					t.overlayTerrainType = forest;
-				} else if (height >= jungleLowerBound && height < jungleUpperBound
-							&& latitude < jungleLatitudeThreshold && t.overlayTerrainType.Key == "grassland") {
-					// We only put jungle on grassland.
+				} else if (height >= jungleLowerBound && height < jungleUpperBound && latitude < jungleLatitudeThreshold
+						   && jungle.allowedInTerrain.Contains(t.baseTerrainType.Key)) {
 					t.overlayTerrainType = jungle;
-				} else if (height >= marshLowerBound && height < marshUpperBound && t.overlayTerrainType.Key == "grassland") {
-					// We only put marsh on grassland.
+				} else if (height >= marshLowerBound && height < marshUpperBound
+							&& marsh.allowedInTerrain.Contains(t.baseTerrainType.Key)) {
 					t.overlayTerrainType = marsh;
 				}
 			}
