@@ -33,7 +33,7 @@ public class Inflow : IProducible {
 	public List<LocalYield> localYield { get; set; }
 	// TODO: Implement a globalYield where for example, 10 cities must be producing this in order for something to happen
 
-	public int ShieldCost(HashSet<Civilization.Trait> civTraits, float costFactor) {
+	public int ShieldCost(Player player, float costFactor) {
 		// TODO: add the option to consume shields
 		return 0;
 	}

@@ -1136,7 +1136,7 @@ namespace C7GameData {
 			Difficulty difficulty = EngineStorage.gameData.gameDifficulty;
 			float costFactor = isHuman ? 1.0f : difficulty.AiCostFactor / (float)(difficulty.HumanCostFactor);
 
-			return producible.ShieldCost(civilization.traits, costFactor);
+			return producible.ShieldCost(this, costFactor);
 		}
 
 		public void UpdateHistory(GameData gameData) {
