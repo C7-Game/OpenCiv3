@@ -2,6 +2,9 @@ using Godot;
 using Serilog;
 
 public partial class Credits : Node2D {
+	[Export] Civ3TextureRect background;
+	[Export] RichTextLabel creditsLabel;
+
 	private string creditsText = "Could not load credits file";
 	private string assetCreditsText = "Could not load asset credits file";
 	private string licencesText = "Could not load licences text file";
@@ -11,7 +14,6 @@ public partial class Credits : Node2D {
 
 	private Theme theme;
 
-	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		log.Information("Now rolling the credits!");
 		LoadCreditsText();
@@ -19,8 +21,7 @@ public partial class Credits : Node2D {
 		ShowCredits();
 	}
 
-	private void LoadCreditsText()
-	{
+	private void LoadCreditsText() {
 		try {
 			creditsText = System.IO.File.ReadAllText("./Text/credits.txt");
 		} catch (System.Exception ex) {
@@ -32,7 +33,7 @@ public partial class Credits : Node2D {
 			log.Warning(ex, "Failed to read from asset_credits.md!");
 		}
 		try {
-			licencesText = System.IO.File.ReadAllText("./NOTICE.md");
+			licencesText = System.IO.File.ReadAllText("../NOTICE.md");
 		} catch (System.Exception ex) {
 			log.Warning(ex, "Failed to read from NOTICE.md!");
 		}
@@ -46,26 +47,18 @@ public partial class Credits : Node2D {
 	}
 
 	private void ShowCredits() {
-		ImageTexture creditsTexture = TextureLoader.Load("credits.background");
+		string combined = creditsText + assetCreditsText + licencesText + specialText;
 
-		TextureRect creditsBackground = new TextureRect();
-		creditsBackground.Texture = creditsTexture;
-		AddChild(creditsBackground);
-
-		RichTextLabel creditsLabel = new RichTextLabel();
 		creditsLabel.Position = new Vector2(80, 120);
 		creditsLabel.Size = new Vector2(864, 528);
-		creditsLabel.BbcodeEnabled = true;
-
 		creditsLabel.Theme = theme;
-		creditsLabel.Text = creditsText + assetCreditsText + licencesText;
-		AddChild(creditsLabel);
+		creditsLabel.Set("markdown_text", combined);
+		creditsLabel.BbcodeEnabled = true;
 
 		AddBackButton();
 	}
 
-	private void AddBackButton()
-	{
+	private void AddBackButton() {
 		ImageTexture goBackTexture = TextureLoader.Load("ui.exit.normal");
 		TextureButton goBackButton = new TextureButton();
 		goBackButton.TextureNormal = goBackTexture;
@@ -74,8 +67,7 @@ public partial class Credits : Node2D {
 		goBackButton.Pressed += ReturnToMenu;
 	}
 
-	private void GenerateCreditsTheme()
-	{
+	private void GenerateCreditsTheme() {
 		FontFile regularFont = new FontFile();
 		FontFile boldFont = new FontFile();
 		FontFile italicFont = new FontFile();
@@ -90,6 +82,9 @@ public partial class Credits : Node2D {
 		theme.SetFont("bold_font", "RichTextLabel", boldFont);
 		theme.SetFont("italics_font", "RichTextLabel", italicFont);
 		theme.SetFont("bold_italics_font", "RichTextLabel", boldItalicFont);
+
+		Color black = new Color(0, 0, 0);
+		theme.SetColor("default_color", "RichTextLabel", black);
 	}
 
 	public void ReturnToMenu() {
