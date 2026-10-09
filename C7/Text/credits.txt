@@ -1,5 +1,7 @@
-[color=black][center]
+[center][font_size=40]
 [b]OpenCiv3 0.3 "Dutch 2"[/b]
+[/font_size]
+
 © OpenCiv3 contributors
 [url]www.openciv3.org[/url]
 
@@ -80,5 +82,4 @@ Thunderfall and leif erikson for the development forum at CivFanatics
 Sid Meier for creating [i]Civilization[/i]
 Soren Johnson and Firaxis for [i]Civilization III[/i]
 
-
-[/center][/color]
+[/center]
