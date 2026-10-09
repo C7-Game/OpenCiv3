@@ -12,14 +12,29 @@ README_NAMES = {
 }
 
 URL_PATTERN = re.compile(r"https?://[^\s<>\[\]()]+")
+MARKDOWN_LINK_URL_PATTERN = re.compile(r"\]\((https?://[^)\s]+)\)")
 
 
 def format_links(text):
-    """Wrap plain HTTP(S) URLs in RichTextLabel [url] tags."""
-    return URL_PATTERN.sub(
-        lambda match: f"[url]{match.group(0)}[/url]",
-        text,
-    )
+    """Wrap plain HTTP(S) URLs in Markdown links."""
+    # Don't modify URLs that are already Markdown link destinations.
+    markdown_link_ranges = [
+        match.span(1) for match in MARKDOWN_LINK_URL_PATTERN.finditer(text)
+    ]
+
+    def replace_url(match):
+        start, end = match.span()
+
+        if any(
+            range_start <= start < range_end
+            for range_start, range_end in markdown_link_ranges
+        ):
+            return match.group(0)
+
+        url = match.group(0)
+        return f"[{url}]({url})"
+
+    return URL_PATTERN.sub(replace_url, text)
 
 
 def main():
@@ -29,7 +44,7 @@ def main():
 
     project_dir = Path(sys.argv[1])
     assets_dir = project_dir / "Assets"
-    output_file = project_dir / "Text" / "asset_credits.txt"
+    output_file = project_dir / "Text" / "asset_credits.md"
     notice_file = assets_dir / "NOTICE.txt"
 
     if not assets_dir.is_dir():
@@ -56,7 +71,7 @@ def main():
         readmes_by_directory.setdefault(relative_directory, []).append(path)
 
     lines = [
-        "[font_size=24][b]Asset Credits[/b][/font_size]",
+        "# Asset Credits",
         "",
         format_links(notice_file.read_text(encoding="utf-8").rstrip()),
         "",
@@ -65,7 +80,7 @@ def main():
     # Only directories containing README files get a heading.
     for directory in sorted(readmes_by_directory):
         lines.extend([
-            f"[font_size=16][b]{directory}[/b][/font_size]",
+            f"## {directory}",
             "",
         ])
 
