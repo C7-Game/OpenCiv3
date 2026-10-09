@@ -149,7 +149,7 @@ namespace C7GameData {
 			terraformActions = proto.terraformActions.Select(id => terraforms.First(t => t.Id == id)).ToHashSet();
 		}
 
-		public int ShieldCost(HashSet<Civilization.Trait> civTraits, float costFactor) {
+		public int ShieldCost(Player player, float costFactor) {
 			return (int)(shieldCost * costFactor);
 		}
 
