@@ -27,6 +27,7 @@ public partial class MainMenu : Node {
 		DisplayServer.WindowSetTitle((string)ProjectSettings.GetSetting("application/config/name"));
 
 		try {
+			ConnectButtonSignals();
 			DisplayTitleScreen();
 
 			AudioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
@@ -52,28 +53,13 @@ public partial class MainMenu : Node {
 		}
 
 		ButtonContainer.Visible = true;
-		ButtonContainer.CreateButtons();
 
-		// TODO: enable buttons are features are implemented
-		ButtonContainer.NewGame.Pressed += GoToWorldSetup;
-		ButtonContainer.QuickStart.Pressed += QuickStartGame;
-		ButtonContainer.Tutorial.Pressed += QuickStartGame;
+		// TODO: enable buttons as features are implemented
 		ButtonContainer.Tutorial.Visible = false;
-		ButtonContainer.LoadGame.Pressed += LoadGame;
-		ButtonContainer.LoadScenario.Pressed += LoadScenario;
-		ButtonContainer.HallOfFame.Pressed += HallOfFame;
 		ButtonContainer.HallOfFame.Visible = false;
-		ButtonContainer.Preferences.Pressed += Preferences;
 		ButtonContainer.Preferences.Visible = false;
-		ButtonContainer.AudioPreferences.Pressed += Preferences;
 		ButtonContainer.AudioPreferences.Visible = false;
-		ButtonContainer.Credits.Pressed += showCredits;
-		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
 
-		ButtonContainer.ToggleGraphics.Pressed += () => {
-			Global.ToggleStandaloneMode();
-			GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
-		};
 		SetToggleGraphicsText();
 
 		// We can't toggle to using civ3 graphics in standalone mode.
@@ -83,6 +69,29 @@ public partial class MainMenu : Node {
 
 		// Hide if valid path is present as proven by reaching this point in code
 		NoCiv3Options.Visible = false;
+	}
+
+	// The menu buttons live in main_menu.tscn, so their signals only need to be
+	// connected once. DisplayTitleScreen() runs again when the graphics mode or
+	// the location of the Civ3 files changes, and connecting twice would make
+	// every button fire twice.
+	private void ConnectButtonSignals() {
+		ButtonContainer.NewGame.Pressed += GoToWorldSetup;
+		ButtonContainer.QuickStart.Pressed += QuickStartGame;
+		ButtonContainer.Tutorial.Pressed += QuickStartGame;
+		ButtonContainer.LoadGame.Pressed += LoadGame;
+		ButtonContainer.LoadScenario.Pressed += LoadScenario;
+		ButtonContainer.HallOfFame.Pressed += HallOfFame;
+		ButtonContainer.Preferences.Pressed += Preferences;
+		ButtonContainer.AudioPreferences.Pressed += Preferences;
+		ButtonContainer.Credits.Pressed += showCredits;
+		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
+		ButtonContainer.ToggleGraphics.Pressed += ToggleGraphicsPressed;
+	}
+
+	private void ToggleGraphicsPressed() {
+		Global.ToggleStandaloneMode();
+		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
 	}
 
 	private bool ClassicGraphicsAvailable() {

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://gnt0y3og7nk6"]
+[gd_scene load_steps=13 format=3 uid="uid://gnt0y3og7nk6"]
 
 [ext_resource type="Script" uid="uid://dgpuse88jc2hc" path="res://UIElements/MainMenu/MainMenu.cs" id="1_akneh"]
 [ext_resource type="Texture2D" uid="uid://s55xvcaini8h" path="res://title-screen.png" id="2_erxyj"]
@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://b1xkj8g82jbx5" path="res://Fonts/NotoSans-BoldItalic.ttf" id="3_x68dx"]
 [ext_resource type="Texture2D" uid="uid://ovwv08a53d7k" path="res://title.png" id="4_brea7"]
 [ext_resource type="PackedScene" uid="uid://bvncm1bgcii5e" path="res://UIElements/civ3_file_dialog.tscn" id="5_rw2g7"]
+[ext_resource type="Script" uid="uid://34cq5uvdrhkp" path="res://UIElements/MainMenu/Civ3MenuButton.cs" id="6_civ3btn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbij8"]
 
@@ -143,10 +144,76 @@ theme_override_font_sizes/font_size = 11
 text = "Notice: standalone mode makes use of AI placeholder art"
 horizontal_alignment = 1
 
-[node name="MainMenuContainer" type="VBoxContainer" parent="Control/Background/PanelContainer/MarginContainer"]
+[node name="MainMenuContainer" type="VBoxContainer" parent="Control/Background/PanelContainer/MarginContainer" node_paths=PackedStringArray("NewGame", "QuickStart", "Tutorial", "LoadGame", "LoadScenario", "HallOfFame", "ToggleGraphics", "Preferences", "AudioPreferences", "Credits", "Exit")]
 layout_mode = 2
 theme_override_constants/separation = 15
 script = ExtResource("3_t1nuq")
+NewGame = NodePath("NewGame")
+QuickStart = NodePath("QuickStart")
+Tutorial = NodePath("Tutorial")
+LoadGame = NodePath("LoadGame")
+LoadScenario = NodePath("LoadScenario")
+HallOfFame = NodePath("HallOfFame")
+ToggleGraphics = NodePath("ToggleGraphics")
+Preferences = NodePath("Preferences")
+AudioPreferences = NodePath("AudioPreferences")
+Credits = NodePath("Credits")
+Exit = NodePath("Exit")
+
+[node name="NewGame" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "New Game"
+
+[node name="QuickStart" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Quick Start"
+
+[node name="Tutorial" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Tutorial"
+
+[node name="LoadGame" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Load Game"
+
+[node name="LoadScenario" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Load Scenario"
+
+[node name="HallOfFame" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Hall of Fame"
+
+[node name="ToggleGraphics" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Use OpenCiv3 Graphics"
+
+[node name="Preferences" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Preferences"
+
+[node name="AudioPreferences" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Audio Preferences"
+
+[node name="Credits" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Credits"
+
+[node name="Exit" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
+layout_mode = 2
+script = ExtResource("6_civ3btn")
+Text = "Exit"
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/Background"]
 layout_mode = 1
