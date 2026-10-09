@@ -71,7 +71,7 @@ def main():
         readmes_by_directory.setdefault(relative_directory, []).append(path)
 
     lines = [
-        "# Asset Credits",
+        "## Asset Credits",
         "",
         format_links(notice_file.read_text(encoding="utf-8").rstrip()),
         "",
@@ -80,7 +80,7 @@ def main():
     # Only directories containing README files get a heading.
     for directory in sorted(readmes_by_directory):
         lines.extend([
-            f"## {directory}",
+            f"#### {directory}",
             "",
         ])
 
@@ -91,7 +91,7 @@ def main():
             ])
 
     output_file.write_text(
-        "\n".join(lines).rstrip() + "\n",
+        "\n".join(lines).rstrip() + "\n\n\n",
         encoding="utf-8",
     )
 
