@@ -1,7 +1,5 @@
 [color=black][center]
-
-[font_size=24][b]OpenCiv3 0.3 "Dutch 2"[/b][/font_size]
-
+[b]OpenCiv3 0.3 "Dutch 2"[/b]
 © OpenCiv3 contributors
 [url]www.openciv3.org[/url]
 
@@ -35,6 +33,7 @@ craven
 David1Socha
 Flintlock / maxpetul
 fragmede
+FranklinFFR
 JimOfLeisure
 Kright
 KulkoBSW
@@ -56,22 +55,8 @@ zack-the-coding-actuary
 
 [b]Artists[/b]
 
-aaglo
-embryodead
-imperator1961
-Kyriakos
-Micaelus
-Orthanc
-Plotinus
-register
-Sandris
-ShiroKobbure
-utahjazz7
-Virote_Considon
-Vuldacon
-
-[b]Music[/b]
-'Icarus' by Scott Buckley
+FranklinFFR
+Tom Werner
 
 [b]Co-conspirators[/b]
 
@@ -95,8 +80,5 @@ Thunderfall and leif erikson for the development forum at CivFanatics
 Sid Meier for creating [i]Civilization[/i]
 Soren Johnson and Firaxis for [i]Civilization III[/i]
 
-NOTE: OpenCiv3 is not affiliated with civfanatics.com, Firaxis Games,
-BreakAway Games, Hasbro Interactive, Infogrames Interactive,
-Atari Interactive, or Take-Two Interactive Software.
-All trademarks are property of their respective owners.
-[/center]
+
+[/center][/color]
