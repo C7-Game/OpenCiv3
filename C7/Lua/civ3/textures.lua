@@ -24,6 +24,7 @@ local SPACE_RACE = "Art/SpaceShip/"
 local POPUP_BORDERS = "Art/popupborders.pcx"
 
 local CURSORS = "Art/Cursor.pcx"
+local SCROLL = "Art/SCROLL.PCX"
 
 -- Texture definitions
 local textures = {}
@@ -268,7 +269,195 @@ textures.ui = {
           path = CURSORS,
           crop_region = { 199, 1, 32, 32 },
       }
-  }
+  },
+  scrollbar = {
+    grabber = {
+      large = {
+        path = SCROLL,
+        crop_region = { 46, 139, 20, 20 },
+        shadows = false,
+      },
+      small = {
+        path = SCROLL,
+        crop_region = { 51, 254, 10, 10 },
+        shadows = false,
+      },
+    },
+    scroll = {
+      vertical = {
+        large = {
+          path = SCROLL,
+          crop_region = { 9, 139, 20, 20 },
+          shadows = false,
+        },
+        small = {
+          path = SCROLL,
+          crop_region = { 14, 249, 10, 20 },
+          shadows = false,
+        },
+      },
+      horizontal = {
+        large = {
+          path = SCROLL,
+          crop_region = { 9, 380, 20, 20 },
+          shadows = false,
+        },
+        small = {
+          path = SCROLL,
+          crop_region = { 119, 385, 20, 10 },
+          shadows = false,
+        },
+      },
+    },
+    decrement = {
+      vertical = {
+        large = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 2, 25, 20, 20 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 25, 25, 20, 20 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 48, 25, 20, 20 },
+            shadows = false,
+          },
+        },
+        small = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 117, 15, 10, 10 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 130, 15, 10, 10 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 143, 15, 10, 10 },
+            shadows = false,
+          },
+        },
+      },
+      horizontal = {
+        large = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 94, 2, 20, 20 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 94, 25, 20, 20 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 94, 48, 20, 20 },
+            shadows = false,
+          },
+        },
+        small = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 169, 2, 10, 10 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 169, 15, 10, 10 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 169, 28, 10, 10 },
+            shadows = false,
+          },
+        },
+      },
+    },
+    increment = {
+      vertical = {
+        large = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 2, 2, 20, 20 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 25, 2, 20, 20 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 48, 2, 20, 20 },
+            shadows = false,
+          },
+        },
+        small = {
+          normal = {
+           path = SCROLL,
+           crop_region = { 117, 2, 10, 10 },
+           shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 130, 2, 10, 10 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 143, 2, 10, 10 },
+            shadows = false,
+          },
+        },
+      },
+      horizontal = {
+        large = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 71, 2, 20, 20 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 71, 25, 20, 20 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 71, 48, 20, 20 },
+            shadows = false,
+          },
+        },
+        small = {
+          normal = {
+            path = SCROLL,
+            crop_region = { 156, 2, 10, 10 },
+            shadows = false,
+          },
+          hover = {
+            path = SCROLL,
+            crop_region = { 156, 15, 10, 10 },
+            shadows = false,
+          },
+          pressed = {
+            path = SCROLL,
+            crop_region = { 156, 28, 10, 10 },
+            shadows = false,
+          },
+        },
+      },
+    },
+  },
 }
 
 textures.terrain = require "textures.terrain"

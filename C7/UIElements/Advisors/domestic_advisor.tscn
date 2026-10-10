@@ -1,9 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://da7hbbufyfllg"]
+[gd_scene load_steps=12 format=3 uid="uid://da7hbbufyfllg"]
 
 [ext_resource type="Script" uid="uid://ch2d6f1o1sxh2" path="res://UIElements/Advisors/DomesticAdvisor.cs" id="1"]
 [ext_resource type="Script" uid="uid://doqipc4rnaotx" path="res://UIElements/Civ3TextureRect.cs" id="2"]
 [ext_resource type="Script" uid="uid://dcrdcjop64t6t" path="res://UIElements/Civ3TextureButton.cs" id="3"]
+[ext_resource type="Script" uid="uid://bqhqd45omq70l" path="res://UIElements/Civ3ScrollBarControl.cs" id="4_8ldo1"]
 [ext_resource type="Script" uid="uid://clv4mgavtlrul" path="res://UIElements/Civ3HSlider.cs" id="4_gltop"]
+[ext_resource type="Script" uid="uid://c0pjvkxsd8l6i" path="res://UIElements/Civ3HScrollBar.cs" id="5_bbtrj"]
+[ext_resource type="Script" uid="uid://cmr1nj4edk0qc" path="res://UIElements/Civ3VScrollBar.cs" id="5_n8go8"]
+[ext_resource type="Script" uid="uid://be03jafarm1i8" path="res://UIElements/Civ3ScrollHandle.cs" id="6_bbtrj"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_0b8py"]
 font_size = 13
@@ -36,7 +40,7 @@ incomeSummary = NodePath("Background/IncomeSummary")
 expenseSummary = NodePath("Background/ExpenseSummary")
 sumSummary = NodePath("Background/SumSummary")
 growth = NodePath("Background/Growth")
-cityListContainer = NodePath("Background/ScrollContainer/VBoxContainer")
+cityListContainer = NodePath("Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer")
 eatenFood = NodePath("Background/EatenFood")
 fullFood = NodePath("Background/FullFood")
 wastedShield = NodePath("Background/WastedShield")
@@ -49,6 +53,7 @@ beaker = NodePath("Background/Beaker")
 treasuryIcon = NodePath("Background/TreasuryIcon")
 scienceSlider = NodePath("Background/ScienceSlider")
 luxurySlider = NodePath("Background/LuxurySlider")
+metadata/_edit_vertical_guides_ = [1038.0]
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 2
@@ -186,24 +191,207 @@ offset_right = 967.0
 offset_bottom = 272.0
 text = "Producing"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Background"]
+[node name="Control" type="Control" parent="Background"]
+anchors_preset = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Background/Control"]
 layout_mode = 0
-offset_left = 72.0
-offset_top = 298.0
-offset_right = 986.0
-offset_bottom = 676.0
+offset_left = 66.0
+offset_top = 716.0
+offset_right = 466.0
+offset_bottom = 756.0
+mouse_filter = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Background/ScrollContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Background/Control/ScrollContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Background/ScrollContainer/VBoxContainer"]
+[node name="ColorRect" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect2" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect3" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect4" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect5" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect6" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect7" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect8" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect9" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect10" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect11" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect12" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect13" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect14" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect15" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect16" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect17" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect18" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect19" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect20" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect21" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect22" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="ColorRect23" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(1, 0.18, 0.18, 1)
+
+[node name="ColorRect24" type="ColorRect" parent="Background/Control/ScrollContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+color = Color(0.41948, 0.615308, 0.390975, 1)
+
+[node name="Civ3ScrollBarControl" type="Control" parent="Background/Control" node_paths=PackedStringArray("TargetContainer", "ScrollBar", "ScrollHandle")]
+visible = false
+anchors_preset = 0
+offset_left = 145.0
+offset_top = 750.0
+offset_right = 395.0
+offset_bottom = 760.0
+script = ExtResource("4_8ldo1")
+Direction = 1
+SizePreset = 1
+TargetContainer = NodePath("../ScrollContainer")
+ScrollBar = NodePath("Civ3HScrollBar")
+ScrollHandle = NodePath("Civ3ScrollHandle")
+ArrowScrollInterval = 0.1
+metadata/_custom_type_script = "uid://bqhqd45omq70l"
+
+[node name="Civ3HScrollBar" type="HScrollBar" parent="Background/Control/Civ3ScrollBarControl"]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 10.0
+max_value = 812.0
+step = 30.0
+page = 400.0
+script = ExtResource("5_bbtrj")
+metadata/_custom_type_script = "uid://c0pjvkxsd8l6i"
+
+[node name="Civ3ScrollHandle" type="TextureButton" parent="Background/Control/Civ3ScrollBarControl"]
+z_index = 10
+layout_mode = 0
+offset_left = 20.0
+offset_right = 40.0
+offset_bottom = 20.0
+script = ExtResource("6_bbtrj")
+metadata/_custom_type_script = "uid://be03jafarm1i8"
+
+[node name="CitiesScrollBarControl" type="Control" parent="Background"]
+anchors_preset = 0
+offset_left = -1.0
+offset_right = -1.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Background/CitiesScrollBarControl"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 75.0
+offset_top = 303.0
+offset_right = 975.0
+offset_bottom = 708.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Background/CitiesScrollBarControl/ScrollContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="HSeparator" type="HSeparator" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(30, 50)
+[node name="HSeparator" type="HSeparator" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(30, 45)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(127, 0)
 layout_mode = 2
 text = "Placeholder that gets "
@@ -211,29 +399,29 @@ vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="Label2" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label2" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "10.20"
 horizontal_alignment = 1
 
-[node name="Label3" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label3" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "10.20"
 horizontal_alignment = 1
 
-[node name="Label4" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label4" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "10.20"
 horizontal_alignment = 1
 
-[node name="HSeparator2" type="HSeparator" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 
-[node name="Label5" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label5" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "20"
@@ -242,7 +430,7 @@ vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="Label6" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label6" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "20"
@@ -251,7 +439,7 @@ vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="Label7" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label7" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "20"
@@ -260,7 +448,7 @@ vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="Label8" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label8" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 text = "20"
@@ -269,21 +457,21 @@ vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
-[node name="HSeparator3" type="HSeparator" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(25, 0)
 layout_mode = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_5hkgh")
 
-[node name="PanelContainer2" type="PanelContainer" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="PanelContainer2" type="PanelContainer" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_5hkgh")
 
-[node name="Label9" type="Label" parent="Background/ScrollContainer/VBoxContainer/HBoxContainer"]
+[node name="Label9" type="Label" parent="Background/CitiesScrollBarControl/ScrollContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 text = "Statue of Ze
@@ -291,6 +479,39 @@ text = "Statue of Ze
 vertical_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
+
+[node name="Civ3ScrollBarControl" type="Control" parent="Background/CitiesScrollBarControl" node_paths=PackedStringArray("TargetContainer", "ScrollBar", "ScrollHandle")]
+visible = false
+anchors_preset = 0
+offset_left = 965.0
+offset_top = 303.0
+offset_right = 975.0
+offset_bottom = 708.0
+script = ExtResource("4_8ldo1")
+TargetContainer = NodePath("../ScrollContainer")
+ScrollBar = NodePath("Civ3VScrollBar")
+Step = true
+ScrollHandle = NodePath("Civ3ScrollHandle")
+metadata/_custom_type_script = "uid://bqhqd45omq70l"
+
+[node name="Civ3VScrollBar" type="VScrollBar" parent="Background/CitiesScrollBarControl/Civ3ScrollBarControl"]
+layout_mode = 0
+offset_right = 10.0
+offset_bottom = 405.0
+max_value = 45.0
+step = 45.0
+page = 45.0
+script = ExtResource("5_n8go8")
+metadata/_custom_type_script = "uid://cmr1nj4edk0qc"
+
+[node name="Civ3ScrollHandle" type="TextureButton" parent="Background/CitiesScrollBarControl/Civ3ScrollBarControl"]
+z_index = 10
+layout_mode = 0
+offset_top = 10.0
+offset_right = 10.0
+offset_bottom = 20.0
+script = ExtResource("6_bbtrj")
+metadata/_custom_type_script = "uid://be03jafarm1i8"
 
 [node name="EatenFood" type="TextureButton" parent="Background"]
 layout_mode = 0

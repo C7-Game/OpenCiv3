@@ -300,7 +300,7 @@ public partial class DomesticAdvisor : Control {
 
 		// Use an empty pany container to make it blank, unlike an HSeparator
 		PanelContainer hSeparator1 = new();
-		hSeparator1.CustomMinimumSize = new Vector2(30, 50);
+		hSeparator1.CustomMinimumSize = new Vector2(30, 45);
 		hSeparator1.AddThemeStyleboxOverride("panel", new StyleBoxEmpty());
 		hboxContainer.AddChild(hSeparator1);
 
@@ -399,7 +399,7 @@ public partial class DomesticAdvisor : Control {
 		hboxContainer.AddChild(popuplationContainer);
 
 		PanelContainer productionContainer = new();
-		productionContainer.CustomMinimumSize = new Vector2(50, 0);
+		productionContainer.CustomMinimumSize = new Vector2(45, 0);
 		productionContainer.AddThemeStyleboxOverride("panel", new StyleBoxEmpty());
 		hboxContainer.AddChild(productionContainer);
 
@@ -494,7 +494,7 @@ public partial class DomesticAdvisor : Control {
 	private int AddCitizen(Node node, CityResident cr, int xPos, int spacer, int eraNum) {
 		TextureRect tr = new();
 		tr.Texture = PopHead.GetTexture(cr, eraNum);
-		tr.SetPosition(new Vector2(xPos, 0));
+		tr.SetPosition(new Vector2(xPos, -3));
 		node.AddChild(tr);
 		return xPos + spacer;
 	}
