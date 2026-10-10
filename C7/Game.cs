@@ -348,16 +348,19 @@ public partial class Game : Node {
 				ShowCityScreenForCity(gameData, mCC.city);
 				break;
 			case MsgCityDestroyed mCD:
-				this.ensureLocationIsInView(mCD.city.location);
+				if (mCD.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mCD.city.location);
 				this.mapView.cityLayer.UpdateAfterCityDestruction(mCD.city);
 				break;
 			case MsgCityRaised mCR:
-				this.ensureLocationIsInView(mCR.city.location);
+				if (mCR.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mCR.city.location);
 				this.mapView.cityLayer.UpdateAfterCityDestruction(mCR.city);
 				this.EmitCityRaisedSignal(mCR);
 				break;
 			case MsgCityRansacked mCRS:
-				this.ensureLocationIsInView(mCRS.city.location);
+				if (mCRS.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mCRS.city.location);
 				this.EmitCityRansackedSignal(mCRS);
 				break;
 			case MsgCivilizationDestroyed mCivD:
@@ -368,7 +371,6 @@ public partial class Game : Node {
 				if (!popupOverlay.Visible) {
 					var mood = mSMAP.happy ? Mood.Happy : Mood.Angry;
 					var pop = new InformationalPopup(mSMAP.message, Advisor.Military, mood);
-					// popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Advisor);
 					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Info);
 				}
 				break;
@@ -414,7 +416,8 @@ public partial class Game : Node {
 				EmitRefuseContactSignal(mRC);
 				break;
 			case MsgCityRiotWarning mRW:
-				this.ensureLocationIsInView(mRW.city.location);
+				if (mRW.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mRW.city.location);
 				EmitCityRiotWarningSignal(mRW);
 				break;
 			case MsgSelectGovernment mSG:
@@ -477,7 +480,9 @@ public partial class Game : Node {
 
 	// If "location" is not already near the center of the screen, moves the camera to bring it into view.
 	public void ensureLocationIsInView(Tile location) {
-		if (controller.tileKnowledge.isTileKnown(location) && location != Tile.NONE) {
+		if (EngineStorage.gameData.observerMode)
+			return;
+		if (controller.tileKnowledge.isActiveTile(location) && location != Tile.NONE) {
 			Vector2 relativeScreenLocation = mapView.screenLocationOfTile(location, true) / mapView.getVisibleAreaSize();
 			if (relativeScreenLocation.DistanceTo(new Vector2((float)0.5, (float)0.5)) > 0.30)
 				mapView.centerCameraOnTile(location);

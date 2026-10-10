@@ -96,7 +96,6 @@ public partial class InteractablePopUpController : Control {
 	public void OnShowInteractablePopUp(ParameterWrapper<InteractablePopUp> interactablePopUp) {
 		this.CloseAndDelete();
 		OnShowInteractablePopUpLocked(interactablePopUp.Value);
-		// this.mainContainer.SetAnchorsPreset(interactablePopUp.Value.layoutPreset);
 	}
 
 	private async void OnShowInteractablePopUpLocked(InteractablePopUp value) {
@@ -297,6 +296,7 @@ public partial class InteractablePopUpController : Control {
 		this.advisorIconContainer.Hide();
 		this.advisorTextureRect.Texture = null;
 		this.lineEditContainer.Hide();
+		this.lineEditComponent = null;
 
 		foreach (var child in buttonContainer.GetChildren()) {
 			buttonContainer.RemoveChild(child);
