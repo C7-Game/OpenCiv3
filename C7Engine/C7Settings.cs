@@ -11,6 +11,7 @@ namespace C7Engine {
 
 		public static class Audio {
 			public const string SectionName = nameof(Audio);
+			public const string MasterVolume = nameof(MasterVolume);
 			public const string MusicVolume = nameof(MusicVolume);
 			public const string SfxAudioVolume = nameof(SfxAudioVolume);
 			public const string UiAudioVolume = nameof(UiAudioVolume);

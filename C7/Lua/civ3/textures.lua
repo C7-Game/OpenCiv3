@@ -145,6 +145,9 @@ textures.advisors = {
 }
 
 textures.screens = {
+  preferences = {
+    background = ADVISORS .. "wonders_background.pcx",
+  },
   wonders = {
     background = ADVISORS .. "wonders_background.pcx",
   },

@@ -20,7 +20,12 @@ public partial class MainMenu : Node {
 	Preferences preferences;
 
 	GlobalSingleton Global;
-	AudioManager AudioManager;
+
+	public override void _EnterTree() {
+		GlobalAudio.manager = GetNode<AudioManager>("/root/GlobalAudioManager");
+
+		base._EnterTree();
+	}
 
 	public override void _Ready() {
 		log = LogManager.ForContext<MainMenu>();
@@ -30,8 +35,6 @@ public partial class MainMenu : Node {
 
 		try {
 			DisplayTitleScreen();
-
-			AudioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
 			PlayMusic();
 		} catch (Exception ex) {
 			log.Error(ex, "Could not set up the main menu");
@@ -66,8 +69,6 @@ public partial class MainMenu : Node {
 		ButtonContainer.HallOfFame.Pressed += HallOfFame;
 		ButtonContainer.HallOfFame.Visible = false;
 		ButtonContainer.Preferences.Pressed += ShowPreferences;
-		ButtonContainer.AudioPreferences.Pressed += ShowPreferences;
-		ButtonContainer.AudioPreferences.Visible = false;
 		ButtonContainer.Credits.Pressed += showCredits;
 		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
 
@@ -170,10 +171,10 @@ public partial class MainMenu : Node {
 	}
 
 	private void PlayMusic() {
-		AudioManager.PlayMusic("menu.main_menu_1");
+		GlobalAudio.manager.PlayMusic("menu.main_menu_1");
 	}
 
 	private void PlayButtonPressedSound() {
-		AudioManager.PlayUIAudio("buttons.button_1");
+		GlobalAudio.manager.PlayUIAudio("buttons.button_1");
 	}
 }
