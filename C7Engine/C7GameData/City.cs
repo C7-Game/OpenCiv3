@@ -405,6 +405,7 @@ namespace C7GameData {
 
 			bool canGrowIntoCity = hasFreshwaterAccess;
 			if (!hasFreshwaterAccess) {
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
 				foreach (CityBuilding cb in GetBuildings()) {
 					if (cb.building.allowsCitySize2 || cb.building.allowsCitySize3) {
 						canGrowIntoCity = true;
@@ -424,6 +425,7 @@ namespace C7GameData {
 
 			// If we're a city trying to grow into a metropolis, we need a
 			// hospital.
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.allowsCitySize3) {
 					return true;
@@ -433,6 +435,7 @@ namespace C7GameData {
 		}
 
 		public bool HasGranary() {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.doublesCityGrowthRate) {
 					return true;
@@ -442,6 +445,7 @@ namespace C7GameData {
 		}
 
 		public bool HasWalls() {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.providesWalls) {
 					return true;
@@ -465,6 +469,7 @@ namespace C7GameData {
 			bool isTown = residents.Count <= gD.rules.MaximumLevel1CitySize;
 
 			// Buildings, such as walls, can also give bonuses.
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.combatDefenseBonus is not StrengthBonus defenseBonus) {
 					continue;
@@ -601,6 +606,7 @@ namespace C7GameData {
 
 		public int MaintenanceCostsRaw() {
 			int result = 0;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in constructed_buildings) {
 				result += cb.building.maintenanceCost;
 			}
@@ -681,6 +687,7 @@ namespace C7GameData {
 
 		public int GetCulturePerTurnRaw() {
 			int result = 0;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				var multiplier = AgeMultiplier(cb);
 				result += cb.building.culturePerTurn * multiplier;
@@ -743,6 +750,7 @@ namespace C7GameData {
 			gameData.mapUnits.Add(newUnit);
 			owner.AddUnit(newUnit);
 
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			GetBuildings().ForEach(b => b.building.onFinishedUnitProduction?.Invoke(newUnit));
 		}
 
@@ -838,6 +846,7 @@ namespace C7GameData {
 		}
 
 		public void CalculateCorruption(GameData gameData) {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			List<CityBuilding> buildings = GetBuildings();
 			int numAntiCorruptionBuildings = buildings.Count(x => x.building.reducesCorruption);
 
@@ -861,6 +870,7 @@ namespace C7GameData {
 		// the borders need to be updated.
 		public bool UpdateCultureAndCheckForExpansion() {
 			int start = GetBorderExpansionLevel();
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				cb.totalCulture += cb.building.culturePerTurn;
 			}
@@ -974,11 +984,17 @@ namespace C7GameData {
 			// Building happiness/unhappiness, which only affects the unhappy to
 			// content transition, nothing with happy faces.
 			//
-			// TODO: account for wonders and buildings with global/continental effects.
+			// TODO: account for buildings with continental effects.
 			foreach (CityBuilding cb in GetBuildings()) {
+				if (cb.building.IsObsolete(owner)) {
+					continue;
+				}
 				unhappyToContentMoves -= cb.building.unhappyFacesInCity;
 				unhappyToContentMoves += cb.building.contentFacesInCity;
 			}
+
+			// Buildings in our other cities with an empire-wide effect.
+			unhappyToContentMoves += owner.GetNetContentFacesFromOtherCities(this);
 
 			// Depending on the government type, land defensive units can serve
 			// as military police.
@@ -994,6 +1010,7 @@ namespace C7GameData {
 
 			// As do luxury resources, which can be boosted by marketplaces.
 			int effectiveLux = GetLuxuries(gameData).Keys.Count;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			if (GetBuildings().Any(x => x.building.increasesLuxuryTrade)) {
 				effectiveLux = (int)(Math.Floor(effectiveLux / 2f) * Math.Ceiling(effectiveLux / 2f) + Math.Ceiling(effectiveLux / 2f));
 			}

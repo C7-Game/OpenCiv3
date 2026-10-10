@@ -46,6 +46,8 @@ namespace C7GameData {
 		public bool providesVeteranGroundUnits;
 
 		// Wonder flags, shared by small and great wonders.
+		// TODO: Wire up to actual in-game logic and bonuses.
+		// These are just inert flags right now except for isForbiddenPalace and treasuryEarnsInterest
 		public bool increasesLeaderChance;
 		public bool allowsBuildArmy;
 		public bool allowsLargerArmies;
@@ -88,6 +90,11 @@ namespace C7GameData {
 		// to sad faces.
 		public int unhappyFacesInCity = 0;
 
+		// Like contentFacesInCity and unhappyFacesInCity, but applied to every
+		// city of the owning player.
+		public int contentFacesInAllCities = 0;
+		public int unhappyFacesInAllCities = 0;
+
 		public HashSet<Resource> requiredResources { get; set; } = [];
 
 		public int iconRowIndex = 0;
@@ -109,6 +116,12 @@ namespace C7GameData {
 				unhappyFacesInCity = -building.contentFacesInCity;
 			} else {
 				contentFacesInCity = building.contentFacesInCity;
+			}
+
+			if (building.contentFacesInAllCities < 0) {
+				unhappyFacesInAllCities = -building.contentFacesInAllCities;
+			} else {
+				contentFacesInAllCities = building.contentFacesInAllCities;
 			}
 
 			if (building.combatDefenseBonus > 0) {
@@ -189,19 +202,35 @@ namespace C7GameData {
 
 				// We can't build a great wonder if another one of our cities is
 				// building it.
-				foreach (City c in city.owner.cities) {
-					if (c.itemBeingProduced != null && c.itemBeingProduced.name == name) {
-						return false;
-					}
+				if (city.owner.IsProducing(this)) {
+					return false;
 				}
 			}
 
 			if (isSmallWonder) {
-				// TODO: Consider providing a helper from the Player class that caches all owned Small Wonders
-				// So we're not querying in O(n^2) time every time
-				if (city.owner.cities.Any(c => c.constructed_buildings.Any(cb => cb.building.name == this.name))) {
+				// We can only have one of each small wonder, and we can't build
+				// one if another one of our cities is building it.
+				if (city.owner.OwnsBuilding(this) || city.owner.IsProducing(this)) {
 					return false;
 				}
+			}
+
+			if (goodsMustBeInCityRadius) {
+				// GetWorkableTiles excludes the city tile itself, but a resource under the city counts.
+				HashSet<Resource> resourcesInRadius = city.GetWorkableTiles()
+					.Append(city.location)
+					.Select(t => t.Resource)
+					.Where(r => r != Resource.NONE)
+					.ToHashSet();
+				if (!requiredResources.All(resourcesInRadius.Contains)) {
+					return false;
+				}
+			}
+
+			// TODO: Armies and elite ship checks are not yet implemented in player class
+			// When they are, update this logic
+			if (requiresEliteShip || requiresVictoriousArmy) {
+				return false;
 			}
 
 			if (isCenterOfEmpire && city.IsCapital()) {
@@ -209,7 +238,7 @@ namespace C7GameData {
 			}
 
 			if (requiredBuilding != null &&
-				!city.GetBuildings().Exists(cityBuilding => cityBuilding.building == this)) {
+				!city.GetBuildings().Exists(cityBuilding => cityBuilding.building == requiredBuilding)) {
 				return false;
 			}
 
@@ -233,14 +262,14 @@ namespace C7GameData {
 			return (int)(shieldCost * costFactor);
 		}
 
+		// Whether the owner knows the tech that makes this building obsolete.
+		// Obsolete buildings no longer provide their effects.
+		public bool IsObsolete(Player owner) {
+			return renderedObsoleteBy != null && owner.knownTechs.Contains(renderedObsoleteBy.id);
+		}
+
 		public bool isGreatWonderObsolete(Player owner) {
-			if (greatWonderProperties == null) {
-				return false;
-			}
-			if (renderedObsoleteBy == null) {
-				return false;
-			}
-			return owner.knownTechs.Contains(renderedObsoleteBy.id);
+			return greatWonderProperties != null && IsObsolete(owner);
 		}
 
 		public SaveBuilding ToSaveBuilding() {

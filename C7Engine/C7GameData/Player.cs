@@ -438,6 +438,7 @@ namespace C7GameData {
 				result.maintenance += city.MaintenanceCosts();
 				result.wealthProduction += cityCommerce.wealth;
 
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
 				interestBuildings += city.constructed_buildings.Count(cb => cb.building.treasuryEarnsInterest);
 
 				foreach (CityResident cr in city.residents) {
@@ -684,6 +685,7 @@ namespace C7GameData {
 				// supply small wonders like forbidden palaces, so we can avoid
 				// doing extra work for each city.
 				foreach (CityBuilding cb in c.constructed_buildings) {
+					// TODO: Skip obsolete buildings (see Building.IsObsolete).
 					if (cb.building.isForbiddenPalace) {
 						++numCorruptionReducingSmallWondersInEmpire;
 					}
@@ -1006,6 +1008,7 @@ namespace C7GameData {
 				// We use constructed_buildings here because great wonders can't
 				// supply small wonders like forbidden palaces, so we can avoid
 				// doing extra work for each city.
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
 				if (c.constructed_buildings.Any(x => x.building.isForbiddenPalace)) {
 					citiesWithCorruptionWonders.Add(c);
 				}
@@ -1043,6 +1046,31 @@ namespace C7GameData {
 				// TODO: Add drafting unhappiness decrement when implemented
 				c.turnsOfUnhappinessDueToPopRushing -= (c.turnsOfUnhappinessDueToPopRushing > 0) ? 1 : 0;
 			}
+		}
+
+		// The net number of unhappy faces that become content in the given city,
+		// from buildings with empire-wide effects in this player's other cities.
+		//
+		// The empire-wide effect of a building applies to every other city, so
+		// it doesn't stack with the building's own effect in the city that has
+		// it. Obsolete buildings have no effect.
+		//
+		// We use constructed_buildings rather than City.GetBuildings so that
+		// buildings granted by wonders aren't counted once per city.
+		public int GetNetContentFacesFromOtherCities(City city) {
+			int netContentFaces = 0;
+			foreach (City c in cities) {
+				if (c == city) {
+					continue;
+				}
+				foreach (CityBuilding cb in c.constructed_buildings) {
+					if (cb.building.IsObsolete(this)) {
+						continue;
+					}
+					netContentFaces += cb.building.contentFacesInAllCities - cb.building.unhappyFacesInAllCities;
+				}
+			}
+			return netContentFaces;
 		}
 
 		public void RecalculateCitizenMoods(GameData gameData, bool goIntoDisorderIfUnhappy = false) {
@@ -1121,6 +1149,18 @@ namespace C7GameData {
 		public bool HasRequiredTechnology(IProducible producible) {
 			return producible.requiredTech == null ||
 				   knownTechs.Contains(producible.requiredTech.id);
+		}
+
+		// Whether any of this player's cities has already constructed the given
+		// building.
+		public bool OwnsBuilding(Building building) {
+			return cities.Any(c => c.constructed_buildings.Any(cb => cb.building == building));
+		}
+
+		// Whether any of this player's cities is currently producing the given
+		// item.
+		public bool IsProducing(IProducible item) {
+			return cities.Any(c => c.itemBeingProduced != null && c.itemBeingProduced.name == item.name);
 		}
 
 		public bool CanBridgeRoads() {

@@ -71,6 +71,7 @@ namespace C7GameData.Save {
 		public bool isSmallWonder;
 		public int culturePerTurn;
 		public int contentFacesInCity;
+		public int contentFacesInAllCities;
 		public double combatDefenseBonus;
 		public int maintenanceCost;
 		public int iconRowIndex;
