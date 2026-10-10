@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using C7Engine;
 using C7GameData;
 using C7GameData.Save;
 
@@ -31,6 +32,14 @@ public class MapBase {
 		return result;
 	}
 
+	// Wheeled units (chariots, catapults, cannon, ...) can't enter terrain that
+	// Civ3 marks as impassable to wheeled units.
+	protected static MapUnit MakeWheeledLandUnit(int movementPoints = 1) {
+		MapUnit result = MakeLandUnit(movementPoints);
+		result.unitType.wheeled = true;
+		return result;
+	}
+
 	protected void InitilizeStartTile(Tile start, TileLocation tileLocation) {
 		startTile = start;
 		startTile.XCoordinate = tileLocation.X;
@@ -54,6 +63,13 @@ public class MapBase {
 		return new Rules() {
 			MaxRankOfWorkableTiles = 2
 		};
+	}
+
+	// Sets up the global game data the engine reads from. Tests that add terrain
+	// improvements need this, because changing a tile's road layer invalidates the
+	// cached trade network.
+	protected void InitializeTestGameData() {
+		EngineStorage.InitializeGameDataForTests(new C7GameData.GameData(1234));
 	}
 
 	private TileDirection[] directions = {
@@ -157,11 +173,18 @@ public class MapBase {
 	}
 
 	protected TerrainImprovement road = new("road", TerrainImprovement.Layer.Roads, movementCost: 1.0f / 3);
+	protected TerrainImprovement railroad = new("railroad", TerrainImprovement.Layer.Roads, movementCost: 0);
 
 	protected Tile MakeMountainTile() {
+		// Civ3 marks mountains as impassable to wheeled units, but passable to
+		// foot and mounted units.
 		return new(ID.None("")) {
 			baseTerrainType = new() { Key = "mountains" },
-			overlayTerrainType = new() { Key = "mountains", movementCost = 3 }
+			overlayTerrainType = new() {
+				Key = "mountains",
+				movementCost = 3,
+				impassableTo = new() { [SaveUnitPrototype.Flag.Wheeled] = ["road", "railroad"] }
+			}
 		};
 	}
 	protected Tile MakeHillTile() {
