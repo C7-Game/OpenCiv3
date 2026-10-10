@@ -70,6 +70,7 @@ jobs:
     - name: Copy Static Files
       run: |
         if cp -r ${PROJECT_DIR}/Text build/${FOLDER_NAME}/Text && \\
+           cp NOTICE.md build/${FOLDER_NAME}/Text/NOTICE.md && \\
            cp -r ${PROJECT_DIR}/Assets build/${FOLDER_NAME}/Assets && \\
            cp -r ${PROJECT_DIR}/Lua build/${FOLDER_NAME}/Lua
         then
@@ -120,6 +121,7 @@ jobs:
     - name: Copy Static Files
       run: |
         if cp -r ${PROJECT_DIR}/Text build/${FOLDER_NAME}/Text && \\
+           cp NOTICE.md build/${FOLDER_NAME}/Text/NOTICE.md && \\
            cp -r ${PROJECT_DIR}/Assets build/${FOLDER_NAME}/Assets && \\
            cp -r ${PROJECT_DIR}/Lua build/${FOLDER_NAME}/Lua
         then
@@ -172,6 +174,8 @@ jobs:
           python3 .github/scripts/generate_asset_credits.py "${PROJECT_DIR}"
     - name: Copy Static Files
       run: |
+        cp NOTICE.md ${PROJECT_DIR}/Text/NOTICE.md
+
         cd ${PROJECT_DIR}
         if zip -r ../build/${FOLDER_NAME}.zip Assets Text Lua
         then

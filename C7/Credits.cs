@@ -35,7 +35,12 @@ public partial class Credits : Node2D {
 		try {
 			licencesText = System.IO.File.ReadAllText("../NOTICE.md");
 		} catch (System.Exception ex) {
-			log.Warning(ex, "Failed to read from NOTICE.md!");
+			log.Warning(ex, "Failed to read from ../NOTICE.md!");
+			try {
+				licencesText = System.IO.File.ReadAllText("./Text/NOTICE.md");
+			} catch (System.Exception ex2) {
+				log.Warning(ex2, "Failed to read from ./Text/NOTICE.md!");
+			}
 		}
 		try {
 			var encoded = "W2NlbnRlcl0KCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKKipZVU1CTz8qKgoKCgoKCgoKCgoKCgoKCgoK";
