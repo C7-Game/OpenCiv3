@@ -26,6 +26,14 @@ public partial class MainMenu : Node {
 		log = LogManager.ForContext<MainMenu>();
 		log.Debug("enter MainMenu._Ready");
 
+		// Log where we're loading data from and whether the original
+		// Civilization III media was found. This makes path-related problems
+		// (missing C7.ini, an unset civ3InstallDir) diagnosable from the log
+		// instead of only showing up as missing or placeholder graphics.
+		log.Information("Data dir: {GameDir}; settings: {SettingsFile}; civ3 install: {Civ3Root}; standalone media: {Standalone}, classic media available: {Classic}",
+			GamePaths.BaseDir, C7Settings.SettingsFilePath, Util.Civ3Root,
+			C7Settings.UseStandaloneMode(), ClassicGraphicsAvailable());
+
 		DisplayServer.WindowSetTitle((string)ProjectSettings.GetSetting("application/config/name"));
 
 		try {
