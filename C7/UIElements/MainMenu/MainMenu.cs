@@ -66,8 +66,6 @@ public partial class MainMenu : Node {
 		ButtonContainer.HallOfFame.Pressed += HallOfFame;
 		ButtonContainer.HallOfFame.Visible = false;
 		ButtonContainer.Preferences.Pressed += ShowPreferences;
-		ButtonContainer.AudioPreferences.Pressed += ShowPreferences;
-		ButtonContainer.AudioPreferences.Visible = false;
 		ButtonContainer.Credits.Pressed += showCredits;
 		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
 
