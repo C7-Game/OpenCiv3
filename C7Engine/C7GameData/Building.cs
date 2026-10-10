@@ -4,6 +4,7 @@ using System.Linq;
 using C7GameData.Save;
 using C7Engine;
 using C7Engine.Lua;
+using Serilog.Debugging;
 
 namespace C7GameData {
 	public class Building : IProducible {
@@ -35,15 +36,44 @@ namespace C7GameData {
 		public bool isCenterOfEmpire;
 		public bool increasesLuxuryTrade;
 		public bool reducesCorruption;
-		public bool isForbiddenPalace;
 		public bool allowsCitySize2;
 		public bool allowsCitySize3;
 		public bool doublesCityGrowthRate;
 		public bool providesWalls;
 		public bool onlyUsefulInTowns;
+		public bool goodsMustBeInCityRadius;
 		public StrengthBonus? combatDefenseBonus;
 		public bool providesVeteranGroundUnits;
+
+		// Wonder flags, shared by small and great wonders.
+		public bool increasesLeaderChance;
+		public bool allowsBuildArmy;
+		public bool allowsLargerArmies;
 		public bool treasuryEarnsInterest;
+		public bool buildSpaceshipParts;
+		public bool isForbiddenPalace;
+		public bool decreasesMissileSuccess;
+		public bool allowsSpyMissions;
+		public bool allowsEnemyTerritoryHealing;
+		public bool requiresVictoriousArmy;
+		public bool requiresEliteShip;
+		public bool safeSeaTravel;
+		public bool gainAnyTechKnownByTwoCivs;
+		public bool doubleCombatVsBarbarians;
+		public bool increasedShipMovement;
+		public bool doublesResearchOutput;
+		public bool increasedTrade;
+		public bool cheaperUpgrades;
+		public bool paysTradeMaintenance;
+		public bool allowsNuclearWeapons;
+		public bool doubleCityGrowth;
+		public bool twoFreeAdvances;
+		public bool reducedWarWeariness;
+		public bool doubleCityDefenses;
+		public bool allowDiplomaticVictory;
+		public bool plusTwoShipMovement;
+		public bool increasedArmyValue;
+		public bool touristAttraction;
 
 		public int culturePerTurn = 0;
 		public int maintenanceCost = 0;
@@ -88,14 +118,43 @@ namespace C7GameData {
 			isCenterOfEmpire = building.flags.Contains(SaveBuilding.Flag.IsCenterOfEmpire);
 			increasesLuxuryTrade = building.flags.Contains(SaveBuilding.Flag.IncreasesLuxuryTrade);
 			reducesCorruption = building.flags.Contains(SaveBuilding.Flag.ReducesCorruption);
-			isForbiddenPalace = building.flags.Contains(SaveBuilding.Flag.ForbiddenPalace);
 			allowsCitySize2 = building.flags.Contains(SaveBuilding.Flag.AllowsCitySize2);
 			allowsCitySize3 = building.flags.Contains(SaveBuilding.Flag.AllowsCitySize3);
 			doublesCityGrowthRate = building.flags.Contains(SaveBuilding.Flag.DoublesCityGrowthRate);
 			providesWalls = building.flags.Contains(SaveBuilding.Flag.ProvidesWalls);
 			onlyUsefulInTowns = building.flags.Contains(SaveBuilding.Flag.CanOnlyBeBuiltInTowns);
+			goodsMustBeInCityRadius = building.flags.Contains(SaveBuilding.Flag.GoodsMustBeInCityRadius);
 			providesVeteranGroundUnits = building.flags.Contains(SaveBuilding.Flag.VeteranGroundUnits);
-			treasuryEarnsInterest = building.flags.Contains(SaveBuilding.Flag.TreasuryEarnsInterest);
+
+			var wonderFlags = building.wonderFlags;
+			increasesLeaderChance = wonderFlags.Contains(SaveBuilding.WonderFlag.IncreasesLeaderChance);
+			allowsBuildArmy = wonderFlags.Contains(SaveBuilding.WonderFlag.AllowsBuildArmy);
+			allowsLargerArmies = wonderFlags.Contains(SaveBuilding.WonderFlag.AllowsLargerArmies);
+			treasuryEarnsInterest = wonderFlags.Contains(SaveBuilding.WonderFlag.TreasuryEarnsInterest);
+			buildSpaceshipParts = wonderFlags.Contains(SaveBuilding.WonderFlag.BuildSpaceshipParts);
+			isForbiddenPalace = wonderFlags.Contains(SaveBuilding.WonderFlag.ForbiddenPalace);
+			decreasesMissileSuccess = wonderFlags.Contains(SaveBuilding.WonderFlag.DecreasesMissileSuccess);
+			allowsSpyMissions = wonderFlags.Contains(SaveBuilding.WonderFlag.AllowsSpyMissions);
+			allowsEnemyTerritoryHealing = wonderFlags.Contains(SaveBuilding.WonderFlag.AllowsEnemyTerritoryHealing);
+			requiresVictoriousArmy = wonderFlags.Contains(SaveBuilding.WonderFlag.RequiresVictoriousArmy);
+			requiresEliteShip = wonderFlags.Contains(SaveBuilding.WonderFlag.RequiresEliteShip);
+			safeSeaTravel = wonderFlags.Contains(SaveBuilding.WonderFlag.SafeSeaTravel);
+			gainAnyTechKnownByTwoCivs = wonderFlags.Contains(SaveBuilding.WonderFlag.GainAnyTechKnownByTwoCivs);
+			doubleCombatVsBarbarians = wonderFlags.Contains(SaveBuilding.WonderFlag.DoubleCombatVsBarbarians);
+			increasedShipMovement = wonderFlags.Contains(SaveBuilding.WonderFlag.IncreasedShipMovement);
+			doublesResearchOutput = wonderFlags.Contains(SaveBuilding.WonderFlag.DoublesResearchOutput);
+			increasedTrade = wonderFlags.Contains(SaveBuilding.WonderFlag.IncreasedTrade);
+			cheaperUpgrades = wonderFlags.Contains(SaveBuilding.WonderFlag.CheaperUpgrades);
+			paysTradeMaintenance = wonderFlags.Contains(SaveBuilding.WonderFlag.PaysTradeMaintenance);
+			allowsNuclearWeapons = wonderFlags.Contains(SaveBuilding.WonderFlag.AllowsNuclearWeapons);
+			doubleCityGrowth = wonderFlags.Contains(SaveBuilding.WonderFlag.DoubleCityGrowth);
+			twoFreeAdvances = wonderFlags.Contains(SaveBuilding.WonderFlag.TwoFreeAdvances);
+			reducedWarWeariness = wonderFlags.Contains(SaveBuilding.WonderFlag.ReducedWarWeariness);
+			doubleCityDefenses = wonderFlags.Contains(SaveBuilding.WonderFlag.DoubleCityDefenses);
+			allowDiplomaticVictory = wonderFlags.Contains(SaveBuilding.WonderFlag.AllowDiplomaticVictory);
+			plusTwoShipMovement = wonderFlags.Contains(SaveBuilding.WonderFlag.PlusTwoShipMovement);
+			increasedArmyValue = wonderFlags.Contains(SaveBuilding.WonderFlag.IncreasedArmyValue);
+			touristAttraction = wonderFlags.Contains(SaveBuilding.WonderFlag.TouristAttraction);
 
 			if (building.greatWonderProperties != null) {
 				greatWonderProperties = new();
@@ -137,8 +196,15 @@ namespace C7GameData {
 				}
 			}
 
-			// TODO: Add logic for wonders and the palace
-			if (isSmallWonder || isCenterOfEmpire) {
+			if (isSmallWonder) {
+				// TODO: Consider providing a helper from the Player class that caches all owned Small Wonders
+				// So we're not querying in O(n^2) time every time
+				if (city.owner.cities.Any(c => c.constructed_buildings.Any(cb => cb.building.name == this.name))) {
+					return false;
+				}
+			}
+
+			if (isCenterOfEmpire && city.IsCapital()) {
 				return false;
 			}
 

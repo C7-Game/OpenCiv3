@@ -1609,6 +1609,7 @@ namespace C7GameData {
 				}
 
 				building.flags = LoadBuildingFlags(bldg).ToHashSet();
+				building.wonderFlags = LoadWonderFlags(bldg).ToHashSet();
 				building.traits = LoadBuildingTraits(bldg).ToHashSet();
 
 				// Buildings with bombard defense are treated as walls in civ3.
@@ -1632,14 +1633,48 @@ namespace C7GameData {
 				(bldg.VeteranSeaUnits, SaveBuilding.Flag.VeteranSeaUnits),
 				(bldg.IncreasesLuxuryTrade, SaveBuilding.Flag.IncreasesLuxuryTrade),
 				(bldg.ReducesCorruption, SaveBuilding.Flag.ReducesCorruption),
-				(bldg.ForbiddenPalace, SaveBuilding.Flag.ForbiddenPalace),
 				(bldg.IncreasesShieldsInWater, SaveBuilding.Flag.IncreasesShieldsInWater),
 				(bldg.IncreasesFoodInWater, SaveBuilding.Flag.IncreasesFoodInWater),
 				(bldg.IncreasesTradeInWater, SaveBuilding.Flag.IncreasesTradeInWater),
 				(bldg.AllowsCitySize2, SaveBuilding.Flag.AllowsCitySize2),
 				(bldg.AllowsCitySize3, SaveBuilding.Flag.AllowsCitySize3),
 				(bldg.DoublesCityGrowthRate, SaveBuilding.Flag.DoublesCityGrowthRate),
-				(bldg.TreasuryEarnsInterest, SaveBuilding.Flag.TreasuryEarnsInterest),
+				(bldg.GoodsMustBeInCityRadius, SaveBuilding.Flag.GoodsMustBeInCityRadius),
+			}
+			.Where(t => t.Item1)
+			.Select(t => t.Item2);
+		}
+
+		private static IEnumerable<SaveBuilding.WonderFlag> LoadWonderFlags(BLDG bldg) {
+			return new[] {
+				(bldg.IncreasesLeaderChance, SaveBuilding.WonderFlag.IncreasesLeaderChance),
+				(bldg.AllowsBuildArmy, SaveBuilding.WonderFlag.AllowsBuildArmy),
+				(bldg.AllowsLargerArmies, SaveBuilding.WonderFlag.AllowsLargerArmies),
+				(bldg.TreasuryEarnsInterest, SaveBuilding.WonderFlag.TreasuryEarnsInterest),
+				(bldg.BuildSpaceshipParts, SaveBuilding.WonderFlag.BuildSpaceshipParts),
+				(bldg.ForbiddenPalace, SaveBuilding.WonderFlag.ForbiddenPalace),
+				(bldg.DecreasesMissileSuccess, SaveBuilding.WonderFlag.DecreasesMissileSuccess),
+				(bldg.AllowsSpyMissions, SaveBuilding.WonderFlag.AllowsSpyMissions),
+				(bldg.AllowsEnemyTerritoryHealing, SaveBuilding.WonderFlag.AllowsEnemyTerritoryHealing),
+				(bldg.RequiresVictoriousArmy, SaveBuilding.WonderFlag.RequiresVictoriousArmy),
+				(bldg.RequiresEliteShip, SaveBuilding.WonderFlag.RequiresEliteShip),
+				(bldg.SafeSeaTravel, SaveBuilding.WonderFlag.SafeSeaTravel),
+				(bldg.GainAnyTechKnownByTwoCivs, SaveBuilding.WonderFlag.GainAnyTechKnownByTwoCivs),
+				(bldg.DoubleCombatVsBarbarians, SaveBuilding.WonderFlag.DoubleCombatVsBarbarians),
+				(bldg.IncreasedShipMovement, SaveBuilding.WonderFlag.IncreasedShipMovement),
+				(bldg.DoublesResearchOutput, SaveBuilding.WonderFlag.DoublesResearchOutput),
+				(bldg.IncreasedTrade, SaveBuilding.WonderFlag.IncreasedTrade),
+				(bldg.CheaperUpgrades, SaveBuilding.WonderFlag.CheaperUpgrades),
+				(bldg.PaysTradeMaintenance, SaveBuilding.WonderFlag.PaysTradeMaintenance),
+				(bldg.AllowsNuclearWeapons, SaveBuilding.WonderFlag.AllowsNuclearWeapons),
+				(bldg.DoubleCityGrowth, SaveBuilding.WonderFlag.DoubleCityGrowth),
+				(bldg.TwoFreeAdvances, SaveBuilding.WonderFlag.TwoFreeAdvances),
+				(bldg.ReducedWarWeariness, SaveBuilding.WonderFlag.ReducedWarWeariness),
+				(bldg.DoubleCityDefenses, SaveBuilding.WonderFlag.DoubleCityDefenses),
+				(bldg.AllowDiplomaticVictory, SaveBuilding.WonderFlag.AllowDiplomaticVictory),
+				(bldg.PlusTwoShipMovement, SaveBuilding.WonderFlag.PlusTwoShipMovement),
+				(bldg.IncreasedArmyValue, SaveBuilding.WonderFlag.IncreasedArmyValue),
+				(bldg.TouristAttraction, SaveBuilding.WonderFlag.TouristAttraction),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);

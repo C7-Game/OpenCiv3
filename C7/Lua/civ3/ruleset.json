@@ -8556,6 +8556,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 30,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "religious",
         "industrious",
@@ -8574,6 +8577,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 31,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-45",
       "traits": [
         "industrious",
@@ -8595,6 +8601,10 @@
       "renderedObsoleteBy": "tech-59",
       "flags": [
         "mustBeCoastal"
+      ],
+      "wonderFlags": [
+        "increasedTrade",
+        "touristAttraction"
       ],
       "traits": [
         "commercial",
@@ -8621,6 +8631,11 @@
       "flags": [
         "mustBeCoastal"
       ],
+      "wonderFlags": [
+        "safeSeaTravel",
+        "increasedShipMovement",
+        "touristAttraction"
+      ],
       "traits": [
         "commercial",
         "expansionist",
@@ -8642,6 +8657,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 34,
+      "wonderFlags": [
+        "gainAnyTechKnownByTwoCivs",
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-30",
       "traits": [
         "scientific"
@@ -8659,6 +8678,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 35,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-25",
       "traits": [
         "religious"
@@ -8678,6 +8700,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 36,
+      "wonderFlags": [
+        "doubleCombatVsBarbarians",
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-39",
       "traits": [
         "militaristic",
@@ -8714,6 +8740,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 38,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "religious"
       ]
@@ -8732,6 +8761,9 @@
       "iconRowIndex": 39,
       "flags": [
         "mustBeCoastal"
+      ],
+      "wonderFlags": [
+        "increasedShipMovement"
       ],
       "traits": [
         "commercial",
@@ -8754,6 +8786,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 40,
+      "wonderFlags": [
+        "doublesResearchOutput",
+        "touristAttraction"
+      ],
       "traits": [
         "expansionist"
       ]
@@ -8773,6 +8809,9 @@
       "flags": [
         "allowsCitySize3"
       ],
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "productionPrerequisites": [
         "buildings.production_rules.allows_city_size_3"
       ]
@@ -8789,6 +8828,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 42,
+      "wonderFlags": [
+        "cheaperUpgrades",
+        "touristAttraction"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -8805,6 +8848,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 43,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "religious"
       ]
@@ -8821,6 +8867,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 44,
+      "wonderFlags": [
+        "doublesResearchOutput",
+        "touristAttraction"
+      ],
       "traits": [
         "scientific"
       ]
@@ -8837,6 +8887,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 45,
+      "wonderFlags": [
+        "paysTradeMaintenance"
+      ],
       "traits": [
         "commercial",
         "seafaring"
@@ -8854,6 +8907,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 46,
+      "wonderFlags": [
+        "reducedWarWeariness"
+      ],
       "traits": [
         "agricultural"
       ]
@@ -8875,6 +8931,9 @@
       "flags": [
         "mustBeNearRiver"
       ],
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "industrious",
         "agricultural"
@@ -8895,6 +8954,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 48,
+      "wonderFlags": [
+        "twoFreeAdvances"
+      ],
       "traits": [
         "scientific"
       ]
@@ -8911,6 +8973,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 49,
+      "wonderFlags": [
+        "allowDiplomaticVictory",
+        "touristAttraction"
+      ],
       "traits": [
         "commercial"
       ]
@@ -8927,6 +8993,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 50,
+      "wonderFlags": [
+        "allowsNuclearWeapons"
+      ],
       "traits": [
         "militaristic",
         "industrious"
@@ -8964,6 +9033,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 52,
+      "wonderFlags": [
+        "doubleCityGrowth"
+      ],
       "traits": [
         "scientific"
       ]
@@ -8980,6 +9052,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 53,
+      "wonderFlags": [
+        "doublesResearchOutput"
+      ],
       "traits": [
         "expansionist"
       ]
@@ -8994,6 +9069,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 54,
+      "wonderFlags": [
+        "increasesLeaderChance",
+        "requiresVictoriousArmy"
+      ],
       "traits": [
         "religious",
         "seafaring"
@@ -9009,6 +9088,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 55,
+      "flags": [
+        "goodsMustBeInCityRadius"
+      ],
       "requiredResources": [
         "Iron",
         "Coal"
@@ -9024,7 +9106,7 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 56,
-      "flags": [
+      "wonderFlags": [
         "forbiddenPalace"
       ],
       "traits": [
@@ -9042,6 +9124,11 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 57,
+      "wonderFlags": [
+        "allowsBuildArmy",
+        "requiresVictoriousArmy",
+        "increasedArmyValue"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9056,6 +9143,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 58,
+      "wonderFlags": [
+        "allowsLargerArmies"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9070,7 +9160,10 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
-      "iconRowIndex": 59
+      "iconRowIndex": 59,
+      "wonderFlags": [
+        "treasuryEarnsInterest"
+      ]
     },
     {
       "name": "Apollo Program",
@@ -9083,6 +9176,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 60,
+      "wonderFlags": [
+        "buildSpaceshipParts"
+      ],
       "traits": [
         "scientific"
       ],
@@ -9102,6 +9198,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 61,
+      "wonderFlags": [
+        "decreasesMissileSuccess"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9117,6 +9216,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 62,
+      "wonderFlags": [
+        "allowsSpyMissions"
+      ],
       "traits": [
         "militaristic",
         "scientific"
@@ -9133,6 +9235,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 63,
+      "wonderFlags": [
+        "allowsEnemyTerritoryHealing"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9383,6 +9488,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 78,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-30",
       "traits": [
         "religious"
@@ -9400,6 +9508,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 79,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-39",
       "traits": [
         "militaristic",
@@ -9421,6 +9532,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 80,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "scientific",
         "seafaring"
@@ -9455,7 +9569,7 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 56,
-      "flags": [
+      "wonderFlags": [
         "forbiddenPalace"
       ]
     }
