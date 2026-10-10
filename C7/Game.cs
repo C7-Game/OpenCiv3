@@ -444,7 +444,8 @@ public partial class Game : Node {
 				EmitSignal(SignalName.UnitMoved, new ParameterWrapper<MapUnit>(mTU.Unit));
 				break;
 			case MsgDisplayAbandonCityPopup mDACP:
-				this.ensureLocationIsInView(mDACP.city.location);
+				if (mDACP.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mDACP.city.location);
 				EmitConfirmAbandonCitySignal(mDACP);
 				break;
 			case MsgNameCity mNC:
