@@ -135,7 +135,7 @@ public partial class MainMenu : Node {
 
 	public void showCredits() {
 		log.Information("credits button pressed");
-		GetTree().ChangeSceneToFile("res://Credits.tscn");
+		GetTree().ChangeSceneToFile("res://UIElements/Credits/Credits.tscn");
 	}
 
 	public void HallOfFame() {
