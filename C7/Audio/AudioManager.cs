@@ -19,28 +19,32 @@ public partial class AudioManager : Node {
 	private PolyphonicAudioPlayer _polyUiAudioPlayer;
 	private PolyphonicAudioPlayer _polyAmbienceAudioPlayer;
 
+	public static string MasterBus = "Master";
 	public static string MusicBus = "Music";
 	public static string SfxAudioBus = "Sfx";
 	public static string UIAudioBus = "UI";
 	public static string AmbienceAudioBus = "Ambience";
 
+	private bool masterEnabled = true;
 	private bool musicEnabled = true;
 	private bool sfxAudioEnabled = true;
 	private bool uiAudioEnabled = true;
 	private bool ambienceAudioEnabled = true;
+
 	// Maps a bus to the settings key holding its volume. Public so settings UI
 	// can drive a bus without repeating the magic strings.
 	public static readonly Dictionary<string, string> BusVolumeKeys = new() {
+		{ MasterBus, C7Settings.Audio.MasterVolume },
 		{ MusicBus, C7Settings.Audio.MusicVolume },
 		{ SfxAudioBus, C7Settings.Audio.SfxAudioVolume },
 		{ UIAudioBus, C7Settings.Audio.UiAudioVolume },
 		{ AmbienceAudioBus, C7Settings.Audio.AmbienceAudioVolume },
 	};
 
-
-
 	public override void _Ready() {
 		log = LogManager.ForContext<AudioManager>();
+
+		masterEnabled = ConfigureVolume(C7Settings.Audio.MasterVolume, MasterBus);
 
 		musicEnabled = ConfigureVolume(C7Settings.Audio.MusicVolume, MusicBus);
 		_polyMusicPlayer = new PolyphonicAudioPlayer(musicPlayer, 2);
@@ -57,8 +61,7 @@ public partial class AudioManager : Node {
 
 	private bool ConfigureVolume(string volumeKey, string audioBus) {
 		try {
-			// A missing key means the user never set it, so fall back to full
-			// volume rather than letting int.Parse throw on null.
+			// A missing key means the user never set it: fall back to full volume
 			string volume = C7Settings.GetSettingsValueOrDefault(C7Settings.Audio.SectionName, volumeKey, "100");
 			float volumeDb = LogicalVolumeAsDecibel(int.Parse(volume));
 
@@ -99,33 +102,9 @@ public partial class AudioManager : Node {
 	// TODO: playlists, mixing, transitions
 	// See: https://www.youtube.com/watch?app=desktop&v=07Kyqqg31FI&t=346s
 
-	// TODO: polyphony via AudioStreamPolyphonic + AudioStreamPlaybackPolyphonic
-	// https://docs.godotengine.org/en/4.0/classes/class_audiostreampolyphonic.html
-
-	private long currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
-
-	public void PlayMusic(string configKey) {
-		AudioStream stream = AudioLoader.Load(configKey);
-
-		if (stream == null)
-			return;
-
-		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
-			_polyMusicPlayer.Stop(currentMusicId);
-			currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
-		}
-
-		currentMusicId = _polyMusicPlayer.Play(stream);
-	}
-
-
-	public void StopMusic() {
-		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
-			_polyMusicPlayer.Stop(currentMusicId);
-			currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
-		}
-	}
-
+	/*
+	 * Audio buses - general methods for managing audio buses
+	 */
 
 	/// <summary>
 	/// The user's volume for a bus, as a 0-100 percentage, or -1 if the bus is
@@ -164,6 +143,40 @@ public partial class AudioManager : Node {
 		AudioServer.SetBusVolumeDb(busIndex, volumeDb);
 		AudioServer.SetBusMute(busIndex, volumeDb == float.MinValue);
 	}
+
+
+	/*
+	 * Music - only one track playing at any one point
+	 */
+
+	private long currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
+
+	public void PlayMusic(string configKey) {
+		AudioStream stream = AudioLoader.Load(configKey);
+
+		if (stream == null)
+			return;
+
+		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
+			_polyMusicPlayer.Stop(currentMusicId);
+			currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
+		}
+
+		currentMusicId = _polyMusicPlayer.Play(stream);
+	}
+
+	public void StopMusic() {
+		if (currentMusicId != AudioStreamPlaybackPolyphonic.InvalidId) {
+			_polyMusicPlayer.Stop(currentMusicId);
+			currentMusicId = AudioStreamPlaybackPolyphonic.InvalidId;
+		}
+	}
+
+	/*
+	 * Separate channels for SFX, UI, and Ambient sounds.
+	 * Each one is polyphonic, able to play overlapping tracks.
+	 */
+
 	public void PlaySfxAudio(string configKey) {
 		var stream = AudioLoader.Load(configKey);
 		if (stream != null)

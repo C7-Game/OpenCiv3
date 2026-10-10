@@ -13,14 +13,20 @@ using Godot;
 [GlobalClass]
 public partial class Preferences : Control {
 	[Export] Civ3Checkbox promptForResearch;
+
+	// TODO: Make an audio volume control scene
+
+	[Export] Civ3HSlider masterVolume;
 	[Export] Civ3HSlider musicVolume;
 	[Export] Civ3HSlider sfxVolume;
 	[Export] Civ3HSlider uiVolume;
 	[Export] Civ3HSlider ambienceVolume;
+	[Export] Label masterVolumeLabel;
 	[Export] Label musicVolumeLabel;
 	[Export] Label sfxVolumeLabel;
 	[Export] Label uiVolumeLabel;
 	[Export] Label ambienceVolumeLabel;
+	[Export] Control masterVolumeRow;
 	[Export] Control musicVolumeRow;
 	[Export] Control sfxVolumeRow;
 	[Export] Control uiVolumeRow;
@@ -42,6 +48,9 @@ public partial class Preferences : Control {
 		promptForResearch.Toggled += enabled => {
 			PreferencesSettings.SetPromptForResearch(enabled);
 		};
+
+		ConnectVolumeSlider(masterVolumeRow, masterVolume, masterVolumeLabel, AudioManager.MasterBus,
+			() => { }); // music is always playing (through master)
 
 		ConnectVolumeSlider(musicVolumeRow, musicVolume, musicVolumeLabel, AudioManager.MusicBus,
 			() => { }); // music is always playing
