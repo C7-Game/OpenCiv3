@@ -38,6 +38,11 @@ namespace C7GameData {
 
 		public PediaIcons(string path) {
 			pediaIconsPath = path;
+			if (string.IsNullOrEmpty(path) || !File.Exists(path)) {
+				log.Warning($"PediaIcons file '{path}' not found; importing without icon/art mappings");
+				return;
+			}
+
 			string[] lines = File.ReadAllLines(path);
 
 			string animNamePrefix = "#ANIMNAME_";
@@ -82,14 +87,28 @@ namespace C7GameData {
 		}
 
 		public string GetTechIconPath(string civilopediaEntry) {
-			return techSmallIconMapping[civilopediaEntry];
+			if (techSmallIconMapping.TryGetValue(civilopediaEntry, out string iconPath)) {
+				return iconPath;
+			}
+			log.Warning($"Could not find #TECH_{civilopediaEntry} in PediaIcons file '{pediaIconsPath}'");
+			return null;
+		}
+
+		public int GetBuildingRowNumber(string civilopediaEntry) {
+			if (buildingToRowNumberMapping.TryGetValue(civilopediaEntry, out int row)) {
+				return row;
+			}
+			log.Warning($"Could not find #ICON_BLDG_{civilopediaEntry} in PediaIcons file '{pediaIconsPath}'");
+			return 0;
 		}
 
 		public MainArt GetUnitMainArt(string civilopediaEntry) {
 			if (!unitArtMapping.TryGetValue(civilopediaEntry, out string artName)) {
-				log.Warning($"Could not find #ANIMNAME_{civilopediaEntry} in PediaIcons file '{pediaIconsPath}");
-				artName = unitArtMapping.First(e => e.Key.StartsWith(civilopediaEntry)).Value;
-				artName = artName.Replace($"{civilopediaEntry}_", "");
+				log.Warning($"Could not find #ANIMNAME_{civilopediaEntry} in PediaIcons file '{pediaIconsPath}'");
+				string fallbackKey = unitArtMapping.Keys.FirstOrDefault(e => e.StartsWith(civilopediaEntry));
+				if (fallbackKey is not null) {
+					artName = unitArtMapping[fallbackKey].Replace($"{civilopediaEntry}_", "");
+				}
 			}
 
 			var variations = unitArtMapping
@@ -115,8 +134,8 @@ namespace C7GameData {
 
 		public PediaArt GetUnitCivilopediaArt(string civilopediaEntry) {
 			return new PediaArt() {
-				large = civilopediaLargeIcons[civilopediaEntry],
-				small = civilopediaSmallIcons[civilopediaEntry],
+				large = civilopediaLargeIcons.TryGetValue(civilopediaEntry, out string large) ? large : null,
+				small = civilopediaSmallIcons.TryGetValue(civilopediaEntry, out string small) ? small : null,
 			};
 		}
 

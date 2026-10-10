@@ -87,17 +87,18 @@ namespace C7GameData {
 			ImportRules();
 		}
 
-		public static SaveGame ImportSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath) {
+		public static SaveGame ImportSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			ImportCiv3 importer = new ImportCiv3();
-			return importer.importSav(savePath, defaultBicPath, getPediaIconsPath);
+			return importer.importSav(savePath, defaultBicPath, getPediaIconsPath, getCivilopediaTextPath);
 		}
 
-		private SaveGame importSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath) {
+		private SaveGame importSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			// Get save data reader
 			byte[] defaultBicBytes = Util.ReadFile(defaultBicPath);
 			savData = new SavData(Util.ReadFile(savePath), defaultBicBytes);
 			biq = savData.Bic;
 			pediaIcons = new(getPediaIconsPath(biq.Game[0].ScenarioSearchFolders));
+			save.Codex = new Codex(getCivilopediaTextPath(biq.Game[0].ScenarioSearchFolders));
 			save.TurnNumber = savData.Game.TurnNumber;
 			save.Seed = savData.Wrld.WorldSeed;
 
@@ -253,15 +254,16 @@ namespace C7GameData {
 		 * defaultBiqPath is used in case some sections (map, rules, player data) are not
 		 * present.
 		 */
-		public static SaveGame ImportBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath) {
+		public static SaveGame ImportBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			ImportCiv3 importer = new ImportCiv3();
-			return importer.importBiq(biqPath, defaultBiqPath, getPediaIconsPath);
+			return importer.importBiq(biqPath, defaultBiqPath, getPediaIconsPath, getCivilopediaTextPath);
 		}
 
-		private SaveGame importBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath) {
+		private SaveGame importBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			biq = BiqData.LoadFile(biqPath);
 			defaultBiq = BiqData.LoadFile(defaultBiqPath);
 			pediaIcons = new(getPediaIconsPath(biq.Game[0].ScenarioSearchFolders));
+			save.Codex = new Codex(getCivilopediaTextPath(biq.Game[0].ScenarioSearchFolders));
 			save.Seed = biq.Wmap[0].MapSeed;
 
 			ImportSharedBiqData();
@@ -526,6 +528,7 @@ namespace C7GameData {
 			foreach (RACE race in theBiq.Race) {
 				Civilization civ = new Civilization{
 					name = race.Name,
+					civilopediaEntry = race.CivilopediaEntry,
 					noun = race.Noun,
 					adjective = race.Adjective,
 					leader = race.LeaderName,
@@ -1412,6 +1415,7 @@ namespace C7GameData {
 				}
 
 				prototype.name = prto.Name;
+				prototype.civilopediaEntry = prto.CivilopediaEntry;
 
 				Art unitArt = new Art();
 				unitArt.mainArt = pediaIcons.GetUnitMainArt(prto.CivilopediaEntry);
@@ -1592,7 +1596,7 @@ namespace C7GameData {
 				if (bldg.Name == "Wealth") {
 					SaveInflow inflow = new () {
 						name = bldg.Name,
-						iconRowIndex = pediaIcons.buildingToRowNumberMapping[bldg.CivilopediaEntry],
+						iconRowIndex = pediaIcons.GetBuildingRowNumber(bldg.CivilopediaEntry),
 						localYield = [
 							new SaveLocalYield(InflowYield.commerce, "inflows.result.wealth.commerce"),
 						],
@@ -1603,13 +1607,14 @@ namespace C7GameData {
 
 				SaveBuilding building = new() {
 					name=bldg.Name,
+					civilopediaEntry=bldg.CivilopediaEntry,
 					shieldCost=bldg.Cost * 10, // In Civ3 files, building costs are stored at 1/10th of their actual value
 					populationCost=0, // In Civ3, a building cannot have a population cost
 					isSmallWonder=bldg.SmallWonder,
 					greatWonderProperties=bldg.Wonder ? new SaveBuilding.GreatWonderProperties() : null,
 					culturePerTurn=bldg.Culture,
 					contentFacesInCity=bldg.ContentFaces - bldg.UnhappyFaces,
-					iconRowIndex=pediaIcons.buildingToRowNumberMapping[bldg.CivilopediaEntry],
+					iconRowIndex=pediaIcons.GetBuildingRowNumber(bldg.CivilopediaEntry),
 					combatDefenseBonus=bldg.DefenseBonus / 100.0,
 					maintenanceCost=bldg.MaintenanceCost,
 				};
@@ -1832,7 +1837,7 @@ namespace C7GameData {
 					Cost = t.Cost,
 					RequiredForEraAdvancement = !t.NotRequiredForEraAdvancement,
 					EraCivilopediaName = t.Era == -1 ? "Hidden" : theBiq.Eras[t.Era].CivilopediaEntry,
-					SmallIconPath = t.Era == -1 ? "" : pediaIcons.GetTechIconPath(t.CivilopediaEntry),
+					SmallIconPath = t.Era == -1 ? "" : pediaIcons.GetTechIconPath(t.CivilopediaEntry) ?? "",
 					X = t.X,
 					Y = t.Y,
 					flags = LoadTechFlags(t).ToHashSet(),

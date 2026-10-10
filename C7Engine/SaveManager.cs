@@ -25,11 +25,11 @@ namespace C7Engine {
 		}
 
 		// Load and initialize a save
-		public static SaveGame LoadSave(string path, string bicPath, Func<string, string> getPediaIconsPath) {
+		public static SaveGame LoadSave(string path, string bicPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			SaveGame save = getFileFormat(path) switch {
-				SaveFileFormat.Sav => ImportCiv3.ImportSav(path, bicPath, getPediaIconsPath),
-				SaveFileFormat.Biq => ImportCiv3.ImportBiq(path, bicPath, getPediaIconsPath),
-				SaveFileFormat.C7 => SaveGame.Load(path, getPediaIconsPath),
+				SaveFileFormat.Sav => ImportCiv3.ImportSav(path, bicPath, getPediaIconsPath, getCivilopediaTextPath),
+				SaveFileFormat.Biq => ImportCiv3.ImportBiq(path, bicPath, getPediaIconsPath, getCivilopediaTextPath),
+				SaveFileFormat.C7 => SaveGame.Load(path, getPediaIconsPath, getCivilopediaTextPath),
 				_ => throw new FileLoadException("invalid save format"),
 			};
 			return save;

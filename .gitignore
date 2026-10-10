@@ -73,4 +73,5 @@ msbuild.wrn
 
 # Local agent/contributor docs (keep out of the repo until maintainers want them)
 /doc/agent/
+/doc/design/
 /AGENTS.md
