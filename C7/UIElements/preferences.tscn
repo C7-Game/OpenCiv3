@@ -34,7 +34,7 @@ close = NodePath("Background/Close")
 layout_mode = 2
 mouse_filter = 0
 script = ExtResource("2_bg")
-textureConfigKey = "screens.wonders.background"
+textureConfigKey = "screens.preferences.background"
 
 [node name="Rows" type="VBoxContainer" parent="Background"]
 layout_mode = 0
