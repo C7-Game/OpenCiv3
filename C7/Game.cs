@@ -211,8 +211,7 @@ public partial class Game : Node {
 	}
 
 	private void InitializeAudio() {
-		AudioManager audio = GetNode<AudioManager>("/root/GlobalAudioManager");
-		audio.StopMusic();
+		GlobalAudio.manager.StopMusic();
 		// TODO: switch to in-game playlist / music logic
 	}
 

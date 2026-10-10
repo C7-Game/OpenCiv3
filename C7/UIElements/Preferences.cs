@@ -1,3 +1,4 @@
+using System;
 using C7.UIElements;
 using Godot;
 
@@ -27,10 +28,10 @@ public partial class Preferences : Control {
 	[Export] Civ3TextureButton close;
 	[Export] TextureRect background;
 
-	private AudioManager audioManager;
+	private AudioManager _audioManager;
 
 	public override void _Ready() {
-		audioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
+		_audioManager = GlobalAudio.manager;
 
 		// Match the advisor screens: the background texture is set on the
 		// TextureRect via textureConfigKey, and the title is drawn with the
@@ -42,17 +43,25 @@ public partial class Preferences : Control {
 			PreferencesSettings.SetPromptForResearch(enabled);
 		};
 
-		ConnectVolumeSlider(musicVolumeRow, musicVolume, musicVolumeLabel, AudioManager.MusicBus);
-		ConnectVolumeSlider(sfxVolumeRow, sfxVolume, sfxVolumeLabel, AudioManager.SfxAudioBus);
-		ConnectVolumeSlider(uiVolumeRow, uiVolume, uiVolumeLabel, AudioManager.UIAudioBus);
-		ConnectVolumeSlider(ambienceVolumeRow, ambienceVolume, ambienceVolumeLabel, AudioManager.AmbienceAudioBus);
+		ConnectVolumeSlider(musicVolumeRow, musicVolume, musicVolumeLabel, AudioManager.MusicBus,
+			() => { }); // music is always playing
+
+		ConnectVolumeSlider(sfxVolumeRow, sfxVolume, sfxVolumeLabel, AudioManager.SfxAudioBus,
+			() => _audioManager.PlaySfxAudio("extra.warrior.victory"));
+
+		ConnectVolumeSlider(uiVolumeRow, uiVolume, uiVolumeLabel, AudioManager.UIAudioBus,
+			() => _audioManager.PlayUIAudio("buttons.button_1"));
+
+		ConnectVolumeSlider(ambienceVolumeRow, ambienceVolume, ambienceVolumeLabel, AudioManager.AmbienceAudioBus,
+			() => _audioManager.PlayAmbienceAudio("ambience.oriole"));
 
 		TextureLoader.SetButtonTextures(close, "ui.exit");
 		close.Pressed += HidePreferences;
 	}
 
-	private void ConnectVolumeSlider(Control row, Civ3HSlider slider, Label valueLabel, string bus) {
-		int volume = audioManager.GetBusVolume(bus);
+	private void ConnectVolumeSlider(Control row, Civ3HSlider slider, Label valueLabel, string bus,
+		Action callback) {
+		int volume = _audioManager.GetBusVolume(bus);
 		if (volume < 0) {
 			row.Visible = false;
 			return;
@@ -63,10 +72,11 @@ public partial class Preferences : Control {
 
 		slider.ValueChanged += value => {
 			UpdateVolumeLabel(valueLabel, (int)value);
-			audioManager.SetBusVolumePercent(bus, (int)value);
+			_audioManager.SetBusVolumePercent(bus, (int)value);
 		};
 		slider.DragEnded += changed => {
-			audioManager.SetBusVolume(bus, (int)slider.Value);
+			_audioManager.SetBusVolume(bus, (int)slider.Value);
+			callback?.Invoke();
 		};
 	}
 
