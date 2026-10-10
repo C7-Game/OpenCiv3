@@ -4454,6 +4454,9 @@
         "Maya"
       ],
       "unproducible": true,
+      "flags": [
+        "Leader"
+      ],
       "categories": [
         "Land"
       ],
@@ -4464,7 +4467,8 @@
         "disband",
         "goto",
         "explore",
-        "load"
+        "load",
+        "scienceAge"
       ]
     },
     {
@@ -11233,7 +11237,10 @@
     "shieldCostPerGold": 4,
     "shieldRateForDisbanding": 0.25,
     "allowLesserUnitProduction": false,
-    "radarTileVisibility": 2
+    "radarTileVisibility": 2,
+    "allowScientificLeaders": true,
+    "maxScientificLeaders": 2,
+    "maxMilitaryLeaders": 1
   },
   "timeOptions": {
     "baseUnit": "years",

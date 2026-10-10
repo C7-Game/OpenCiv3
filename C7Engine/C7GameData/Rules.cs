@@ -24,5 +24,11 @@ namespace C7GameData {
 		public float ShieldRateForDisbanding; // per cent
 		public bool AllowLesserUnitProduction; // for example, allow building a Spearman/Pikeman when we can build a Musketman (simultaneously)
 		public int RadarTileVisibility; // how many tiles, a unit with the Radar ability, can see ahead
+
+		public bool AllowScientificLeaders = true;
+
+		// -1 for no limit.
+		public int MaxScientificLeaders = 2;
+		public int MaxMilitaryLeaders = 1;
 	}
 }

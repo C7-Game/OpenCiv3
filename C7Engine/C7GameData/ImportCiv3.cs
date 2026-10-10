@@ -85,6 +85,7 @@ namespace C7GameData {
 			ImportGovernments();
 			ImportDifficulties();
 			ImportRules();
+			ImportGameToggles();
 		}
 
 		public static SaveGame ImportSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath) {
@@ -536,6 +537,9 @@ namespace C7GameData {
 				};
 				foreach (RACE_City city in theBiq.RaceCityName[i]) {
 					civ.cityNames.Add(city.Name);
+				}
+				foreach (RACE_LeaderName leaderName in theBiq.RaceScientificLeaderName[i]) {
+					civ.scientificLeaderNames.Add(leaderName.Name);
 				}
 				civ.traits = LoadCivTraits(race).ToHashSet();
 				civ.cultureGroupKey = GetCultureGroupIdentifier(race.CultureGroup);
@@ -1118,6 +1122,7 @@ namespace C7GameData {
 					WorkerProgressTowardsJob = unit.WorkerProgressTowardsJob,
 					WorkerJob = (unit.WorkerJob==-1) ? null: save.TerraForms[unit.WorkerJob].Id,
 					isAutomated = unit.IsAutomated,
+					leaderKind = unit.LeaderKind,
 				};
 				// since this is a .sav unit, we need to adjust things like the hp, remaining moves, etc
 				// TODO: there are surely more things to add here, e.x. has this unit used its defensive bombardment this round?
@@ -1368,6 +1373,7 @@ namespace C7GameData {
 			if (prto.Automate) yield return UnitAction.Automate;
 			if (prto.Load) yield return UnitAction.Load;
 			if (prto.Unload) yield return UnitAction.Unload;
+			if (prto.ScienceAge) yield return UnitAction.ScienceAge;
 		}
 
 		private static IEnumerable<TerraformKey> GetUnitTerraforms(PRTO prto) {
@@ -1438,6 +1444,7 @@ namespace C7GameData {
 				if (prto.LethalLandBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalLandBombardment);
 				if (prto.LethalSeaBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalSeaBombardment);
 				if (prto.Radar) prototype.flags.Add(SaveUnitPrototype.Flag.Radar);
+				if (prto.Leader) prototype.flags.Add(SaveUnitPrototype.Flag.Leader);
 
 				prototype.actions.UnionWith(GetUnitActions(prto));
 				prototype.terraformActions.UnionWith(GetUnitTerraforms(prto).Select(tfKey => terraformIdByCiv3Key[tfKey]));
@@ -2092,6 +2099,15 @@ namespace C7GameData {
 			save.Rules.ShieldRateForDisbanding = 0.25f;
 			save.Rules.AllowLesserUnitProduction = false;
 			save.Rules.RadarTileVisibility = 2;
+		}
+
+		// A SAV's GAME section is the live state; its embedded BIQ is the scenario definition.
+		private void ImportGameToggles() {
+			if (savData is not null) {
+				save.Rules.AllowScientificLeaders = savData.Game.AllowScientificLeaders;
+			} else {
+				save.Rules.AllowScientificLeaders = biq.Game[0].AllowScientificLeaders;
+			}
 		}
 
 		private static void SetWorldWrap(SavData civ3Save, SaveGame save) {

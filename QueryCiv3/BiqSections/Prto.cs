@@ -177,6 +177,7 @@ namespace QueryCiv3.Biq {
 		public bool Teleportable { get => Util.GetFlag(Flags3[5], 7); }
 		public bool StealthAttack { get => Util.GetFlag(Flags3[6], 0); }
 		public bool Charm { get => Util.GetFlag(Flags3[6], 1); }
+		public bool ScienceAge { get => Util.GetFlag(Flags3[6], 5); }
 
 		public bool BuildColony { get => Util.GetFlag(Flags3[8], 0); }
 		public bool BuildCity { get => Util.GetFlag(Flags3[8], 1); }

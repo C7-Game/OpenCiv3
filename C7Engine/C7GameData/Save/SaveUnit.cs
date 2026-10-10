@@ -25,6 +25,8 @@ namespace C7GameData.Save {
 		// and automated exploring.
 		public bool isAutomated;
 
+		public int leaderKind;
+
 		public SaveUnit() { }
 
 		public SaveUnit(MapUnit unit) {
@@ -49,6 +51,7 @@ namespace C7GameData.Save {
 			movePointsRemaining = unit.movementPoints.remaining;
 			WorkerProgressTowardsJob = unit.WorkerProgressTowardsJob;
 			WorkerJob = unit.WorkerJob?.Id;
+			leaderKind = (int)unit.leaderKind;
 		}
 
 
@@ -68,7 +71,8 @@ namespace C7GameData.Save {
 				isAutomated = isAutomated,
 				facingDirection = facingDirection,
 				WorkerProgressTowardsJob = WorkerProgressTowardsJob,
-				WorkerJob = WorkerJob == null ? null:terraforms.Find(tf => tf.Id == WorkerJob)
+				WorkerJob = WorkerJob == null ? null:terraforms.Find(tf => tf.Id == WorkerJob),
+				leaderKind = (LeaderKind)leaderKind,
 			};
 			unit.location.unitsOnTile.Add(unit);
 			unit.movementPoints.reset(movePointsRemaining);

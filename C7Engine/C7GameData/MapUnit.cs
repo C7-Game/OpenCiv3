@@ -34,6 +34,8 @@ namespace C7GameData {
 		[JsonIgnore]
 		public ExperienceLevel experienceLevel { get; set; }
 
+		public LeaderKind leaderKind;
+
 		public MovementPoints movementPoints = new MovementPoints();
 		public int hitPointsRemaining { get; set; }
 		public int maxHitPoints {
@@ -131,6 +133,10 @@ namespace C7GameData {
 		// TODO: best move this to lua at some point
 		public string GetArtName() {
 			if (this.unitType.art.mainArt.variations != null) {
+				if (this.leaderKind == LeaderKind.Scientific && this.unitType.art.mainArt.variations.TryGetValue("SCI", out var sciLeaderArt)) {
+					return sciLeaderArt;
+				}
+
 				if (this.unitType.isWorker && this.IsCaptive()) {
 					if (this.unitType.art.mainArt.variations.FirstOrDefault(s => s.Key.EndsWith("SLAVE")).Value != null)
 						return this.unitType.art.mainArt.variations.First(s => s.Key.EndsWith("SLAVE")).Value;

@@ -72,5 +72,7 @@ namespace QueryCiv3.Sav {
 		public bool HasIDLSSection { get => Util.GetFlag(Flags3[3], 1); }
 
 		private fixed byte UnknownBuffer5[7];
+		// The last int of the record. 1 military, 2 scientific, 0 otherwise.
+		public int LeaderKind { get => Util.GetInt(ref this, 476); }
 	}
 }

@@ -57,5 +57,13 @@ namespace QueryCiv3 {
 		public static bool GetFlag(byte flags, int index) {
 			return ((flags >> index) & 1) == 1;
 		}
+
+		public static unsafe int GetInt<T>(ref T structData, int start) where T : unmanaged {
+			byte[] Arr = new byte[4];
+			fixed (void* dataPtr = &structData, arrPtr = Arr) {
+				Buffer.MemoryCopy(((byte*)dataPtr) + start, (byte*)arrPtr, 4, 4);
+			}
+			return BitConverter.ToInt32(Arr, 0);
+		}
 	}
 }
