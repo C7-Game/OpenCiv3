@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://cfenrvu7tnp40" path="res://DoubleClickHandler.cs" id="2_t735q"]
 [ext_resource type="Script" uid="uid://dflpmvue8o7uo" path="res://UnitSelector.cs" id="2_w8hq2"]
 [ext_resource type="Script" uid="uid://ifoasmoofo6r" path="res://UIElements/Advisors/Advisors.cs" id="3"]
+[ext_resource type="PackedScene" path="res://UIElements/preferences.tscn" id="3_prefs"]
 [ext_resource type="Script" uid="uid://bvmc8fimjfo2j" path="res://Animations/AnimationController.cs" id="3_rmrhh"]
 [ext_resource type="Script" uid="uid://3wtlmr00bmfb" path="res://UIElements/UpperLeftNav/MenuButton.cs" id="4"]
 [ext_resource type="Script" uid="uid://cproyms6andlc" path="res://UIElements/UpperLeftNav/CivilopediaButton.cs" id="5"]
@@ -30,7 +31,7 @@
 [ext_resource type="PackedScene" uid="uid://bwe87nwkg01n1" path="res://UIElements/GameViews/space_race_view.tscn" id="25_y31gw"]
 [ext_resource type="PackedScene" uid="uid://dvrx5adwjd0w4" path="res://UIElements/GameViews/demographics_view.tscn" id="27_gbxbf"]
 
-[node name="C7Game" type="Node" node_paths=PackedStringArray("Toolbar", "popupOverlay", "cityScreen", "advisor", "gameViews", "diplomacy", "doubleClickHandler", "animationController", "unitSelector")]
+[node name="C7Game" type="Node" node_paths=PackedStringArray("Toolbar", "popupOverlay", "cityScreen", "advisor", "gameViews", "diplomacy", "preferences", "doubleClickHandler", "animationController", "unitSelector")]
 script = ExtResource("1")
 Toolbar = NodePath("CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer")
 popupOverlay = NodePath("CanvasLayer/PopupOverlay")
@@ -38,6 +39,7 @@ cityScreen = NodePath("CanvasLayer/CityScreen")
 advisor = NodePath("CanvasLayer/Advisor")
 gameViews = NodePath("CanvasLayer/GameViews")
 diplomacy = NodePath("CanvasLayer/Diplomacy")
+preferences = NodePath("CanvasLayer/Preferences")
 doubleClickHandler = NodePath("DoubleClickHandler")
 animationController = NodePath("AnimationController")
 unitSelector = NodePath("UnitSelector")
@@ -198,6 +200,15 @@ script = ExtResource("8_7a2mf")
 text = "S"
 tooltipText = "Spaceship"
 
+[node name="Preferences" parent="CanvasLayer" instance=ExtResource("3_prefs")]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="Advisor" type="CenterContainer" parent="CanvasLayer" node_paths=PackedStringArray("domesticAdvisor", "tradeAdvisor", "militaryAdvisor", "foreignAdvisor", "culturalAdvisor", "scienceAdvisor")]
 anchors_preset = 15
 anchor_right = 1.0
@@ -335,3 +346,4 @@ visible = false
 [connection signal="Retire" from="CanvasLayer/PopupOverlay" to="." method="OnRetire"]
 [connection signal="SaveGame" from="CanvasLayer/PopupOverlay" to="." method="OnSaveGame"]
 [connection signal="LoadGame" from="CanvasLayer/PopupOverlay" to="." method="OnLoadGame"]
+[connection signal="OpenPreferences" from="CanvasLayer/PopupOverlay" to="." method="OnOpenPreferences"]

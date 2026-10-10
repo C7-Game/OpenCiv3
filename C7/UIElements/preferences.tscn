@@ -1,0 +1,272 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://UIElements/Preferences.cs" id="1_prefs"]
+[ext_resource type="Script" uid="uid://doqipc4rnaotx" path="res://UIElements/Civ3TextureRect.cs" id="2_bg"]
+[ext_resource type="Script" uid="uid://b4grm7mhaqgri" path="res://UIElements/Civ3Checkbox.cs" id="3_checkbox"]
+[ext_resource type="Script" uid="uid://clv4mgavtlrul" path="res://UIElements/Civ3HSlider.cs" id="4_slider"]
+[ext_resource type="Script" uid="uid://dcrdcjop64t6t" path="res://UIElements/Civ3TextureButton.cs" id="5_close"]
+
+[node name="Preferences" type="CenterContainer" node_paths=PackedStringArray("background", "promptForResearch", "musicVolume", "sfxVolume", "uiVolume", "ambienceVolume", "musicVolumeLabel", "sfxVolumeLabel", "uiVolumeLabel", "ambienceVolumeLabel", "musicVolumeRow", "sfxVolumeRow", "uiVolumeRow", "ambienceVolumeRow", "close")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_prefs")
+background = NodePath("Background")
+promptForResearch = NodePath("Background/Rows/GameSection/GameGrid/PromptForResearch")
+musicVolume = NodePath("Background/Rows/AudioSection/MusicVolumeRow/MusicVolume")
+sfxVolume = NodePath("Background/Rows/AudioSection/SfxVolumeRow/SfxVolume")
+uiVolume = NodePath("Background/Rows/AudioSection/UiVolumeRow/UiVolume")
+ambienceVolume = NodePath("Background/Rows/AudioSection/AmbienceVolumeRow/AmbienceVolume")
+musicVolumeLabel = NodePath("Background/Rows/AudioSection/MusicVolumeRow/MusicVolumeValue")
+sfxVolumeLabel = NodePath("Background/Rows/AudioSection/SfxVolumeRow/SfxVolumeValue")
+uiVolumeLabel = NodePath("Background/Rows/AudioSection/UiVolumeRow/UiVolumeValue")
+ambienceVolumeLabel = NodePath("Background/Rows/AudioSection/AmbienceVolumeRow/AmbienceVolumeValue")
+musicVolumeRow = NodePath("Background/Rows/AudioSection/MusicVolumeRow")
+sfxVolumeRow = NodePath("Background/Rows/AudioSection/SfxVolumeRow")
+uiVolumeRow = NodePath("Background/Rows/AudioSection/UiVolumeRow")
+ambienceVolumeRow = NodePath("Background/Rows/AudioSection/AmbienceVolumeRow")
+close = NodePath("Background/Close")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 2
+mouse_filter = 0
+script = ExtResource("2_bg")
+textureConfigKey = "screens.wonders.background"
+
+[node name="Rows" type="VBoxContainer" parent="Background"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 68.0
+offset_right = 964.0
+offset_bottom = 716.0
+mouse_filter = 0
+theme_override_constants/separation = 0
+
+[node name="GameSection" type="VBoxContainer" parent="Background/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 0
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="UnitsSection" type="VBoxContainer" parent="Background/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 0
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AudioSection" type="VBoxContainer" parent="Background/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 0
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="GameHeading" type="Label" parent="Background/Rows/GameSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 18
+text = "GAME"
+
+[node name="GameGrid" type="GridContainer" parent="Background/Rows/GameSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+columns = 3
+column_min_width = 290
+
+[node name="PromptForResearch" type="CheckBox" parent="Background/Rows/GameSection/GameGrid"]
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 0
+toggle_mode = true
+script = ExtResource("3_checkbox")
+Text = "Ask which tech to research next"
+FontSize = 13
+textPosition = 1
+
+[node name="UnitsHeading" type="Label" parent="Background/Rows/UnitsSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 18
+text = "UNITS"
+
+[node name="UnitsGrid" type="GridContainer" parent="Background/Rows/UnitsSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 0
+columns = 3
+column_min_width = 290
+
+[node name="UnitsNote" type="Label" parent="Background/Rows/UnitsSection/UnitsGrid"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "No unit options available yet."
+
+[node name="AudioHeading" type="Label" parent="Background/Rows/AudioSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 18
+text = "AUDIO"
+
+[node name="MusicVolumeRow" type="HBoxContainer" parent="Background/Rows/AudioSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 12
+
+[node name="MusicVolumeLabel" type="Label" parent="Background/Rows/AudioSection/MusicVolumeRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "Music"
+
+[node name="MusicVolume" type="HSlider" parent="Background/Rows/AudioSection/MusicVolumeRow"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 0
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("4_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="MusicVolumeValue" type="Label" parent="Background/Rows/AudioSection/MusicVolumeRow"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="SfxVolumeRow" type="HBoxContainer" parent="Background/Rows/AudioSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 12
+
+[node name="SfxVolumeLabel" type="Label" parent="Background/Rows/AudioSection/SfxVolumeRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "Sound effects"
+
+[node name="SfxVolume" type="HSlider" parent="Background/Rows/AudioSection/SfxVolumeRow"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 0
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("4_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="SfxVolumeValue" type="Label" parent="Background/Rows/AudioSection/SfxVolumeRow"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="UiVolumeRow" type="HBoxContainer" parent="Background/Rows/AudioSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 12
+
+[node name="UiVolumeLabel" type="Label" parent="Background/Rows/AudioSection/UiVolumeRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "Interface"
+
+[node name="UiVolume" type="HSlider" parent="Background/Rows/AudioSection/UiVolumeRow"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 0
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("4_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="UiVolumeValue" type="Label" parent="Background/Rows/AudioSection/UiVolumeRow"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="AmbienceVolumeRow" type="HBoxContainer" parent="Background/Rows/AudioSection"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = 12
+
+[node name="AmbienceVolumeLabel" type="Label" parent="Background/Rows/AudioSection/AmbienceVolumeRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "Ambience"
+
+[node name="AmbienceVolume" type="HSlider" parent="Background/Rows/AudioSection/AmbienceVolumeRow"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 0
+max_value = 100.0
+step = 1.0
+value = 100.0
+script = ExtResource("4_slider")
+metadata/_custom_type_script = "uid://clv4mgavtlrul"
+
+[node name="AmbienceVolumeValue" type="Label" parent="Background/Rows/AudioSection/AmbienceVolumeRow"]
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+theme_override_font_sizes/font_size = 13
+text = "100%"
+horizontal_alignment = 2
+
+[node name="Close" type="TextureButton" parent="Background"]
+layout_mode = 0
+offset_left = 952.0
+offset_top = 720.0
+offset_right = 1024.0
+offset_bottom = 768.0
+mouse_filter = 0
+script = ExtResource("5_close")

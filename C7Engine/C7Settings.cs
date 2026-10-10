@@ -9,6 +9,14 @@ namespace C7Engine {
 		private const string SETTINGS_FILE_NAME = "C7.ini";
 		public static IniData settings;
 
+		public static class Audio {
+			public const string SectionName = nameof(Audio);
+			public const string MusicVolume = nameof(MusicVolume);
+			public const string SfxAudioVolume = nameof(SfxAudioVolume);
+			public const string UiAudioVolume = nameof(UiAudioVolume);
+			public const string AmbienceAudioVolume = nameof(AmbienceAudioVolume);
+		}
+
 		public static class LastGame {
 			public const string SectionName = nameof(LastGame);
 			public const string WorldSize = nameof(WorldSize);
@@ -51,6 +59,14 @@ namespace C7Engine {
 			return settings[section][key];
 		}
 
+
+		public static bool GetBoolOrDefault(string section, string key, bool defaultValue) {
+			return GetSettingsValueOrDefault(section, key, defaultValue ? "true" : "false") == "true";
+		}
+
+		public static void SetBool(string section, string key, bool value) {
+			SetValue(section, key, value ? "true" : "false");
+		}
 		public static string GetSettingsValueOrDefault(string section, string key, string defaultValue) {
 			if (settings == null) {
 				LoadSettings();

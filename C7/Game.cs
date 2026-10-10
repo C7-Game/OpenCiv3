@@ -114,6 +114,8 @@ public partial class Game : Node {
 	private GameViews gameViews;
 	[Export]
 	private Diplomacy diplomacy;
+	[Export]
+	private Preferences preferences;
 
 	[Export]
 	private DoubleClickHandler doubleClickHandler;
@@ -581,6 +583,15 @@ public partial class Game : Node {
 		FileDialog.Popup();
 	}
 
+	public void OnOpenPreferences() {
+		popupOverlay.OnHidePopup();
+		if (preferences.Visible) {
+			preferences.HidePreferences();
+		} else {
+			preferences.ShowPreferences();
+		}
+	}
+
 	public void OnResolved() {
 		popupOverlay.OnHidePopup();
 	}
@@ -817,6 +828,15 @@ public partial class Game : Node {
 			ToggleObserverMode();
 		}
 
+		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
+			if (preferences.Visible) {
+				preferences.HidePreferences();
+			} else {
+				preferences.ShowPreferences();
+			}
+			return;
+		}
+
 		if (eventKeyDown.Keycode == Godot.Key.F1) {
 			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor);
 		}
@@ -955,7 +975,7 @@ public partial class Game : Node {
 		if (popupOverlay.Visible || cityScreen.Visible || diplomacy.Visible)
 			return true;
 
-		if (advisor.Visible || gameViews.Visible)
+		if (advisor.Visible || gameViews.Visible || preferences.Visible)
 			return true;
 
 		return false;
@@ -987,6 +1007,20 @@ public partial class Game : Node {
 
 		if (currentAction == C7Action.Escape && advisor.Visible) {
 			advisor.Hide();
+			return;
+		}
+
+		if (currentAction == C7Action.OpenPreferences) {
+			if (preferences.Visible) {
+				preferences.HidePreferences();
+			} else {
+				preferences.ShowPreferences();
+			}
+			return;
+		}
+
+		if (currentAction == C7Action.Escape && preferences.Visible) {
+			preferences.HidePreferences();
 			return;
 		}
 

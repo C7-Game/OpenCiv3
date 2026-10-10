@@ -12,9 +12,12 @@ public partial class Civ3Checkbox : CheckBox {
 		TextBelowIcon
 	}
 
-	private Texture2D normalTexture = TextureLoader.Load("ui.checkbox.inactive");
-	private Texture2D hoverTexture = TextureLoader.Load("ui.checkbox.hover");
-	private Texture2D pressedTexture = TextureLoader.Load("ui.checkbox.pressed");
+	private Texture2D normalTexture;
+	private Texture2D hoverTexture;
+	private Texture2D pressedTexture;
+
+	public Civ3Checkbox() {
+	}
 
 	private string _text;
 	[Export]
@@ -24,6 +27,7 @@ public partial class Civ3Checkbox : CheckBox {
 			_text = value;
 			if (label != null) {
 				label.Text = _text;
+				RefreshMinimumSize();
 			}
 		}
 	}
@@ -35,10 +39,11 @@ public partial class Civ3Checkbox : CheckBox {
 			_fontSize = value;
 			if (label != null) {
 				label.AddThemeFontSizeOverride("font_size", _fontSize);
+				RefreshMinimumSize();
 			}
 		}
 	}
-	private TextPosition _textPosition;
+	private TextPosition _textPosition = TextPosition.TextRightOfIcon;
 	[Export]
 	public TextPosition textPosition {
 		get => _textPosition;
@@ -70,6 +75,10 @@ public partial class Civ3Checkbox : CheckBox {
 	}
 
 	public override void _Ready() {
+		normalTexture = TextureLoader.Load("ui.checkbox.inactive");
+		hoverTexture = TextureLoader.Load("ui.checkbox.hover");
+		pressedTexture = TextureLoader.Load("ui.checkbox.pressed");
+
 		fontColor = GetThemeColor("font_color", "Button");
 		hoverColor = GetThemeColor("font_hover_color", "Button");
 		pressedColor = GetThemeColor("font_pressed_color", "Button");
@@ -139,6 +148,18 @@ public partial class Civ3Checkbox : CheckBox {
 			boxContainer.AddChild(textureRect);
 			boxContainer.AddChild(label);
 		}
+
+		RefreshMinimumSize();
+	}
+
+	// Grow the button to cover the icon and the label so the whole thing is
+	// clickable. Godot caches the bare CheckBox size, so it has to be set
+	// explicitly whenever the contents change.
+	private void RefreshMinimumSize() {
+		if (boxContainer == null) {
+			return;
+		}
+		CustomMinimumSize = boxContainer.GetCombinedMinimumSize();
 	}
 
 	// Expand the size of the button to contain the texture and the label.
