@@ -32,6 +32,10 @@ runs:
       apt-get install -y apt-transport-https
       apt-get update -qq
       apt-get install -y dotnet-sdk-8.0
+  - name: Add python
+    shell: bash
+    run: |
+      apt-get install -y --no-install-recommends python3
   - name: Set FOLDER_NAME
     shell: bash
     run: |
