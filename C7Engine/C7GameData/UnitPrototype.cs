@@ -161,6 +161,10 @@ namespace C7GameData {
 			return categories.Contains("Sea");
 		}
 
+		public bool IsAirUnit() {
+			return categories.Contains("Air");
+		}
+
 		public override string ToString() {
 			return $"{name} ({attack}/{defense}/{movement})";
 		}

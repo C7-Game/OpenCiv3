@@ -44,6 +44,7 @@ public partial class Tile {
 		}
 
 		private Yield ApplyCityModifiers(City city) {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			city.GetBuildings().ForEach(b => b.building.tileModifier?.Invoke(this));
 			return this;
 		}

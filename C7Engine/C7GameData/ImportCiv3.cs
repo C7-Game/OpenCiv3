@@ -71,6 +71,7 @@ namespace C7GameData {
 			ImportTerraforms();
 			ImportUnitPrototypes();
 			ImportUnitUpgrades();
+			ImportGovernments(); // Before buildings, which can require a government
 			ImportBuildings();
 			ImportCiv3TerrainTypes();
 			ImportCiv3ExperienceLevels();
@@ -82,7 +83,6 @@ namespace C7GameData {
 			save.ScenarioSearchPath = biq?.Game[0].ScenarioSearchFolders;
 			ImportBarbarianInfo();
 			ImportCitizenTypes();
-			ImportGovernments();
 			ImportDifficulties();
 			ImportRules();
 		}
@@ -1587,6 +1587,7 @@ namespace C7GameData {
 
 		private void ImportBuildings() {
 			BLDG[] Bldg = biq.Bldg ?? defaultBiq.Bldg;
+			PRTO[] Prto = biq.Prto ?? defaultBiq.Prto;
 
 			foreach (BLDG bldg in Bldg) {
 				if (bldg.Name == "Wealth") {
@@ -1609,8 +1610,19 @@ namespace C7GameData {
 					greatWonderProperties=bldg.Wonder ? new SaveBuilding.GreatWonderProperties() : null,
 					culturePerTurn=bldg.Culture,
 					contentFacesInCity=bldg.ContentFaces - bldg.UnhappyFaces,
+					contentFacesInAllCities=bldg.ContentFacesAllCities - bldg.UnhappyFacesAllCities,
 					iconRowIndex=pediaIcons.buildingToRowNumberMapping[bldg.CivilopediaEntry],
 					combatDefenseBonus=bldg.DefenseBonus / 100.0,
+					navalDefenseBonus=bldg.NavalDefenseBonus / 100.0,
+					navalBombardDefense=bldg.NavalBombardDefense,
+					navalPower=bldg.NavalPower,
+					airPower=bldg.AirPower,
+					productionBonus=bldg.Production * 0.25, // In Civ3 files, the production bonus is stored as a multiple of 25%
+					researchBonus=(bldg.Plus50PercentResearch ? 0.5 : 0) + (bldg.DoublesResearchOutput ? 1.0 : 0),
+					luxuryBonus=bldg.Plus50PercentLuxury ? 0.5 : 0,
+					commerceBonus=bldg.Plus50PercentCommerce ? 0.5 : 0,
+					pollution=bldg.Pollution,
+					numberOfArmiesRequired=bldg.NumberOfArmiesRequired,
 					maintenanceCost=bldg.MaintenanceCost,
 				};
 
@@ -1620,6 +1632,22 @@ namespace C7GameData {
 
 				if (bldg.RequiredBuilding != -1) {
 					building.requiredBuilding = Bldg[bldg.RequiredBuilding].Name;
+					if (bldg.NumberOfRequiredBuildings > 1) {
+						building.numberOfRequiredBuildings = bldg.NumberOfRequiredBuildings;
+					}
+				}
+
+				if (bldg.RequiredGovernment != -1) {
+					building.requiredGovernment = save.Governments[bldg.RequiredGovernment].id;
+				}
+
+				if (bldg.SpaceshipPart != -1) {
+					building.spaceshipPart = bldg.SpaceshipPart;
+				}
+
+				if (bldg.UnitProduced != -1) {
+					building.unitProduced = Prto[bldg.UnitProduced].Name;
+					building.unitFrequency = bldg.UnitFrequency;
 				}
 
 				if (bldg.RequiredResource1 != -1) {
@@ -1640,8 +1668,12 @@ namespace C7GameData {
 				if (bldg.GainInEveryCityOnContinent >= 0) {
 					building.greatWonderProperties.buildingGainedInEveryCityOnContinent = Bldg[bldg.GainInEveryCityOnContinent].Name;
 				}
+				if (bldg.DoublesHappiness >= 0 && building.greatWonderProperties != null) {
+					building.greatWonderProperties.buildingWithDoubledHappiness = Bldg[bldg.DoublesHappiness].Name;
+				}
 
 				building.flags = LoadBuildingFlags(bldg).ToHashSet();
+				building.wonderFlags = LoadWonderFlags(bldg).ToHashSet();
 				building.traits = LoadBuildingTraits(bldg).ToHashSet();
 
 				// Buildings with bombard defense are treated as walls in civ3.
@@ -1663,16 +1695,62 @@ namespace C7GameData {
 				(bldg.MustBeNearRiver, SaveBuilding.Flag.MustBeNearRiver),
 				(bldg.VeteranGroundUnits, SaveBuilding.Flag.VeteranGroundUnits),
 				(bldg.VeteranSeaUnits, SaveBuilding.Flag.VeteranSeaUnits),
+				(bldg.VeteranAirUnits, SaveBuilding.Flag.VeteranAirUnits),
 				(bldg.IncreasesLuxuryTrade, SaveBuilding.Flag.IncreasesLuxuryTrade),
 				(bldg.ReducesCorruption, SaveBuilding.Flag.ReducesCorruption),
-				(bldg.ForbiddenPalace, SaveBuilding.Flag.ForbiddenPalace),
 				(bldg.IncreasesShieldsInWater, SaveBuilding.Flag.IncreasesShieldsInWater),
 				(bldg.IncreasesFoodInWater, SaveBuilding.Flag.IncreasesFoodInWater),
 				(bldg.IncreasesTradeInWater, SaveBuilding.Flag.IncreasesTradeInWater),
 				(bldg.AllowsCitySize2, SaveBuilding.Flag.AllowsCitySize2),
 				(bldg.AllowsCitySize3, SaveBuilding.Flag.AllowsCitySize3),
 				(bldg.DoublesCityGrowthRate, SaveBuilding.Flag.DoublesCityGrowthRate),
-				(bldg.TreasuryEarnsInterest, SaveBuilding.Flag.TreasuryEarnsInterest),
+				(bldg.GoodsMustBeInCityRadius, SaveBuilding.Flag.GoodsMustBeInCityRadius),
+				(bldg.ReplacesOtherBuildings, SaveBuilding.Flag.ReplacesOtherBuildings),
+				(bldg.MustBeNearWater, SaveBuilding.Flag.MustBeNearWater),
+				(bldg.CanMeltdown, SaveBuilding.Flag.CanMeltdown),
+				(bldg.RemovesPopulationPollution, SaveBuilding.Flag.RemovesPopulationPollution),
+				(bldg.ReducesBuildingPollution, SaveBuilding.Flag.ReducesBuildingPollution),
+				(bldg.ResistantToBribery, SaveBuilding.Flag.ResistantToBribery),
+				(bldg.AllowsWaterTrade, SaveBuilding.Flag.AllowsWaterTrade),
+				(bldg.AllowsAirTrade, SaveBuilding.Flag.AllowsAirTrade),
+				(bldg.ReducesWarWeariness, SaveBuilding.Flag.ReducesWarWeariness),
+				(bldg.DoublesSacrifice, SaveBuilding.Flag.DoublesSacrifice),
+				(bldg.ContinentalMoodEffects, SaveBuilding.Flag.ContinentalMoodEffects),
+			}
+			.Where(t => t.Item1)
+			.Select(t => t.Item2);
+		}
+
+		private static IEnumerable<SaveBuilding.WonderFlag> LoadWonderFlags(BLDG bldg) {
+			return new[] {
+				(bldg.IncreasesLeaderChance, SaveBuilding.WonderFlag.IncreasesLeaderChance),
+				(bldg.AllowsBuildArmy, SaveBuilding.WonderFlag.AllowsBuildArmy),
+				(bldg.AllowsLargerArmies, SaveBuilding.WonderFlag.AllowsLargerArmies),
+				(bldg.TreasuryEarnsInterest, SaveBuilding.WonderFlag.TreasuryEarnsInterest),
+				(bldg.BuildSpaceshipParts, SaveBuilding.WonderFlag.BuildSpaceshipParts),
+				(bldg.ForbiddenPalace, SaveBuilding.WonderFlag.ForbiddenPalace),
+				(bldg.DecreasesMissileSuccess, SaveBuilding.WonderFlag.DecreasesMissileSuccess),
+				(bldg.AllowsSpyMissions, SaveBuilding.WonderFlag.AllowsSpyMissions),
+				(bldg.AllowsEnemyTerritoryHealing, SaveBuilding.WonderFlag.AllowsEnemyTerritoryHealing),
+				(bldg.RequiresVictoriousArmy, SaveBuilding.WonderFlag.RequiresVictoriousArmy),
+				(bldg.RequiresEliteShip, SaveBuilding.WonderFlag.RequiresEliteShip),
+				(bldg.SafeSeaTravel, SaveBuilding.WonderFlag.SafeSeaTravel),
+				(bldg.GainAnyTechKnownByTwoCivs, SaveBuilding.WonderFlag.GainAnyTechKnownByTwoCivs),
+				(bldg.DoubleCombatVsBarbarians, SaveBuilding.WonderFlag.DoubleCombatVsBarbarians),
+				(bldg.IncreasedShipMovement, SaveBuilding.WonderFlag.IncreasedShipMovement),
+				(bldg.DoublesResearchOutput, SaveBuilding.WonderFlag.DoublesResearchOutput),
+				(bldg.IncreasedTrade, SaveBuilding.WonderFlag.IncreasedTrade),
+				(bldg.CheaperUpgrades, SaveBuilding.WonderFlag.CheaperUpgrades),
+				(bldg.PaysTradeMaintenance, SaveBuilding.WonderFlag.PaysTradeMaintenance),
+				(bldg.AllowsNuclearWeapons, SaveBuilding.WonderFlag.AllowsNuclearWeapons),
+				(bldg.DoubleCityGrowth, SaveBuilding.WonderFlag.DoubleCityGrowth),
+				(bldg.TwoFreeAdvances, SaveBuilding.WonderFlag.TwoFreeAdvances),
+				(bldg.ReducedWarWeariness, SaveBuilding.WonderFlag.ReducedWarWeariness),
+				(bldg.DoubleCityDefenses, SaveBuilding.WonderFlag.DoubleCityDefenses),
+				(bldg.AllowDiplomaticVictory, SaveBuilding.WonderFlag.AllowDiplomaticVictory),
+				(bldg.PlusTwoShipMovement, SaveBuilding.WonderFlag.PlusTwoShipMovement),
+				(bldg.IncreasedArmyValue, SaveBuilding.WonderFlag.IncreasedArmyValue),
+				(bldg.TouristAttraction, SaveBuilding.WonderFlag.TouristAttraction),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);
@@ -1698,6 +1776,7 @@ namespace C7GameData {
 			{
 				{ SaveBuilding.Flag.MustBeCoastal, "must_be_coastal" },
 				{ SaveBuilding.Flag.MustBeNearRiver, "must_be_near_river" },
+				{ SaveBuilding.Flag.MustBeNearWater, "must_be_near_water" },
 				{ SaveBuilding.Flag.AllowsCitySize2, "allows_city_size_2" },
 				{ SaveBuilding.Flag.AllowsCitySize3, "allows_city_size_3" },
 				{ SaveBuilding.Flag.CanOnlyBeBuiltInTowns, "can_only_be_built_in_towns"}
@@ -1707,6 +1786,7 @@ namespace C7GameData {
 			{
 				{ SaveBuilding.Flag.VeteranGroundUnits, "veteran_ground_units" },
 				{ SaveBuilding.Flag.VeteranSeaUnits, "veteran_sea_units" },
+				{ SaveBuilding.Flag.VeteranAirUnits, "veteran_air_units" },
 			};
 
 			var flagToTileModifier = new Dictionary<SaveBuilding.Flag, string>
