@@ -1,0 +1,51 @@
+[gd_scene load_steps=6 format=3 uid="uid://pfefjvwiljdp"]
+
+[ext_resource type="Script" uid="uid://0qchn4tg1h03" path="res://UIElements/Credits/Credits.cs" id="1_credits"]
+[ext_resource type="FontFile" uid="uid://c1qd602n7xu3h" path="res://Fonts/NotoSans-Regular.ttf" id="2_regular"]
+[ext_resource type="FontFile" uid="uid://cuvua6uejddii" path="res://Fonts/NotoSans-Bold.ttf" id="3_bold"]
+[ext_resource type="FontFile" uid="uid://sbyjmuofuuob" path="res://Fonts/NotoSans-Italic.ttf" id="4_italic"]
+[ext_resource type="FontFile" uid="uid://b1xkj8g82jbx5" path="res://Fonts/NotoSans-BoldItalic.ttf" id="5_bolditalic"]
+
+[node name="Credits" type="Node2D" node_paths=PackedStringArray("background", "creditsScroll", "creditsColumn", "creditsLabel", "exitButton")]
+script = ExtResource("1_credits")
+background = NodePath("Background")
+creditsScroll = NodePath("CreditsScroll")
+creditsColumn = NodePath("CreditsScroll/CreditsColumn")
+creditsLabel = NodePath("CreditsScroll/CreditsColumn/CreditsLabel")
+exitButton = NodePath("ExitButton")
+
+[node name="Background" type="TextureRect" parent="."]
+offset_right = 1024.0
+offset_bottom = 768.0
+
+[node name="CreditsScroll" type="ScrollContainer" parent="."]
+offset_left = 80.0
+offset_top = 120.0
+offset_right = 944.0
+offset_bottom = 648.0
+horizontal_scroll_mode = 0
+
+[node name="CreditsColumn" type="VBoxContainer" parent="CreditsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CreditsLabel" type="RichTextLabel" parent="CreditsScroll/CreditsColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+scroll_active = false
+fit_content = true
+theme_override_fonts/normal_font = ExtResource("2_regular")
+theme_override_fonts/bold_font = ExtResource("3_bold")
+theme_override_fonts/italics_font = ExtResource("4_italic")
+theme_override_fonts/bold_italics_font = ExtResource("5_bolditalic")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 14
+theme_override_font_sizes/italics_font_size = 14
+theme_override_font_sizes/bold_italics_font_size = 14
+
+[node name="ExitButton" type="TextureButton" parent="."]
+offset_left = 952.0
+offset_top = 720.0
+offset_right = 1024.0
+offset_bottom = 768.0
