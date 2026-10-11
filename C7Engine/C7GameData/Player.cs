@@ -1053,7 +1053,8 @@ namespace C7GameData {
 		//
 		// The empire-wide effect of a building applies to every other city, so
 		// it doesn't stack with the building's own effect in the city that has
-		// it. Obsolete buildings have no effect.
+		// it. Obsolete buildings have no effect, and buildings with continental
+		// mood effects only affect cities on the same continent.
 		//
 		// We use constructed_buildings rather than City.GetBuildings so that
 		// buildings granted by wonders aren't counted once per city.
@@ -1065,6 +1066,9 @@ namespace C7GameData {
 				}
 				foreach (CityBuilding cb in c.constructed_buildings) {
 					if (cb.building.IsObsolete(this)) {
+						continue;
+					}
+					if (cb.building.continentalMoodEffects && !c.IsOnSameContinentAs(city)) {
 						continue;
 					}
 					netContentFaces += cb.building.contentFacesInAllCities - cb.building.unhappyFacesInAllCities;
@@ -1157,10 +1161,21 @@ namespace C7GameData {
 			return cities.Any(c => c.constructed_buildings.Any(cb => cb.building == building));
 		}
 
+		// The number of this player's cities that have the given building.
+		public int CountBuilding(Building building) {
+			return cities.Count(c => c.GetBuildings().Exists(cb => cb.building == building));
+		}
+
+		// Whether any of this player's cities has constructed a building that
+		// matches the predicate and isn't obsolete.
+		public bool OwnsBuilding(Func<Building, bool> predicate) {
+			return cities.Any(c => c.constructed_buildings.Any(cb => !cb.building.IsObsolete(this) && predicate(cb.building)));
+		}
+
 		// Whether any of this player's cities is currently producing the given
-		// item.
-		public bool IsProducing(IProducible item) {
-			return cities.Any(c => c.itemBeingProduced != null && c.itemBeingProduced.name == item.name);
+		// item, optionally ignoring one city.
+		public bool IsProducing(IProducible item, City excludedCity = null) {
+			return cities.Any(c => c != excludedCity && c.itemBeingProduced != null && c.itemBeingProduced.name == item.name);
 		}
 
 		public bool CanBridgeRoads() {

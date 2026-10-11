@@ -128,6 +128,40 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		return game.ToGameData(fixture.behaviors);
 	}
 
+	[Fact]
+	public void BaseRulesetBuildings_HaveNavalAndAirData() {
+		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
+
+		Building coastalFortress = buildings["Coastal Fortress"];
+		Assert.Equal(8, coastalFortress.navalBombardDefense);
+		Assert.Equal(8, coastalFortress.navalPower);
+		Assert.Equal(0, coastalFortress.airPower);
+		Assert.Equal(8, buildings["SAM Missile Battery"].airPower);
+		Assert.NotNull(coastalFortress.navalDefenseBonus);
+
+		Building walls = buildings["Walls"];
+		Assert.Equal(0, walls.navalBombardDefense);
+		Assert.Equal(0, walls.navalPower);
+		Assert.Null(walls.navalDefenseBonus);
+	}
+
+	[Fact]
+	public void BaseRulesetBuildings_HaveWonderData() {
+		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
+
+		Assert.Equal(buildings["Temple"], buildings["The Oracle"].greatWonderProperties.buildingWithDoubledHappiness);
+		Assert.Equal(buildings["Cathedral"], buildings["Sistine Chapel"].greatWonderProperties.buildingWithDoubledHappiness);
+		Assert.Null(buildings["The Pyramids"].greatWonderProperties.buildingWithDoubledHappiness);
+
+		Assert.True(buildings["Wall Street"].treasuryEarnsInterest);
+		Assert.True(buildings["Forbidden Palace"].isForbiddenPalace);
+		Assert.True(buildings["Secret Police HQ"].isForbiddenPalace);
+		Assert.Equal("Communism", buildings["Secret Police HQ"].requiredGovernment.name);
+		Assert.Null(buildings["Forbidden Palace"].requiredGovernment);
+		Assert.True(buildings["Iron Works"].goodsMustBeInCityRadius);
+		Assert.Equal(1, buildings["The Hanging Gardens"].contentFacesInAllCities);
+	}
+
 	private void CheckAiInvariants() {
 		EngineStorage.ReadGameData((C7GameData.GameData gameData) => {
 			C7GameData.GameData game = gameData;
