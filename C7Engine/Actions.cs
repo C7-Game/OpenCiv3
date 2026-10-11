@@ -23,7 +23,7 @@ public static class C7Action {
 	public const string ToggleGrid = "toggle_grid";
 	public const string ToggleCoordinates = "toggle_coordinates";
 	public const string ToggleZoom = "toggle_zoom";
-    public const string OpenPreferences = "open_preferences"; // Ctrl-P
+	public const string OpenPreferences = "open_preferences"; // Ctrl-P
 	public const string OpenGameMenu = "open_game_menu";
 
 	public const string ShowDomesticAdvisor = "show_domestic_advisor"; // F1

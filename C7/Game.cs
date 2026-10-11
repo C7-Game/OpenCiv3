@@ -118,10 +118,10 @@ public partial class Game : Node {
 	private GameViews gameViews;
 	[Export]
 	private Diplomacy diplomacy;
-    [Export]
-    private Preferences preferences;
-    [Export]
-    private InteractablePopUpController interactablePopUpController;
+	[Export]
+	private Preferences preferences;
+	[Export]
+	private InteractablePopUpController interactablePopUpController;
 	[Export]
 	private DoubleClickHandler doubleClickHandler;
 	[Export]
