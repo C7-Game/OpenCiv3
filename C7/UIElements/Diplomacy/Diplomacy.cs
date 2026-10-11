@@ -53,10 +53,7 @@ public partial class Diplomacy : CenterContainer {
 		Player opponent = gd.players.Find(x => x.id == opponentPlayer);
 		Player human = gd.players.Find(x => x.id == humanPlayer);
 		if (!opponent.WillAcceptCommunicationFrom(human, gd.turn)) {
-			popupOverlay.ShowPopup(
-				new InformationalPopup(
-					$"The {opponent.civilization.noun} refused to acknowledge our envoy!"),
-				PopupOverlay.PopupCategory.Advisor);
+			new MsgRefuseContact(opponentPlayer).send();
 			return;
 		}
 

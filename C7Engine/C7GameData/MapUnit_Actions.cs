@@ -53,7 +53,7 @@ public partial class MapUnit {
 				tile.cityAtTile.owner.gold -= goldTaken;
 				this.RemoveFromPlay();
 				if (tile.cityAtTile.owner.isHuman) {
-					new MsgShowMilitaryAdvisorPopup($"Barbarians have stolen {goldTaken} gold from our cities!\nWe need a stronger military.", happy: false).send();
+					new MsgCityRansacked(tile.cityAtTile.owner.id, tile.cityAtTile, this.owner.civilization.adjective, goldTaken).send();
 				}
 			} else {
 				CityInteractions.DestroyCity(tile);

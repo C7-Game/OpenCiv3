@@ -207,28 +207,34 @@ textures.ui = {
     normal = {
       path = X_O,
       crop_region = { 1, 1, 19, 19 },
+      shadows = false,
     },
     hover = {
       path = X_O,
       crop_region = { 37, 1, 19, 19 },
+      shadows = false,
     },
     pressed = {
       path = X_O,
       crop_region = { 73, 1, 19, 19 },
+      shadows = false,
     },
   },
   cancel = {
     normal = {
       path = X_O,
       crop_region = { 21, 1, 15, 19 },
+      shadows = false,
     },
     hover = {
       path = X_O,
       crop_region = { 57, 1, 15, 19 },
+      shadows = false,
     },
     pressed = {
       path = X_O,
       crop_region = { 93, 1, 15, 19 },
+      shadows = false,
     },
   },
   console = {
@@ -467,14 +473,42 @@ textures.diplomacy = {
 
 textures.upper_left_navigation = {
   menu = {
-    path = INTERFACE .. "menuButtons.pcx",
-    alpha = INTERFACE .. "menuButtonsAlpha.pcx",
-    crop_region = { 0, 1, 35, 29 },
+    normal = {
+      path = INTERFACE .. "menuButtons.pcx",
+      alpha = INTERFACE .. "menuButtonsAlpha.pcx",
+      crop_region = { 0, 1, 35, 29 },
+    },
+    hover = {
+      path = INTERFACE .. "menuButtons.pcx",
+      alpha = INTERFACE .. "menuButtonsAlpha.pcx",
+      alpha_row_offset = 60,
+      crop_region = { 0, 61, 35, 29 },
+    },
+    pressed = {
+      path = INTERFACE .. "menuButtons.pcx",
+      alpha = INTERFACE .. "menuButtonsAlpha.pcx",
+      alpha_row_offset = 120,
+      crop_region = { 0, 121, 35, 29 },
+    },
   },
   civilopedia = {
-    path = INTERFACE .. "menuButtons.pcx",
-    alpha = INTERFACE .. "menuButtonsAlpha.pcx",
-    crop_region = { 36, 1, 35, 29 },
+    normal = {
+      path = INTERFACE .. "menuButtons.pcx",
+      alpha = INTERFACE .. "menuButtonsAlpha.pcx",
+      crop_region = { 36, 1, 35, 29 },
+    },
+    hover = {
+      path = INTERFACE .. "menuButtons.pcx",
+      alpha = INTERFACE .. "menuButtonsAlpha.pcx",
+      alpha_row_offset = 60,
+      crop_region = { 36, 61, 35, 29 },
+    },
+    pressed = {
+      path = INTERFACE .. "menuButtons.pcx",
+      alpha = INTERFACE .. "menuButtonsAlpha.pcx",
+      alpha_row_offset = 120,
+      crop_region = { 36, 121, 35, 29 },
+    },
   },
   advisor = {
     normal = {

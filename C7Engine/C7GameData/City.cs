@@ -229,6 +229,7 @@ namespace C7GameData {
 		public class HurryProductionDetails {
 			public string? errorMessage;
 			public string? costMessage;
+			public Government.HurryProductionType hurryProductionType = Government.HurryProductionType.CannotHurry;
 
 			public int popCost = -1;
 			public int goldCost = -1;
@@ -241,6 +242,12 @@ namespace C7GameData {
 				return new HurryProductionDetails() { errorMessage = "The city is in disorder and cannot hurry production." };
 			}
 
+			if (this.itemBeingProduced is Building building) {
+				// TODO: expose rules and make configurable
+				if (building.greatWonderProperties != null || building.isSmallWonder)
+					return new HurryProductionDetails() { errorMessage = $"We cannot hurry {building.name}" };
+			}
+
 			switch (owner.government.hurryingType) {
 				case Government.HurryProductionType.CannotHurry:
 					return new HurryProductionDetails() { errorMessage = "We cannot hurry production with this government." };
@@ -248,21 +255,23 @@ namespace C7GameData {
 				case Government.HurryProductionType.ForcedLabor:
 					int popCost = (int)Math.Ceiling((float)shieldCost / rules.CitizenValueInShields);
 					if (popCost > residents.Count / 2f) {
-						return new HurryProductionDetails() { errorMessage = $"Hurrying production would take the lives of too many citizens ({popCost})." };
+						return new HurryProductionDetails() { errorMessage = $"Rushing this project would cost the lives of too many citizens ({popCost})." };
 					}
 					return new HurryProductionDetails() {
-						costMessage = $"Hurrying production will take the lives of {popCost} citizen(s), are you sure?",
+						costMessage = $"Are you sure? Hurrying {this.itemBeingProduced.name} will take the lives of {popCost} citizen(s).",
 						popCost = popCost,
+						hurryProductionType = Government.HurryProductionType.ForcedLabor,
 					};
 
 				case Government.HurryProductionType.PaidLabor:
 					int goldCost = shieldCost * rules.ShieldValueInGold;
 					if (goldCost > owner.gold) {
-						return new HurryProductionDetails() { errorMessage = $"Hurrying production would cost too much gold! ({goldCost})." };
+						return new HurryProductionDetails() { errorMessage = $"Ummm.. sir. We would need at least {goldCost} gold to do that.." };
 					}
 					return new HurryProductionDetails() {
-						costMessage = $"Hurrying production will cost {goldCost} gold, are you sure?",
+						costMessage = $"Hurrying {this.itemBeingProduced.name} will cost {goldCost} gold... Are you sure?",
 						goldCost = goldCost,
+						hurryProductionType = Government.HurryProductionType.PaidLabor,
 					};
 			}
 			throw new Exception($"Unknown hurrying type: {owner.government.hurryingType}");
