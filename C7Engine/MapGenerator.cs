@@ -111,6 +111,12 @@ namespace C7Engine {
 			// points.
 			AddRivers(wc, gameMap);
 
+			// Step 7.5: Convert desert to flood plains. Civ3 does this after
+			// rivers are placed, so a flood plain always has a river running
+			// through it. Doing it here also means resources get placed on
+			// flood plains using the flood plain rules (e.g. only wheat).
+			AddFloodPlains(wc, gameMap);
+
 			// Step 8: Add resources (luxury/strategic/bonus).
 			AddResources(wc, gameMap);
 
@@ -955,6 +961,28 @@ namespace C7Engine {
 			}
 
 			return result;
+		}
+
+		// In Civ3, any desert tile with a river running along it becomes a
+		// flood plain. Only tiles whose terrain is fully desert convert - hills
+		// or vegetation on the tile make it a different terrain.
+		internal static void AddFloodPlains(WorldCharacteristics wc, GameMap m) {
+			TerrainType floodPlain = wc.terrainTypes.Find(x => x.Key == "flood plain");
+			if (floodPlain == null) {
+				log.Warning("Rules have no 'flood plain' terrain; skipping flood plain generation.");
+				return;
+			}
+
+			foreach (Tile t in m.tiles) {
+				if (!t.IsLand() || t.baseTerrainType.Key != "desert" || t.overlayTerrainType.Key != "desert") {
+					continue;
+				}
+
+				if (t.BordersRiver()) {
+					t.baseTerrainType = floodPlain;
+					t.overlayTerrainType = floodPlain;
+				}
+			}
 		}
 
 		private static void FixContinentalShelf(WorldCharacteristics wc, GameMap m) {
