@@ -177,6 +177,17 @@ namespace C7GameData.Save {
 			// TODO: add victory options to data.victories based on data.victoryConditions
 			// NOTE: Order matters
 
+			if (conditions.AllowDominationVictory) {
+				var dominationAreaLimit = 66f; // TODO: ruleset, dom area victory condition
+				var dominationPopulationLimit = 66f; // TODO: ruleset, dom pop victory condition
+				data.victories.Add(new DominationVictory(dominationAreaLimit, dominationPopulationLimit));
+			}
+
+			if (conditions.AllowConquestVictory) { // TODO: implement conquest victory
+												   // TODO: ruleset, Conquest victory condition
+				data.victories.Add(new ConquestVictory(rivalsAliveLimit: 0));
+			}
+
 			// There is no "score victory", but we can treat score as if it were, so
 			// we can render the current score alongside the state of other conditions
 			data.victories.Add(new ScoreVictory());
