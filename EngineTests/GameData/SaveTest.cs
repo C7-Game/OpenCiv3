@@ -227,6 +227,33 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
+	public async Task SaveInObserverModeIsLoadable() {
+		Player human = await CreateHeadlessGame(fixture.saveGame);
+		WaitForStartTurnMessage();
+
+		// Mimic the UI's observer mode: no player is human, but the engine remembers who the human was.
+		C7GameData.GameData game = null;
+		EngineStorage.ReadGameData((C7GameData.GameData gameData) => { game = gameData; });
+		foreach (Player p in game.players) {
+			p.isHuman = false;
+		}
+		game.observerMode = true;
+
+		string observerSavePath = PathUtils.getDataPath("output/observer-mode-save.json");
+		SaveGame.FromGameData(game).Save(observerSavePath);
+
+		// The save should load again and have the original human player.
+		SaveGame loaded = SaveGame.Load(observerSavePath, (string unused) => { return unused; }, (string unused) => { return unused; });
+		Player loadedHuman = await CreateGame.createGame(loaded, (_) => { return fixture.behaviors; });
+		Assert.Equal(human.id, loadedHuman.id);
+		Assert.Equal(1, EngineStorage.gameData.players.Count(p => p.isHuman));
+
+		// Saving must not alter the running game.
+		Assert.True(game.observerMode);
+		Assert.DoesNotContain(game.players, p => p.isHuman);
+	}
+
+	[Fact]
 	public async Task WorldWrapDetails() {
 		Player human = await CreateHeadlessGame(fixture.saveGame);
 		WaitForStartTurnMessage();
