@@ -88,6 +88,15 @@ namespace C7GameData.Save {
 				GameModeConfig = data.gameModeConfig,
 				Codex = data.Codex,
 			};
+			if (data.observerMode) {
+				// In observer mode no player is marked human, which would make the save
+				// unloadable. Write the save as if observer mode were switched off.
+				Player human = data.GetPlayer(EngineStorage.uiControllerID) ?? data.GetFirstHumanPlayer();
+				SavePlayer humanSave = human is null ? null : save.Players.Find(p => p.id == human.id);
+				if (humanSave is not null) {
+					humanSave.human = true;
+				}
+			}
 			foreach (var saveCivilization in save.Civilizations) {
 				saveCivilization.cultureGroupKey = save.CultureGroups.First(c => c.name == saveCivilization.cultureGroup.name).name;
 			}
