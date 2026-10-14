@@ -58,6 +58,10 @@ namespace C7GameData {
 		public Player winner;
 		// TODO: Victory type serialization
 
+		// Read-only access to the civilizations in the ruleset, for UI that
+		// needs to browse all of them (e.g. the Codex).
+		public IReadOnlyList<Civilization> Civilizations => civilizations;
+
 		public BarbarianInfo barbarianInfo = new BarbarianInfo();
 
 		public StrengthBonus fortificationBonus;

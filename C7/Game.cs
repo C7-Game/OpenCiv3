@@ -279,6 +279,21 @@ public partial class Game : Node {
 		} else {
 			throw new InvalidOperationException("Save data was not set");
 		}
+
+		// Native rulesets are loaded from JSON, which doesn't carry the
+		// Civilopedia text, and legacy imports only populate it when a scenario
+		// search path is present. Load it here so the Codex always has prose.
+		EngineStorage.ReadGameData((GameData gameData) => {
+			if (gameData.Codex is { Entries.Count: > 0 }) {
+				return;
+			}
+
+			try {
+				gameData.Codex = new Codex(options.GetCivilopediaTextPath(gameData.scenarioSearchPath ?? ""));
+			} catch (Exception ex) {
+				log.Warning(ex, "Could not locate the Civilopedia text; the Codex will show generated stats only");
+			}
+		});
 	}
 
 	private void InitializeMapView() {

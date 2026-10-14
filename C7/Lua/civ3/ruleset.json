@@ -808,6 +808,7 @@
   "unitPrototypes": [
     {
       "name": "Settler",
+      "civilopediaEntry": "PRTO_Settler",
       "art": {
         "mainArt": {
           "defaultName": "Settler",
@@ -888,6 +889,7 @@
     },
     {
       "name": "Worker",
+      "civilopediaEntry": "PRTO_Worker",
       "art": {
         "mainArt": {
           "defaultName": "Worker",
@@ -979,6 +981,7 @@
     },
     {
       "name": "Scout",
+      "civilopediaEntry": "PRTO_Scout",
       "art": {
         "mainArt": {
           "defaultName": "Scout"
@@ -1029,6 +1032,7 @@
     },
     {
       "name": "Explorer",
+      "civilopediaEntry": "PRTO_Explorer",
       "art": {
         "mainArt": {
           "defaultName": "Explorer"
@@ -1100,6 +1104,7 @@
     },
     {
       "name": "Marine",
+      "civilopediaEntry": "PRTO_Marine",
       "art": {
         "mainArt": {
           "defaultName": "Marine"
@@ -1175,6 +1180,7 @@
     },
     {
       "name": "Modern Paratrooper",
+      "civilopediaEntry": "PRTO_Paratrooper",
       "art": {
         "mainArt": {
           "defaultName": "Paratrooper"
@@ -1251,6 +1257,7 @@
     },
     {
       "name": "Warrior",
+      "civilopediaEntry": "PRTO_Warrior",
       "art": {
         "mainArt": {
           "defaultName": "Warrior"
@@ -1328,6 +1335,7 @@
     },
     {
       "name": "Archer",
+      "civilopediaEntry": "PRTO_Archer",
       "art": {
         "mainArt": {
           "defaultName": "Archer"
@@ -1402,6 +1410,7 @@
     },
     {
       "name": "Spearman",
+      "civilopediaEntry": "PRTO_Spearman",
       "art": {
         "mainArt": {
           "defaultName": "Spearman"
@@ -1474,6 +1483,7 @@
     },
     {
       "name": "Swordsman",
+      "civilopediaEntry": "PRTO_Swordsman",
       "art": {
         "mainArt": {
           "defaultName": "Swordsman"
@@ -1549,6 +1559,7 @@
     },
     {
       "name": "Chariot",
+      "civilopediaEntry": "PRTO_Chariot",
       "art": {
         "mainArt": {
           "defaultName": "chariot"
@@ -1629,6 +1640,7 @@
     },
     {
       "name": "Horseman",
+      "civilopediaEntry": "PRTO_Horseman",
       "art": {
         "mainArt": {
           "defaultName": "Horseman"
@@ -1713,6 +1725,7 @@
     },
     {
       "name": "Pikeman",
+      "civilopediaEntry": "PRTO_Pikeman",
       "art": {
         "mainArt": {
           "defaultName": "Pikeman"
@@ -1789,6 +1802,7 @@
     },
     {
       "name": "Longbowman",
+      "civilopediaEntry": "PRTO_Longbowman",
       "art": {
         "mainArt": {
           "defaultName": "Longbowman"
@@ -1863,6 +1877,7 @@
     },
     {
       "name": "Musketman",
+      "civilopediaEntry": "PRTO_Musketman",
       "art": {
         "mainArt": {
           "defaultName": "Musketman"
@@ -1941,6 +1956,7 @@
     },
     {
       "name": "Knight",
+      "civilopediaEntry": "PRTO_Knight",
       "art": {
         "mainArt": {
           "defaultName": "Knight"
@@ -2017,6 +2033,7 @@
     },
     {
       "name": "Rifleman",
+      "civilopediaEntry": "PRTO_Rifleman",
       "art": {
         "mainArt": {
           "defaultName": "Rifleman"
@@ -2092,6 +2109,7 @@
     },
     {
       "name": "Cavalry",
+      "civilopediaEntry": "PRTO_Cavalry",
       "art": {
         "mainArt": {
           "defaultName": "Cavalry"
@@ -2166,6 +2184,7 @@
     },
     {
       "name": "Infantry",
+      "civilopediaEntry": "PRTO_Infantry",
       "art": {
         "mainArt": {
           "defaultName": "Infantry"
@@ -2244,6 +2263,7 @@
     },
     {
       "name": "Tank",
+      "civilopediaEntry": "PRTO_Tank",
       "art": {
         "mainArt": {
           "defaultName": "Tank"
@@ -2322,6 +2342,7 @@
     },
     {
       "name": "Mech Infantry",
+      "civilopediaEntry": "PRTO_Mech_Infantry",
       "art": {
         "mainArt": {
           "defaultName": "Mech Infantry"
@@ -2398,6 +2419,7 @@
     },
     {
       "name": "Modern Armor",
+      "civilopediaEntry": "PRTO_Modern_Armor",
       "art": {
         "mainArt": {
           "defaultName": "Modern Armor"
@@ -2474,6 +2496,7 @@
     },
     {
       "name": "Catapult",
+      "civilopediaEntry": "PRTO_Catapult",
       "art": {
         "mainArt": {
           "defaultName": "Catapult"
@@ -2553,6 +2576,7 @@
     },
     {
       "name": "Cannon",
+      "civilopediaEntry": "PRTO_Cannon",
       "art": {
         "mainArt": {
           "defaultName": "Cannon"
@@ -2637,6 +2661,7 @@
     },
     {
       "name": "Artillery",
+      "civilopediaEntry": "PRTO_Artillery",
       "art": {
         "mainArt": {
           "defaultName": "Artillery"
@@ -2713,6 +2738,7 @@
     },
     {
       "name": "Radar Artillery",
+      "civilopediaEntry": "PRTO_Radar_Artillery",
       "art": {
         "mainArt": {
           "defaultName": "Radar Artillery"
@@ -2793,6 +2819,7 @@
     },
     {
       "name": "Cruise Missile",
+      "civilopediaEntry": "PRTO_Cruise_Missile",
       "art": {
         "mainArt": {
           "defaultName": "Cruise Missile"
@@ -2872,6 +2899,7 @@
     },
     {
       "name": "Tactical Nuke",
+      "civilopediaEntry": "PRTO_NUKE",
       "art": {
         "mainArt": {
           "defaultName": "Tactical Nuke"
@@ -2949,6 +2977,7 @@
     },
     {
       "name": "ICBM",
+      "civilopediaEntry": "PRTO_ICBM",
       "art": {
         "mainArt": {
           "defaultName": "ICBM"
@@ -3024,6 +3053,7 @@
     },
     {
       "name": "Galley",
+      "civilopediaEntry": "PRTO_Galley",
       "art": {
         "mainArt": {
           "defaultName": "Galley"
@@ -3102,6 +3132,7 @@
     },
     {
       "name": "Caravel",
+      "civilopediaEntry": "PRTO_Caravel",
       "art": {
         "mainArt": {
           "defaultName": "Caravel"
@@ -3179,6 +3210,7 @@
     },
     {
       "name": "Frigate",
+      "civilopediaEntry": "PRTO_Frigate",
       "art": {
         "mainArt": {
           "defaultName": "Frigate"
@@ -3257,6 +3289,7 @@
     },
     {
       "name": "Galleon",
+      "civilopediaEntry": "PRTO_Galleon",
       "art": {
         "mainArt": {
           "defaultName": "Galleon"
@@ -3335,6 +3368,7 @@
     },
     {
       "name": "Ironclad",
+      "civilopediaEntry": "PRTO_Ironclad",
       "art": {
         "mainArt": {
           "defaultName": "Ironclad"
@@ -3414,6 +3448,7 @@
     },
     {
       "name": "Transport",
+      "civilopediaEntry": "PRTO_Transport",
       "art": {
         "mainArt": {
           "defaultName": "Transport"
@@ -3489,6 +3524,7 @@
     },
     {
       "name": "Carrier",
+      "civilopediaEntry": "PRTO_Carrier",
       "art": {
         "mainArt": {
           "defaultName": "Carrier"
@@ -3568,6 +3604,7 @@
     },
     {
       "name": "Submarine",
+      "civilopediaEntry": "PRTO_Submarine",
       "art": {
         "mainArt": {
           "defaultName": "Submarine"
@@ -3642,6 +3679,7 @@
     },
     {
       "name": "Destroyer",
+      "civilopediaEntry": "PRTO_Destroyer",
       "art": {
         "mainArt": {
           "defaultName": "Destroyer"
@@ -3717,6 +3755,7 @@
     },
     {
       "name": "Battleship",
+      "civilopediaEntry": "PRTO_Battleship",
       "art": {
         "mainArt": {
           "defaultName": "Battleship"
@@ -3795,6 +3834,7 @@
     },
     {
       "name": "AEGIS Cruiser",
+      "civilopediaEntry": "PRTO_AEGIS_Cruiser",
       "art": {
         "mainArt": {
           "defaultName": "AEGIS Cruiser"
@@ -3874,6 +3914,7 @@
     },
     {
       "name": "Nuclear Submarine",
+      "civilopediaEntry": "PRTO_Nuclear_Submarine",
       "art": {
         "mainArt": {
           "defaultName": "Nuclear Submarine"
@@ -3952,6 +3993,7 @@
     },
     {
       "name": "Fighter",
+      "civilopediaEntry": "PRTO_Fighter",
       "art": {
         "mainArt": {
           "defaultName": "Fighter"
@@ -4032,6 +4074,7 @@
     },
     {
       "name": "Bomber",
+      "civilopediaEntry": "PRTO_Bomber",
       "art": {
         "mainArt": {
           "defaultName": "Bomber"
@@ -4109,6 +4152,7 @@
     },
     {
       "name": "Helicopter",
+      "civilopediaEntry": "PRTO_Helicopter",
       "art": {
         "mainArt": {
           "defaultName": "Helicopter"
@@ -4186,6 +4230,7 @@
     },
     {
       "name": "Jet Fighter",
+      "civilopediaEntry": "PRTO_Jet_Fighter",
       "art": {
         "mainArt": {
           "defaultName": "Jet Fighter"
@@ -4262,6 +4307,7 @@
     },
     {
       "name": "Stealth Fighter",
+      "civilopediaEntry": "PRTO_Stealth_Fighter",
       "art": {
         "mainArt": {
           "defaultName": "Stealth Fighter"
@@ -4340,6 +4386,7 @@
     },
     {
       "name": "Stealth Bomber",
+      "civilopediaEntry": "PRTO_Stealth_Bomber",
       "art": {
         "mainArt": {
           "defaultName": "Stealth Bomber"
@@ -4418,6 +4465,7 @@
     },
     {
       "name": "Leader",
+      "civilopediaEntry": "PRTO_Leader",
       "art": {
         "mainArt": {
           "defaultName": "Leader Ancient Times",
@@ -4502,6 +4550,7 @@
     },
     {
       "name": "Army",
+      "civilopediaEntry": "PRTO_Army",
       "art": {
         "mainArt": {
           "defaultName": "Army Ancient Times",
@@ -4587,6 +4636,7 @@
     },
     {
       "name": "Jaguar Warrior",
+      "civilopediaEntry": "PRTO_Jaguar_Warrior",
       "art": {
         "mainArt": {
           "defaultName": "Jaguar Warrior"
@@ -4632,6 +4682,7 @@
     },
     {
       "name": "Bowman",
+      "civilopediaEntry": "PRTO_Bowman",
       "art": {
         "mainArt": {
           "defaultName": "Bowman"
@@ -4677,6 +4728,7 @@
     },
     {
       "name": "Hoplite",
+      "civilopediaEntry": "PRTO_Hoplite",
       "art": {
         "mainArt": {
           "defaultName": "Hoplite"
@@ -4722,6 +4774,7 @@
     },
     {
       "name": "Impi",
+      "civilopediaEntry": "PRTO_Impi",
       "art": {
         "mainArt": {
           "defaultName": "Impi"
@@ -4767,6 +4820,7 @@
     },
     {
       "name": "Legionary",
+      "civilopediaEntry": "PRTO_Legionary",
       "art": {
         "mainArt": {
           "defaultName": "Legionary"
@@ -4815,6 +4869,7 @@
     },
     {
       "name": "Immortals",
+      "civilopediaEntry": "PRTO_Immortals",
       "art": {
         "mainArt": {
           "defaultName": "Immortals"
@@ -4863,6 +4918,7 @@
     },
     {
       "name": "War Chariot",
+      "civilopediaEntry": "PRTO_War_Chariot",
       "art": {
         "mainArt": {
           "defaultName": "War Chariot"
@@ -4914,6 +4970,7 @@
     },
     {
       "name": "Rider",
+      "civilopediaEntry": "PRTO_Rider",
       "art": {
         "mainArt": {
           "defaultName": "Rider"
@@ -4963,6 +5020,7 @@
     },
     {
       "name": "Mounted Warrior",
+      "civilopediaEntry": "PRTO_Mounted_Warrior",
       "art": {
         "mainArt": {
           "defaultName": "Mounted Warrior"
@@ -5011,6 +5069,7 @@
     },
     {
       "name": "Musketeer",
+      "civilopediaEntry": "PRTO_Musketeer",
       "art": {
         "mainArt": {
           "defaultName": "Musketeer"
@@ -5059,6 +5118,7 @@
     },
     {
       "name": "Samurai",
+      "civilopediaEntry": "PRTO_Samurai",
       "art": {
         "mainArt": {
           "defaultName": "Samurai"
@@ -5107,6 +5167,7 @@
     },
     {
       "name": "War Elephant",
+      "civilopediaEntry": "PRTO_War_Elephant",
       "art": {
         "mainArt": {
           "defaultName": "War Elephant"
@@ -5152,6 +5213,7 @@
     },
     {
       "name": "Cossack",
+      "civilopediaEntry": "PRTO_Cossack",
       "art": {
         "mainArt": {
           "defaultName": "Cossack"
@@ -5198,6 +5260,7 @@
     },
     {
       "name": "Panzer",
+      "civilopediaEntry": "PRTO_Panzer",
       "art": {
         "mainArt": {
           "defaultName": "Panzer"
@@ -5247,6 +5310,7 @@
     },
     {
       "name": "Man-O-War",
+      "civilopediaEntry": "PRTO_Man-O-War",
       "art": {
         "mainArt": {
           "defaultName": "Man-O-War"
@@ -5296,6 +5360,7 @@
     },
     {
       "name": "F-15",
+      "civilopediaEntry": "PRTO_F-15",
       "art": {
         "mainArt": {
           "defaultName": "F-15"
@@ -5344,6 +5409,7 @@
     },
     {
       "name": "Privateer",
+      "civilopediaEntry": "PRTO_Privateer",
       "art": {
         "mainArt": {
           "defaultName": "Privateer"
@@ -5422,6 +5488,7 @@
     },
     {
       "name": "Keshik",
+      "civilopediaEntry": "PRTO_Keshik",
       "art": {
         "mainArt": {
           "defaultName": "Keshik"
@@ -5470,6 +5537,7 @@
     },
     {
       "name": "Conquistador",
+      "civilopediaEntry": "PRTO_Conquistador",
       "art": {
         "mainArt": {
           "defaultName": "Conquistador"
@@ -5515,6 +5583,7 @@
     },
     {
       "name": "Berserk",
+      "civilopediaEntry": "PRTO_Berserk",
       "art": {
         "mainArt": {
           "defaultName": "Berserk"
@@ -5560,6 +5629,7 @@
     },
     {
       "name": "Sipahi",
+      "civilopediaEntry": "PRTO_Sipahi",
       "art": {
         "mainArt": {
           "defaultName": "Sipahi"
@@ -5606,6 +5676,7 @@
     },
     {
       "name": "Gallic Swordsman",
+      "civilopediaEntry": "PRTO_Gallic_Swordsman",
       "art": {
         "mainArt": {
           "defaultName": "gallic swordsman"
@@ -5654,6 +5725,7 @@
     },
     {
       "name": "Ansar Warrior",
+      "civilopediaEntry": "PRTO_Ansar_Warrior",
       "art": {
         "mainArt": {
           "defaultName": "ansar warrior"
@@ -5703,6 +5775,7 @@
     },
     {
       "name": "Numidian Mercenary",
+      "civilopediaEntry": "PRTO_Libyan_Mercenary",
       "art": {
         "mainArt": {
           "defaultName": "Libyan Mercenary"
@@ -5748,6 +5821,7 @@
     },
     {
       "name": "Hwach'a",
+      "civilopediaEntry": "PRTO_Hwacha",
       "art": {
         "mainArt": {
           "defaultName": "Hwacha"
@@ -5802,6 +5876,7 @@
     },
     {
       "name": "Medieval Infantry",
+      "civilopediaEntry": "PRTO_Medieval_Infantry",
       "art": {
         "mainArt": {
           "defaultName": "Medieval Infantry"
@@ -5879,6 +5954,7 @@
     },
     {
       "name": "Guerilla",
+      "civilopediaEntry": "PRTO_Guerilla",
       "art": {
         "mainArt": {
           "defaultName": "Guerilla"
@@ -5954,6 +6030,7 @@
     },
     {
       "name": "Princess",
+      "civilopediaEntry": "PRTO_Princess",
       "art": {
         "mainArt": {
           "defaultName": "Princess"
@@ -5988,6 +6065,7 @@
     },
     {
       "name": "Lincoln",
+      "civilopediaEntry": "PRTO_Lincoln",
       "art": {
         "mainArt": {
           "defaultName": "King American"
@@ -6025,6 +6103,7 @@
     },
     {
       "name": "Hammurabi",
+      "civilopediaEntry": "PRTO_Hammurabi",
       "art": {
         "mainArt": {
           "defaultName": "King Babylonian"
@@ -6062,6 +6141,7 @@
     },
     {
       "name": "Mao",
+      "civilopediaEntry": "PRTO_Mao",
       "art": {
         "mainArt": {
           "defaultName": "King Chinese"
@@ -6099,6 +6179,7 @@
     },
     {
       "name": "Bismarck",
+      "civilopediaEntry": "PRTO_Bismarck",
       "art": {
         "mainArt": {
           "defaultName": "King German"
@@ -6136,6 +6217,7 @@
     },
     {
       "name": "Alexander",
+      "civilopediaEntry": "PRTO_Alexander",
       "art": {
         "mainArt": {
           "defaultName": "King Greek"
@@ -6173,6 +6255,7 @@
     },
     {
       "name": "Caesar",
+      "civilopediaEntry": "PRTO_Caesar",
       "art": {
         "mainArt": {
           "defaultName": "King Roman"
@@ -6210,6 +6293,7 @@
     },
     {
       "name": "Xerxes",
+      "civilopediaEntry": "PRTO_Xerxes",
       "art": {
         "mainArt": {
           "defaultName": "King Persian"
@@ -6247,6 +6331,7 @@
     },
     {
       "name": "Hiawatha",
+      "civilopediaEntry": "PRTO_Hiawatha",
       "art": {
         "mainArt": {
           "defaultName": "King Iroquois"
@@ -6284,6 +6369,7 @@
     },
     {
       "name": "Shaka",
+      "civilopediaEntry": "PRTO_Shaka",
       "art": {
         "mainArt": {
           "defaultName": "King Zulu"
@@ -6321,6 +6407,7 @@
     },
     {
       "name": "Montezuma",
+      "civilopediaEntry": "PRTO_Montezuma",
       "art": {
         "mainArt": {
           "defaultName": "King Aztec"
@@ -6358,6 +6445,7 @@
     },
     {
       "name": "Cleopatra",
+      "civilopediaEntry": "PRTO_Cleopatra",
       "art": {
         "mainArt": {
           "defaultName": "King Egyptian"
@@ -6395,6 +6483,7 @@
     },
     {
       "name": "Elizabeth",
+      "civilopediaEntry": "PRTO_Elizabeth",
       "art": {
         "mainArt": {
           "defaultName": "King English"
@@ -6432,6 +6521,7 @@
     },
     {
       "name": "Catherine",
+      "civilopediaEntry": "PRTO_Catherine",
       "art": {
         "mainArt": {
           "defaultName": "King Russian"
@@ -6469,6 +6559,7 @@
     },
     {
       "name": "Abu",
+      "civilopediaEntry": "PRTO_Abu",
       "art": {
         "mainArt": {
           "defaultName": "King Arab"
@@ -6506,6 +6597,7 @@
     },
     {
       "name": "Hannibal",
+      "civilopediaEntry": "PRTO_Hannibal",
       "art": {
         "mainArt": {
           "defaultName": "King Carthaginian"
@@ -6543,6 +6635,7 @@
     },
     {
       "name": "Osman",
+      "civilopediaEntry": "PRTO_Osman",
       "art": {
         "mainArt": {
           "defaultName": "King Ottoman"
@@ -6580,6 +6673,7 @@
     },
     {
       "name": "Temujin",
+      "civilopediaEntry": "PRTO_Temujin",
       "art": {
         "mainArt": {
           "defaultName": "King Mongol"
@@ -6617,6 +6711,7 @@
     },
     {
       "name": "Gandhi",
+      "civilopediaEntry": "PRTO_Gandhi",
       "art": {
         "mainArt": {
           "defaultName": "King Indian"
@@ -6654,6 +6749,7 @@
     },
     {
       "name": "Ragnar",
+      "civilopediaEntry": "PRTO_Ragnar",
       "art": {
         "mainArt": {
           "defaultName": "King Viking"
@@ -6691,6 +6787,7 @@
     },
     {
       "name": "Brennus",
+      "civilopediaEntry": "PRTO_Brennus",
       "art": {
         "mainArt": {
           "defaultName": "King Celtic"
@@ -6728,6 +6825,7 @@
     },
     {
       "name": "Tokugawa",
+      "civilopediaEntry": "PRTO_Tokugawa",
       "art": {
         "mainArt": {
           "defaultName": "King Japanese"
@@ -6765,6 +6863,7 @@
     },
     {
       "name": "Joan d'Arc",
+      "civilopediaEntry": "PRTO_Joan",
       "art": {
         "mainArt": {
           "defaultName": "King French"
@@ -6802,6 +6901,7 @@
     },
     {
       "name": "Wang Kon",
+      "civilopediaEntry": "PRTO_Wang",
       "art": {
         "mainArt": {
           "defaultName": "King Korean"
@@ -6839,6 +6939,7 @@
     },
     {
       "name": "Isabella",
+      "civilopediaEntry": "PRTO_Isabella",
       "art": {
         "mainArt": {
           "defaultName": "King Spanish"
@@ -6876,6 +6977,7 @@
     },
     {
       "name": "Enkidu Warrior",
+      "civilopediaEntry": "PRTO_Enkidu_Warrior",
       "art": {
         "mainArt": {
           "defaultName": "Enkidu Warrior"
@@ -6920,6 +7022,7 @@
     },
     {
       "name": "Three-Man Chariot",
+      "civilopediaEntry": "PRTO_Three_Man_Chariot",
       "art": {
         "mainArt": {
           "defaultName": "Three Man Chariot"
@@ -6971,6 +7074,7 @@
     },
     {
       "name": "Mursilis",
+      "civilopediaEntry": "PRTO_Mursilis",
       "art": {
         "mainArt": {
           "defaultName": "King Hatti"
@@ -7008,6 +7112,7 @@
     },
     {
       "name": "Gilgamesh",
+      "civilopediaEntry": "PRTO_Gilgamesh",
       "art": {
         "mainArt": {
           "defaultName": "King Sumeria"
@@ -7045,6 +7150,7 @@
     },
     {
       "name": "Henry",
+      "civilopediaEntry": "PRTO_Henry",
       "art": {
         "mainArt": {
           "defaultName": "King Portugal"
@@ -7082,6 +7188,7 @@
     },
     {
       "name": "Carrack",
+      "civilopediaEntry": "PRTO_Carrack",
       "art": {
         "mainArt": {
           "defaultName": "Carrack"
@@ -7130,6 +7237,7 @@
     },
     {
       "name": "Swiss Mercenary",
+      "civilopediaEntry": "PRTO_Swiss_Mercenary",
       "art": {
         "mainArt": {
           "defaultName": "Swiss Mercenary"
@@ -7178,6 +7286,7 @@
     },
     {
       "name": "William of Orange",
+      "civilopediaEntry": "PRTO_William_of_Orange",
       "art": {
         "mainArt": {
           "defaultName": "King Netherlands"
@@ -7215,6 +7324,7 @@
     },
     {
       "name": "Trebuchet",
+      "civilopediaEntry": "PRTO_Trebuchet",
       "art": {
         "mainArt": {
           "defaultName": "Trebuchet"
@@ -7294,6 +7404,7 @@
     },
     {
       "name": "Pachacuti",
+      "civilopediaEntry": "PRTO_Pachacuti",
       "art": {
         "mainArt": {
           "defaultName": "King Incan"
@@ -7331,6 +7442,7 @@
     },
     {
       "name": "Smoke-Jaguar",
+      "civilopediaEntry": "PRTO_Smoke-Jaguar",
       "art": {
         "mainArt": {
           "defaultName": "King Mayan"
@@ -7368,6 +7480,7 @@
     },
     {
       "name": "Theodora",
+      "civilopediaEntry": "PRTO_Theodora",
       "art": {
         "mainArt": {
           "defaultName": "King Byzantines"
@@ -7405,6 +7518,7 @@
     },
     {
       "name": "Chasqui Scout",
+      "civilopediaEntry": "PRTO_Chasquis_Scout",
       "art": {
         "mainArt": {
           "defaultName": "Chasquis Scout"
@@ -7449,6 +7563,7 @@
     },
     {
       "name": "Javelin Thrower",
+      "civilopediaEntry": "PRTO_Javelin_Thrower",
       "art": {
         "mainArt": {
           "defaultName": "Javelin Thrower"
@@ -7494,6 +7609,7 @@
     },
     {
       "name": "Dromon",
+      "civilopediaEntry": "PRTO_Dromon",
       "art": {
         "mainArt": {
           "defaultName": "Dromon"
@@ -7543,6 +7659,7 @@
     },
     {
       "name": "Cruiser",
+      "civilopediaEntry": "PRTO_Cruiser",
       "art": {
         "mainArt": {
           "defaultName": "Cruiser"
@@ -7624,6 +7741,7 @@
     },
     {
       "name": "Crusader",
+      "civilopediaEntry": "PRTO_Crusader",
       "art": {
         "mainArt": {
           "defaultName": "Crusader"
@@ -7665,6 +7783,7 @@
     },
     {
       "name": "Ancient Cavalry",
+      "civilopediaEntry": "PRTO_Ancient_Cavalry",
       "art": {
         "mainArt": {
           "defaultName": "Ancient Cavalry"
@@ -7703,6 +7822,7 @@
     },
     {
       "name": "Curragh",
+      "civilopediaEntry": "PRTO_Curragh",
       "art": {
         "mainArt": {
           "defaultName": "Curragh"
@@ -7781,6 +7901,7 @@
     },
     {
       "name": "Paratrooper",
+      "civilopediaEntry": "PRTO_WWII_Paratrooper",
       "art": {
         "mainArt": {
           "defaultName": "WWII Paratrooper"
@@ -7860,6 +7981,7 @@
     },
     {
       "name": "TOW Infantry",
+      "civilopediaEntry": "PRTO_TOW_Infantry",
       "art": {
         "mainArt": {
           "defaultName": "TOW Infantry"
@@ -7932,6 +8054,7 @@
     },
     {
       "name": "Flak",
+      "civilopediaEntry": "PRTO_Flak",
       "art": {
         "mainArt": {
           "defaultName": "Flak"
@@ -8007,6 +8130,7 @@
     },
     {
       "name": "Mobile SAM",
+      "civilopediaEntry": "PRTO_Mobile_SAM",
       "art": {
         "mainArt": {
           "defaultName": "Mobile SAM"
@@ -8081,6 +8205,7 @@
   "buildings": [
     {
       "name": "Palace",
+      "civilopediaEntry": "BLDG_Palace",
       "shieldCost": 100,
       "populationCost": 0,
       "requiredTech": "tech-2",
@@ -8096,6 +8221,7 @@
     },
     {
       "name": "Barracks",
+      "civilopediaEntry": "BLDG_Barracks",
       "shieldCost": 40,
       "populationCost": 0,
       "isSmallWonder": false,
@@ -8116,6 +8242,7 @@
     },
     {
       "name": "Granary",
+      "civilopediaEntry": "BLDG_Granary",
       "shieldCost": 60,
       "populationCost": 0,
       "requiredTech": "tech-4",
@@ -8131,6 +8258,7 @@
     },
     {
       "name": "Temple",
+      "civilopediaEntry": "BLDG_Temple",
       "shieldCost": 60,
       "populationCost": 0,
       "requiredTech": "tech-7",
@@ -8146,6 +8274,7 @@
     },
     {
       "name": "Marketplace",
+      "civilopediaEntry": "BLDG_Marketplace",
       "shieldCost": 100,
       "populationCost": 0,
       "requiredTech": "tech-18",
@@ -8164,6 +8293,7 @@
     },
     {
       "name": "Library",
+      "civilopediaEntry": "BLDG_Library",
       "shieldCost": 80,
       "populationCost": 0,
       "requiredTech": "tech-14",
@@ -8179,6 +8309,7 @@
     },
     {
       "name": "Courthouse",
+      "civilopediaEntry": "BLDG_Courthouse",
       "shieldCost": 80,
       "populationCost": 0,
       "requiredTech": "tech-13",
@@ -8194,6 +8325,7 @@
     },
     {
       "name": "Walls",
+      "civilopediaEntry": "BLDG_Walls",
       "shieldCost": 20,
       "populationCost": 0,
       "requiredTech": "tech-2",
@@ -8216,6 +8348,7 @@
     },
     {
       "name": "Aqueduct",
+      "civilopediaEntry": "BLDG_Aqueduct",
       "shieldCost": 100,
       "populationCost": 0,
       "requiredTech": "tech-21",
@@ -8237,6 +8370,7 @@
     },
     {
       "name": "Bank",
+      "civilopediaEntry": "BLDG_Bank",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-32",
@@ -8253,6 +8387,7 @@
     },
     {
       "name": "Cathedral",
+      "civilopediaEntry": "BLDG_Cathedral",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-22",
@@ -8269,6 +8404,7 @@
     },
     {
       "name": "University",
+      "civilopediaEntry": "BLDG_University",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-30",
@@ -8285,6 +8421,7 @@
     },
     {
       "name": "Colosseum",
+      "civilopediaEntry": "BLDG_Colosseum",
       "shieldCost": 120,
       "populationCost": 0,
       "requiredTech": "tech-21",
@@ -8297,6 +8434,7 @@
     },
     {
       "name": "Factory",
+      "civilopediaEntry": "BLDG_Factory",
       "shieldCost": 240,
       "populationCost": 0,
       "requiredTech": "tech-48",
@@ -8312,6 +8450,7 @@
     },
     {
       "name": "Manufacturing Plant",
+      "civilopediaEntry": "BLDG_Manufacturing_Plant",
       "shieldCost": 320,
       "populationCost": 0,
       "requiredTech": "tech-80",
@@ -8325,6 +8464,7 @@
     },
     {
       "name": "Recycling Center",
+      "civilopediaEntry": "BLDG_Recycling_Center",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-68",
@@ -8340,6 +8480,7 @@
     },
     {
       "name": "Coal Plant",
+      "civilopediaEntry": "BLDG_Coal_Plant",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-48",
@@ -8356,6 +8497,7 @@
     },
     {
       "name": "Hydro Plant",
+      "civilopediaEntry": "BLDG_Hydro_Plant",
       "shieldCost": 240,
       "populationCost": 0,
       "requiredTech": "tech-62",
@@ -8375,6 +8517,7 @@
     },
     {
       "name": "Nuclear Plant",
+      "civilopediaEntry": "BLDG_Nuclear_Plant",
       "shieldCost": 240,
       "populationCost": 0,
       "requiredTech": "tech-70",
@@ -8391,6 +8534,7 @@
     },
     {
       "name": "Hospital",
+      "civilopediaEntry": "BLDG_Hospital",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-51",
@@ -8409,6 +8553,7 @@
     },
     {
       "name": "Research Lab",
+      "civilopediaEntry": "BLDG_Lab",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-67",
@@ -8425,6 +8570,7 @@
     },
     {
       "name": "Mass Transit System",
+      "civilopediaEntry": "BLDG_Mass_Transit_System",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-73",
@@ -8440,6 +8586,7 @@
     },
     {
       "name": "SAM Missile Battery",
+      "civilopediaEntry": "BLDG_SAM_Missile_Battery",
       "shieldCost": 80,
       "populationCost": 0,
       "requiredTech": "tech-65",
@@ -8458,6 +8605,7 @@
     },
     {
       "name": "Coastal Fortress",
+      "civilopediaEntry": "BLDG_Coastal_Fortress",
       "shieldCost": 40,
       "populationCost": 0,
       "requiredTech": "tech-39",
@@ -8484,6 +8632,7 @@
     },
     {
       "name": "Solar Plant",
+      "civilopediaEntry": "BLDG_Solar_Plant",
       "shieldCost": 320,
       "populationCost": 0,
       "requiredTech": "tech-73",
@@ -8500,6 +8649,7 @@
     },
     {
       "name": "Harbor",
+      "civilopediaEntry": "BLDG_Harbor",
       "shieldCost": 60,
       "populationCost": 0,
       "requiredTech": "tech-15",
@@ -8531,6 +8681,7 @@
     },
     {
       "name": "Offshore Platform",
+      "civilopediaEntry": "BLDG_Offshore_Platform",
       "shieldCost": 240,
       "populationCost": 0,
       "requiredTech": "tech-72",
@@ -8556,6 +8707,7 @@
     },
     {
       "name": "Airport",
+      "civilopediaEntry": "BLDG_Airport",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-59",
@@ -8572,6 +8724,7 @@
     },
     {
       "name": "Police Station",
+      "civilopediaEntry": "BLDG_Police_Station",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-47",
@@ -8587,6 +8740,7 @@
     },
     {
       "name": "The Pyramids",
+      "civilopediaEntry": "BLDG_Pyramids",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-2",
@@ -8607,6 +8761,7 @@
     },
     {
       "name": "The Hanging Gardens",
+      "civilopediaEntry": "BLDG_Hanging_Gardens",
       "shieldCost": 300,
       "populationCost": 0,
       "requiredTech": "tech-20",
@@ -8625,6 +8780,7 @@
     },
     {
       "name": "The Colossus",
+      "civilopediaEntry": "BLDG_Colossus",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-1",
@@ -8650,6 +8806,7 @@
     },
     {
       "name": "The Great Lighthouse",
+      "civilopediaEntry": "BLDG_Lighthouse",
       "shieldCost": 300,
       "populationCost": 0,
       "requiredTech": "tech-15",
@@ -8675,6 +8832,7 @@
     },
     {
       "name": "The Great Library",
+      "civilopediaEntry": "BLDG_Great_Library",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-14",
@@ -8692,6 +8850,7 @@
     },
     {
       "name": "The Oracle",
+      "civilopediaEntry": "BLDG_Oracle",
       "shieldCost": 300,
       "populationCost": 0,
       "requiredTech": "tech-10",
@@ -8709,6 +8868,7 @@
     },
     {
       "name": "The Great Wall",
+      "civilopediaEntry": "BLDG_Great_Wall",
       "shieldCost": 300,
       "populationCost": 0,
       "requiredTech": "tech-21",
@@ -8729,6 +8889,7 @@
     },
     {
       "name": "Sun Tzu's Art of War",
+      "civilopediaEntry": "BLDG_Art_of_War",
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-23",
@@ -8747,6 +8908,7 @@
     },
     {
       "name": "Sistine Chapel",
+      "civilopediaEntry": "BLDG_Sistine_Chapel",
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-25",
@@ -8763,6 +8925,7 @@
     },
     {
       "name": "Magellan's Voyage",
+      "civilopediaEntry": "BLDG_Circumnavigation",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-37",
@@ -8787,6 +8950,7 @@
     },
     {
       "name": "Copernicus' Observatory",
+      "civilopediaEntry": "BLDG_Solar_System",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-33",
@@ -8803,6 +8967,7 @@
     },
     {
       "name": "Shakespeare's Theater",
+      "civilopediaEntry": "BLDG_Great_Playhouse",
       "shieldCost": 450,
       "populationCost": 0,
       "requiredTech": "tech-40",
@@ -8822,6 +8987,7 @@
     },
     {
       "name": "Leonardo's Workshop",
+      "civilopediaEntry": "BLDG_Inventor's_Workshop",
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-27",
@@ -8838,6 +9004,7 @@
     },
     {
       "name": "JS Bach's Cathedral",
+      "civilopediaEntry": "BLDG_Grand_Cathedral",
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-29",
@@ -8854,6 +9021,7 @@
     },
     {
       "name": "Newton's University",
+      "civilopediaEntry": "BLDG_Great_University",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-41",
@@ -8870,6 +9038,7 @@
     },
     {
       "name": "Smith's Trading Company",
+      "civilopediaEntry": "BLDG_Trading_Company",
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-36",
@@ -8887,6 +9056,7 @@
     },
     {
       "name": "Universal Suffrage",
+      "civilopediaEntry": "BLDG_Universal_Suffrage",
       "shieldCost": 800,
       "populationCost": 0,
       "requiredTech": "tech-48",
@@ -8903,6 +9073,7 @@
     },
     {
       "name": "Hoover Dam",
+      "civilopediaEntry": "BLDG_Hoover_Dam",
       "shieldCost": 800,
       "populationCost": 0,
       "requiredTech": "tech-62",
@@ -8928,6 +9099,7 @@
     },
     {
       "name": "Theory of Evolution",
+      "civilopediaEntry": "BLDG_Theory_of_Evolution",
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-50",
@@ -8944,6 +9116,7 @@
     },
     {
       "name": "The United Nations",
+      "civilopediaEntry": "BLDG_United_Nations",
       "shieldCost": 1000,
       "populationCost": 0,
       "requiredTech": "tech-66",
@@ -8960,6 +9133,7 @@
     },
     {
       "name": "The Manhattan Project",
+      "civilopediaEntry": "BLDG_Manhattan_Project",
       "shieldCost": 800,
       "populationCost": 0,
       "requiredTech": "tech-66",
@@ -8980,6 +9154,7 @@
     },
     {
       "name": "Cure for Cancer",
+      "civilopediaEntry": "BLDG_Cure_for_Cancer",
       "shieldCost": 1000,
       "populationCost": 0,
       "requiredTech": "tech-77",
@@ -8997,6 +9172,7 @@
     },
     {
       "name": "Longevity",
+      "civilopediaEntry": "BLDG_Longevity",
       "shieldCost": 1000,
       "populationCost": 0,
       "requiredTech": "tech-77",
@@ -9013,6 +9189,7 @@
     },
     {
       "name": "SETI program",
+      "civilopediaEntry": "BLDG_SETI_Program",
       "shieldCost": 1000,
       "populationCost": 0,
       "requiredTech": "tech-67",
@@ -9029,6 +9206,7 @@
     },
     {
       "name": "Heroic Epic",
+      "civilopediaEntry": "BLDG_Epic",
       "shieldCost": 200,
       "populationCost": 0,
       "isSmallWonder": true,
@@ -9044,6 +9222,7 @@
     },
     {
       "name": "Iron Works",
+      "civilopediaEntry": "BLDG_Great_Ironworks",
       "shieldCost": 300,
       "populationCost": 0,
       "isSmallWonder": true,
@@ -9059,6 +9238,7 @@
     },
     {
       "name": "Forbidden Palace",
+      "civilopediaEntry": "BLDG_Forbidden_Palace",
       "shieldCost": 200,
       "populationCost": 0,
       "isSmallWonder": true,
@@ -9076,6 +9256,7 @@
     },
     {
       "name": "Military Academy",
+      "civilopediaEntry": "BLDG_Military_Academy",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-43",
@@ -9091,6 +9272,7 @@
     },
     {
       "name": "The Pentagon",
+      "civilopediaEntry": "BLDG_Pentagon",
       "shieldCost": 400,
       "populationCost": 0,
       "isSmallWonder": true,
@@ -9105,6 +9287,7 @@
     },
     {
       "name": "Wall Street",
+      "civilopediaEntry": "BLDG_Wall_Street",
       "shieldCost": 300,
       "populationCost": 0,
       "requiredBuilding": "Stock Exchange",
@@ -9117,6 +9300,7 @@
     },
     {
       "name": "Apollo Program",
+      "civilopediaEntry": "BLDG_Apollo_Project",
       "shieldCost": 500,
       "populationCost": 0,
       "requiredTech": "tech-69",
@@ -9135,6 +9319,7 @@
     },
     {
       "name": "Strategic Missile Defense",
+      "civilopediaEntry": "BLDG_SDI",
       "shieldCost": 500,
       "populationCost": 0,
       "requiredTech": "tech-81",
@@ -9151,6 +9336,7 @@
     },
     {
       "name": "Intelligence Agency",
+      "civilopediaEntry": "BLDG_Intelligence_Center",
       "shieldCost": 400,
       "populationCost": 0,
       "requiredTech": "tech-52",
@@ -9167,6 +9353,7 @@
     },
     {
       "name": "Battlefield Medicine",
+      "civilopediaEntry": "BLDG_Battlefield_Medicine",
       "shieldCost": 500,
       "populationCost": 0,
       "requiredBuilding": "Hospital",
@@ -9182,6 +9369,7 @@
     },
     {
       "name": "SS Thrusters",
+      "civilopediaEntry": "BLDG_SS_Thrusters",
       "shieldCost": 320,
       "populationCost": 0,
       "requiredTech": "tech-75",
@@ -9197,6 +9385,7 @@
     },
     {
       "name": "SS Engine",
+      "civilopediaEntry": "BLDG_SS_Engine",
       "shieldCost": 640,
       "populationCost": 0,
       "requiredTech": "tech-69",
@@ -9212,6 +9401,7 @@
     },
     {
       "name": "SS Docking Bay",
+      "civilopediaEntry": "BLDG_SS_Landing_Docking_Bay",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-69",
@@ -9227,6 +9417,7 @@
     },
     {
       "name": "SS Cockpit",
+      "civilopediaEntry": "BLDG_SS_Cockpit",
       "shieldCost": 320,
       "populationCost": 0,
       "requiredTech": "tech-69",
@@ -9242,6 +9433,7 @@
     },
     {
       "name": "SS Fuel Cells",
+      "civilopediaEntry": "BLDG_SS_Fuel_Cells",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-71",
@@ -9257,6 +9449,7 @@
     },
     {
       "name": "SS Life Support System",
+      "civilopediaEntry": "BLDG_SS_Life_Support_System",
       "shieldCost": 320,
       "populationCost": 0,
       "requiredTech": "tech-71",
@@ -9272,6 +9465,7 @@
     },
     {
       "name": "SS Stasis Chamber",
+      "civilopediaEntry": "BLDG_SS_Stasis_Chamber",
       "shieldCost": 320,
       "populationCost": 0,
       "requiredTech": "tech-80",
@@ -9288,6 +9482,7 @@
     },
     {
       "name": "SS Storage/Supply",
+      "civilopediaEntry": "BLDG_SS_Storage_Supply",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-74",
@@ -9303,6 +9498,7 @@
     },
     {
       "name": "SS Planetary Party Lounge",
+      "civilopediaEntry": "BLDG_SS_Planetary_Party_Lounge",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-76",
@@ -9318,6 +9514,7 @@
     },
     {
       "name": "SS Exterior Casing",
+      "civilopediaEntry": "BLDG_SS_Exterior_Casing",
       "shieldCost": 640,
       "populationCost": 0,
       "requiredTech": "tech-74",
@@ -9334,6 +9531,7 @@
     },
     {
       "name": "The Internet",
+      "civilopediaEntry": "BLDG_Internet",
       "shieldCost": 1000,
       "populationCost": 0,
       "requiredTech": "tech-72",
@@ -9359,6 +9557,7 @@
     },
     {
       "name": "Civil Defense",
+      "civilopediaEntry": "BLDG_Civil_Defense",
       "shieldCost": 120,
       "populationCost": 0,
       "requiredTech": "tech-62",
@@ -9375,6 +9574,7 @@
     },
     {
       "name": "Stock Exchange",
+      "civilopediaEntry": "BLDG_Stock_Exchange",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-53",
@@ -9391,6 +9591,7 @@
     },
     {
       "name": "Commercial Dock",
+      "civilopediaEntry": "BLDG_Commercial_Dock",
       "shieldCost": 160,
       "populationCost": 0,
       "requiredTech": "tech-61",
@@ -9414,6 +9615,7 @@
     },
     {
       "name": "The Temple of Artemis",
+      "civilopediaEntry": "BLDG_Artemis",
       "shieldCost": 500,
       "populationCost": 0,
       "requiredTech": "tech-17",
@@ -9433,6 +9635,7 @@
     },
     {
       "name": "The Statue of Zeus",
+      "civilopediaEntry": "BLDG_Zeus",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-11",
@@ -9454,6 +9657,7 @@
     },
     {
       "name": "The Mausoleum of Mausollos",
+      "civilopediaEntry": "BLDG_Mausoleum",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-12",
@@ -9471,6 +9675,7 @@
     },
     {
       "name": "Knights Templar",
+      "civilopediaEntry": "BLDG_Knights_Templar",
       "shieldCost": 300,
       "populationCost": 0,
       "requiredTech": "tech-26",
@@ -9489,6 +9694,7 @@
     },
     {
       "name": "Secret Police HQ",
+      "civilopediaEntry": "BLDG_Secret_Police_HQ",
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-52",
@@ -9556,6 +9762,7 @@
   "civilizations": [
     {
       "name": "A Barbarian Chiefdom",
+      "civilopediaEntry": "RACE_BARBARIANS",
       "noun": "Barbarians",
       "adjective": "Barbarian",
       "primaryColorIndex": 0,
@@ -9644,6 +9851,7 @@
     },
     {
       "name": "Rome",
+      "civilopediaEntry": "RACE_ROMANS",
       "noun": "Romans",
       "adjective": "Roman",
       "leader": "Caesar",
@@ -9710,6 +9918,7 @@
     },
     {
       "name": "Egypt",
+      "civilopediaEntry": "RACE_EGYPTIANS",
       "noun": "Egyptians",
       "adjective": "Egyptian",
       "leader": "Cleopatra",
@@ -9761,6 +9970,7 @@
     },
     {
       "name": "Greece",
+      "civilopediaEntry": "RACE_GREEKS",
       "noun": "Greeks",
       "adjective": "Greek",
       "leader": "Alexander",
@@ -9812,6 +10022,7 @@
     },
     {
       "name": "Babylon",
+      "civilopediaEntry": "RACE_BABYLON",
       "noun": "Babylonians",
       "adjective": "Babylonian",
       "leader": "Hammurabi",
@@ -9861,6 +10072,7 @@
     },
     {
       "name": "Germany",
+      "civilopediaEntry": "RACE_GERMANS",
       "noun": "Germans",
       "adjective": "German",
       "leader": "Bismarck",
@@ -9899,6 +10111,7 @@
     },
     {
       "name": "Russia",
+      "civilopediaEntry": "RACE_RUSSIAN",
       "noun": "Russians",
       "adjective": "Russian",
       "leader": "Catherine",
@@ -9960,6 +10173,7 @@
     },
     {
       "name": "China",
+      "civilopediaEntry": "RACE_CHINESE",
       "noun": "Chinese",
       "adjective": "Chinese",
       "leader": "Mao",
@@ -10000,6 +10214,7 @@
     },
     {
       "name": "America",
+      "civilopediaEntry": "RACE_AMERICAN",
       "noun": "Americans",
       "adjective": "American",
       "leader": "Lincoln",
@@ -10062,6 +10277,7 @@
     },
     {
       "name": "Japan",
+      "civilopediaEntry": "RACE_JAPANESE",
       "noun": "Japanese",
       "adjective": "Japanese",
       "leader": "Tokugawa",
@@ -10110,6 +10326,7 @@
     },
     {
       "name": "France",
+      "civilopediaEntry": "RACE_FRENCH",
       "noun": "French",
       "adjective": "French",
       "leader": "Joan d'Arc",
@@ -10153,6 +10370,7 @@
     },
     {
       "name": "India",
+      "civilopediaEntry": "RACE_INDIAN",
       "noun": "Indians",
       "adjective": "Indian",
       "leader": "Gandhi",
@@ -10192,6 +10410,7 @@
     },
     {
       "name": "Persia",
+      "civilopediaEntry": "RACE_PERSIAN",
       "noun": "Persians",
       "adjective": "Persian",
       "leader": "Xerxes",
@@ -10243,6 +10462,7 @@
     },
     {
       "name": "Aztecs",
+      "civilopediaEntry": "RACE_AZTECS",
       "noun": "Aztecs",
       "adjective": "Aztec",
       "leader": "Montezuma",
@@ -10301,6 +10521,7 @@
     },
     {
       "name": "Zululand",
+      "civilopediaEntry": "RACE_ZULU",
       "noun": "Zulu",
       "adjective": "Zulu",
       "leader": "Shaka",
@@ -10339,6 +10560,7 @@
     },
     {
       "name": "Iroquois",
+      "civilopediaEntry": "RACE_IROQUOIS",
       "noun": "Iroquois",
       "adjective": "Iroquois",
       "leader": "Hiawatha",
@@ -10390,6 +10612,7 @@
     },
     {
       "name": "England",
+      "civilopediaEntry": "RACE_ENGLISH",
       "noun": "English",
       "adjective": "English",
       "leader": "Elizabeth",
@@ -10441,6 +10664,7 @@
     },
     {
       "name": "Mongols",
+      "civilopediaEntry": "RACE_Mongols",
       "noun": "Mongols",
       "adjective": "Mongol",
       "leader": "Temujin",
@@ -10493,6 +10717,7 @@
     },
     {
       "name": "Spain",
+      "civilopediaEntry": "RACE_Spanish",
       "noun": "Spanish",
       "adjective": "Spanish",
       "leader": "Isabella",
@@ -10546,6 +10771,7 @@
     },
     {
       "name": "Scandinavia",
+      "civilopediaEntry": "RACE_Vikings",
       "noun": "Vikings",
       "adjective": "Viking",
       "leader": "Ragnar Lodbrok",
@@ -10601,6 +10827,7 @@
     },
     {
       "name": "Ottomans",
+      "civilopediaEntry": "RACE_Ottomans",
       "noun": "Ottomans",
       "adjective": "Ottoman",
       "leader": "Osman",
@@ -10652,6 +10879,7 @@
     },
     {
       "name": "Celts",
+      "civilopediaEntry": "RACE_Celts",
       "noun": "Celts",
       "adjective": "Celtic",
       "leader": "Brennus",
@@ -10704,6 +10932,7 @@
     },
     {
       "name": "Arabia",
+      "civilopediaEntry": "RACE_Arabs",
       "noun": "Arabs",
       "adjective": "Arabic",
       "leader": "Abu Bakr",
@@ -10754,6 +10983,7 @@
     },
     {
       "name": "Carthage",
+      "civilopediaEntry": "RACE_Carthaginians",
       "noun": "Carthaginians",
       "adjective": "Carthaginian",
       "leader": "Hannibal",
@@ -10806,6 +11036,7 @@
     },
     {
       "name": "Korea",
+      "civilopediaEntry": "RACE_Koreans",
       "noun": "Koreans",
       "adjective": "Korean",
       "leader": "Wang Kon",
@@ -10858,6 +11089,7 @@
     },
     {
       "name": "Sumeria",
+      "civilopediaEntry": "RACE_SUMERIA",
       "noun": "Sumerians",
       "adjective": "Sumerian",
       "leader": "Gilgamesh",
@@ -10905,6 +11137,7 @@
     },
     {
       "name": "Hittites",
+      "civilopediaEntry": "RACE_HATTI",
       "noun": "Hittites",
       "adjective": "Hittite",
       "leader": "Mursilis",
@@ -10952,6 +11185,7 @@
     },
     {
       "name": "Netherlands",
+      "civilopediaEntry": "RACE_DUTCH",
       "noun": "Dutch",
       "adjective": "Dutch",
       "leader": "William",
@@ -10999,6 +11233,7 @@
     },
     {
       "name": "Portugal",
+      "civilopediaEntry": "RACE_PORTUGAL",
       "noun": "Portuguese",
       "adjective": "Portuguese",
       "leader": "Henry",
@@ -11057,6 +11292,7 @@
     },
     {
       "name": "Byzantines",
+      "civilopediaEntry": "RACE_BYZANTINES",
       "noun": "Byzantines",
       "adjective": "Byzantine",
       "leader": "Theodora",
@@ -11104,6 +11340,7 @@
     },
     {
       "name": "Inca",
+      "civilopediaEntry": "RACE_INCANS",
       "noun": "Inca",
       "adjective": "Incan",
       "leader": "Pachacuti",
@@ -11151,6 +11388,7 @@
     },
     {
       "name": "Maya",
+      "civilopediaEntry": "RACE_MAYANS",
       "noun": "Maya",
       "adjective": "Mayan",
       "leader": "Smoke-Jaguar",

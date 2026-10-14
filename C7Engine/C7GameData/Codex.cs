@@ -17,10 +17,12 @@ namespace C7GameData {
 	public class Codex {
 		private static readonly Encoding Windows1252;
 		private static readonly Regex LinkRegex = new(@"\$LINK<([^=<>]+)=([^>]+)>");
+		private static readonly Regex EmphasisRegex = new(@"\[([^\[\]]+)\](?!\()");
+		private static readonly Regex BoldRegex = new(@"\{([^{}]+)\}");
 
 		private static readonly ILogger log = Log.ForContext<Codex>();
 
-		public Dictionary<string, CodexEntry> Entries { get; } = new();
+		public Dictionary<string, CodexEntry> Entries { get; } = new(StringComparer.OrdinalIgnoreCase);
 		public List<string> GameConceptKeys { get; } = new();
 
 		static Codex() {
@@ -63,6 +65,7 @@ namespace C7GameData {
 			List<string> currentParagraphLines = null;
 			bool inGameConceptKeys = false;
 			bool inDescription = false;
+			bool contentStarted = false;
 
 			foreach (string rawLine in content.Split('\n')) {
 				string line = rawLine.TrimEnd('\r');
@@ -88,6 +91,7 @@ namespace C7GameData {
 					string key = inDescription ? header.Substring(5).Trim() : header;
 					currentEntry = GetOrCreateEntry(key);
 					currentParagraphLines = null;
+					contentStarted = false;
 					continue;
 				}
 
@@ -103,6 +107,7 @@ namespace C7GameData {
 				}
 
 				if (line.StartsWith('^')) {
+					contentStarted = true;
 					string text = line.Substring(1);
 					if (text.Length == 0) {
 						FlushParagraph(currentEntry, inDescription, ref currentParagraphLines);
@@ -117,7 +122,7 @@ namespace C7GameData {
 					continue;
 				}
 
-				if (!inDescription && currentParagraphLines is null && currentEntry.Body is null && string.IsNullOrEmpty(currentEntry.DisplayName)) {
+				if (!inDescription && !contentStarted && currentParagraphLines is null && currentEntry.Body is null && string.IsNullOrEmpty(currentEntry.DisplayName)) {
 					currentEntry.DisplayName = line.Trim();
 					continue;
 				}
@@ -142,14 +147,18 @@ namespace C7GameData {
 				return;
 			}
 
-			string joined = LinkRegex.Replace(string.Join(' ', paragraphLines), match =>
+			// Civ3 marks emphasized terms with [brackets] and highlighted terms with
+			// {braces}. Brackets render as bold or italics depending on platform;
+			// standardize on italics. A whole-line {Title} is a subheading; all
+			// other braces are bold.
+			string joined = EmphasisRegex.Replace(string.Join(' ', paragraphLines), "*$1*");
+			joined = LinkRegex.Replace(joined, match =>
 				$"[{match.Groups[1].Value}](key:{match.Groups[2].Value.Trim()})");
 
-			// Civ3 uses a whole-line {Title} as a subheading within an entry.
-			// Column headers also use braces, but they contain tabs, so keep
-			// those as body text.
 			if (joined.StartsWith('{') && joined.EndsWith('}') && joined.Length > 2 && !joined.Contains('\t')) {
 				joined = "## " + joined.Substring(1, joined.Length - 2).Trim();
+			} else {
+				joined = BoldRegex.Replace(joined, "**$1**");
 			}
 
 			string target = inDescription ? entry.Description : entry.Body;
