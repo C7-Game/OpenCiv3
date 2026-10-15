@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using C7Engine.AI.StrategicAI;
 using C7Engine;
+using C7GameData.Save;
 using MoonSharp.Interpreter;
 using Serilog;
 using static C7GameData.EraUtils;
@@ -438,7 +439,8 @@ namespace C7GameData {
 				result.maintenance += city.MaintenanceCosts();
 				result.wealthProduction += cityCommerce.wealth;
 
-				interestBuildings += city.constructed_buildings.Count(cb => cb.building.treasuryEarnsInterest);
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
+				interestBuildings += city.constructed_buildings.Count(cb => cb.building.HasWonderFlag(SaveBuilding.WonderFlag.TreasuryEarnsInterest));
 
 				foreach (CityResident cr in city.residents) {
 					// Split city income into "regular citizen" and "tax collector" buckets
@@ -686,7 +688,8 @@ namespace C7GameData {
 				// supply small wonders like forbidden palaces, so we can avoid
 				// doing extra work for each city.
 				foreach (CityBuilding cb in c.constructed_buildings) {
-					if (cb.building.isForbiddenPalace) {
+					// TODO: Skip obsolete buildings (see Building.IsObsolete).
+					if (cb.building.HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption)) {
 						++numCorruptionReducingSmallWondersInEmpire;
 					}
 				}
@@ -1008,7 +1011,8 @@ namespace C7GameData {
 				// We use constructed_buildings here because great wonders can't
 				// supply small wonders like forbidden palaces, so we can avoid
 				// doing extra work for each city.
-				if (c.constructed_buildings.Any(x => x.building.isForbiddenPalace)) {
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
+				if (c.constructed_buildings.Any(x => x.building.HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption))) {
 					citiesWithCorruptionWonders.Add(c);
 				}
 			}
@@ -1045,6 +1049,35 @@ namespace C7GameData {
 				// TODO: Add drafting unhappiness decrement when implemented
 				c.turnsOfUnhappinessDueToPopRushing -= (c.turnsOfUnhappinessDueToPopRushing > 0) ? 1 : 0;
 			}
+		}
+
+		// The net number of unhappy faces that become content in the given city,
+		// from buildings with empire-wide effects in this player's other cities.
+		//
+		// The empire-wide effect of a building applies to every other city, so
+		// it doesn't stack with the building's own effect in the city that has
+		// it. Obsolete buildings have no effect, and buildings with continental
+		// mood effects only affect cities on the same continent.
+		//
+		// We use constructed_buildings rather than City.GetBuildings so that
+		// buildings granted by wonders aren't counted once per city.
+		public int GetNetContentFacesFromOtherCities(City city) {
+			int netContentFaces = 0;
+			foreach (City c in cities) {
+				if (c == city) {
+					continue;
+				}
+				foreach (CityBuilding cb in c.constructed_buildings) {
+					if (cb.building.IsObsolete(this)) {
+						continue;
+					}
+					if (cb.building.continentalMoodEffects && !c.IsOnSameContinentAs(city)) {
+						continue;
+					}
+					netContentFaces += cb.building.contentFacesInAllCities - cb.building.unhappyFacesInAllCities;
+				}
+			}
+			return netContentFaces;
 		}
 
 		public void RecalculateCitizenMoods(GameData gameData, bool goIntoDisorderIfUnhappy = false) {
@@ -1123,6 +1156,29 @@ namespace C7GameData {
 		public bool HasRequiredTechnology(IProducible producible) {
 			return producible.requiredTech == null ||
 				   knownTechs.Contains(producible.requiredTech.id);
+		}
+
+		// Whether any of this player's cities has already constructed the given
+		// building.
+		public bool OwnsBuilding(Building building) {
+			return cities.Any(c => c.constructed_buildings.Any(cb => cb.building == building));
+		}
+
+		// The number of this player's cities that have the given building.
+		public int CountBuilding(Building building) {
+			return cities.Count(c => c.GetBuildings().Exists(cb => cb.building == building));
+		}
+
+		// Whether any of this player's cities has constructed a building that
+		// matches the predicate and isn't obsolete.
+		public bool OwnsBuilding(Func<Building, bool> predicate) {
+			return cities.Any(c => c.constructed_buildings.Any(cb => !cb.building.IsObsolete(this) && predicate(cb.building)));
+		}
+
+		// Whether any of this player's cities is currently producing the given
+		// item, optionally ignoring one city.
+		public bool IsProducing(IProducible item, City excludedCity = null) {
+			return cities.Any(c => c != excludedCity && c.itemBeingProduced != null && c.itemBeingProduced.name == item.name);
 		}
 
 		public bool CanBridgeRoads() {

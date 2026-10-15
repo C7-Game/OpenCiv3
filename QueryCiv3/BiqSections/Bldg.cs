@@ -70,6 +70,7 @@ namespace QueryCiv3.Biq {
 		public bool ActsAsGeneralTelepad { get => Util.GetFlag(Flags[3], 4); }
 		public bool DoublesSacrifice { get => Util.GetFlag(Flags[3], 5); }
 		public bool CanBuildUnits { get => Util.GetFlag(Flags[3], 6); }
+		public bool GoodsMustBeInCityRadius { get => Util.GetFlag(Flags[3], 7); }
 		public bool CoastalInstallation { get => Util.GetFlag(Flags[4], 0); }
 		public bool Militaristic { get => Util.GetFlag(Flags[4], 1); }
 		public bool Wonder { get => Util.GetFlag(Flags[4], 2); }
@@ -92,7 +93,6 @@ namespace QueryCiv3.Biq {
 		public bool DecreasesMissileSuccess { get => Util.GetFlag(Flags[8], 6); }
 		public bool AllowsSpyMissions { get => Util.GetFlag(Flags[8], 7); }
 		public bool AllowsEnemyTerritoryHealing { get => Util.GetFlag(Flags[9], 0); }
-		public bool GoodsMustBeInCityRadius { get => Util.GetFlag(Flags[9], 1); }
 		public bool RequiresVictoriousArmy { get => Util.GetFlag(Flags[9], 2); }
 		public bool RequiresEliteShip { get => Util.GetFlag(Flags[9], 3); }
 		// great wonder characteristics:

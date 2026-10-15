@@ -99,6 +99,7 @@ namespace C7GameData {
 
 			var hasTargetUnit = target != NONE && target.owner != owner;
 			var hasForeignCity = tile.HasCity() && tile.cityAtTile.owner != owner;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			var hasCityWalls = hasForeignCity && tile.cityAtTile.GetBuildings().Any(b => b.building.providesWalls);
 			var hasTileImprovements = tile.HasImprovements;
 
