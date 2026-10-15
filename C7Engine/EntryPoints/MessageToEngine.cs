@@ -282,6 +282,25 @@ namespace C7Engine {
 		}
 	}
 
+	/// <summary>
+	/// Spends a free tech advance on the given tech, then asks what to research next.
+	/// </summary>
+	public class MsgClaimFreeTech : MessageToEngine {
+		private Tech tech;
+
+		public MsgClaimFreeTech(Tech tech) {
+			this.tech = tech;
+		}
+
+		public override void process() {
+			Player player = EngineStorage.gameData.GetFirstHumanPlayer();
+			if (!player.ClaimFreeTech(EngineStorage.gameData, tech)) {
+				return;
+			}
+			new MsgPromptResearch().send();
+		}
+	}
+
 	public class MsgChangeSliders : MessageToEngine {
 		public enum DomesticPolicyChoice {
 			MoreScience,

@@ -216,18 +216,6 @@ namespace C7GameData {
 		}
 
 		public void SetCurrentlyResearchedTech(ID id) {
-			// Award a free tech if the player has one.
-			if (id != null && freeTechsRemaining > 0) {
-				--freeTechsRemaining;
-				beakers = 0;
-				turnsResearched = 0;
-
-				Tech tech = EngineStorage.gameData.techs.Find(x => x.id == id);
-				log.Information($"Awarding {tech.Name} to player {this}");
-				CompleteResearchAndBeginNew(EngineStorage.gameData, tech);
-				return;
-			}
-
 			currentlyResearchedTech = id;
 
 			// Clear out previous progress.
@@ -501,8 +489,8 @@ namespace C7GameData {
 				other.gold -= theirOffer.gold.Value;
 			}
 
-			other.CompleteResearchAndBeginNew(gameData, ourOffer.techs);
-			this.CompleteResearchAndBeginNew(gameData, theirOffer.techs);
+			other.AcquireTechs(gameData, ourOffer.techs);
+			this.AcquireTechs(gameData, theirOffer.techs);
 		}
 
 		public int EstimateTurnsToResearch(GameData gameData, Tech tech) {
@@ -561,8 +549,11 @@ namespace C7GameData {
 					AddTechItemToResearchQueue(t);
 				}
 			}
-			if (currentlyResearchedTech == null)
+
+			// Queuing with nothing in progress starts the queue head, like a fresh pick.
+			if (currentlyResearchedTech == null && ResearchQueue.Count > 0) {
 				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
+			}
 		}
 
 		/// <summary>
@@ -579,10 +570,10 @@ namespace C7GameData {
 				return new Queue<Tech>();
 			}
 
-			List<Tech> requiredTechs = OrderTechs(tech.Prerequisites).ToList();
+			List<Tech> requiredTechs = OrderTechs(tech.Prerequisites);
 
 			// first, add the tech the user clicked
-			if (!tempQueue.Contains(tech)) {
+			if (!knownTechs.Contains(tech.id) && !tempQueue.Contains(tech)) {
 				tempQueue.Enqueue(tech);
 			}
 
@@ -611,8 +602,8 @@ namespace C7GameData {
 		/// </summary>
 		/// <param name="allTechs"></param>
 		/// <returns></returns>
-		public HashSet<Tech> GetAvailableTechsToResearch(List<Tech> allTechs) {
-			HashSet<Tech> result = new();
+		public List<Tech> GetAvailableTechsToResearch(List<Tech> allTechs) {
+			List<Tech> result = new();
 			foreach (Tech tech in allTechs) {
 				if (knownTechs.Contains(tech.id)) {
 					continue;
@@ -636,13 +627,13 @@ namespace C7GameData {
 		}
 
 		// Placeholder ordering of techs
-		private HashSet<Tech> OrderTechs(List<Tech> techs) {
+		private List<Tech> OrderTechs(List<Tech> techs) {
 			if (techs == null || techs.Count == 0) {
-				return new HashSet<Tech>();
+				return new List<Tech>();
 			}
 			// TODO: We would want to eventually order them based on how the AI would do it
 			// Details on how Civ3 does it: https://forums.civfanatics.com/threads/what-will-the-ai-research-next.45559/
-			return techs.OrderBy(t => t.Cost).ToHashSet();
+			return techs.OrderBy(t => t.Cost).ToList();
 		}
 
 		public List<Government> GetAvailableGovernments(GameData gameData) {
@@ -837,18 +828,81 @@ namespace C7GameData {
 			CompleteResearchAndBeginNew(gameData, tech);
 		}
 
-		private void CompleteResearchAndBeginNew(GameData gameData, IEnumerable<Tech> techs) {
+		/// <summary>
+		/// Grants techs acquired via a trade, dropping only research they make obsolete.
+		/// </summary>
+		public void AcquireTechs(GameData gameData, IEnumerable<Tech> techs) {
 			foreach (Tech tech in techs) {
-				CompleteResearchingTech(gameData, tech);
+				if (tech == null || knownTechs.Contains(tech.id)) {
+					continue;
+				}
+				GrantTech(gameData, tech);
+			}
+
+			DropResearchThatIsNowKnown();
+
+			if (isHuman) {
+				return;
 			}
 			PlayerAI.MaybePickTechToResearch(this, gameData.techs);
 		}
+
+		private void DropResearchThatIsNowKnown() {
+			if (currentlyResearchedTech != null && knownTechs.Contains(currentlyResearchedTech)) {
+				SetCurrentlyResearchedTech(null);
+			}
+			RemoveTechsFromResearchQueue(t => knownTechs.Contains(t.id));
+
+			if (currentlyResearchedTech == null && ResearchQueue.Count > 0) {
+				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
+			}
+		}
+
 		private void CompleteResearchAndBeginNew(GameData gameData, Tech tech) {
 			CompleteResearchingTech(gameData, tech);
+			if (isHuman) {
+				return;
+			}
 			PlayerAI.MaybePickTechToResearch(this, gameData.techs);
 		}
 
+		/// <summary>
+		/// Grants a tech for free. Returns false if there was no advance to spend.
+		/// </summary>
+		public bool ClaimFreeTech(GameData gameData, Tech tech) {
+			if (freeTechsRemaining <= 0 || tech == null) {
+				return false;
+			}
+			if (knownTechs.Contains(tech.id) || GetEraIndex(tech.EraCivilopediaName) > EraIndex()) {
+				return false;
+			}
+
+			--freeTechsRemaining;
+			GrantTech(gameData, tech);
+			DropResearchThatIsNowKnown();
+			log.Information($"Awarded {tech.Name} to player {this}");
+			return true;
+		}
+
 		private void CompleteResearchingTech(GameData gameData, Tech tech) {
+			GrantTech(gameData, tech);
+
+			SetCurrentlyResearchedTech(null);
+
+			RemoveTechsFromResearchQueue(t => t.id == tech.id);
+		}
+
+		private void RemoveTechsFromResearchQueue(Func<Tech, bool> shouldRemove) {
+			int queued = ResearchQueue.Count;
+			for (int i = 0; i < queued; ++i) {
+				Tech tech = ResearchQueue.Dequeue();
+				if (!shouldRemove(tech)) {
+					ResearchQueue.Enqueue(tech);
+				}
+			}
+		}
+
+		private void GrantTech(GameData gameData, Tech tech) {
 			// If this tech awards the first civ to research it a free tech and
 			// no other civs know about the tech, this player gets the bonus.
 			if (tech.BonusTechToFirstCivThatResearches) {
@@ -866,13 +920,6 @@ namespace C7GameData {
 			knownTechs.Add(tech.id);
 			// trigger callback for techs that enable improvements to redraw map
 			TechImprovementCallback(this, tech);
-
-			SetCurrentlyResearchedTech(null);
-
-			// remove completed tech from the current research queue
-			if (ResearchQueue.Count > 0) {
-				ResearchQueue.Dequeue();
-			}
 
 			if (CanAdvanceToNextEra(gameData)) {
 				eraCivilopediaName = GetNextEraNameByIndex(EraIndex());

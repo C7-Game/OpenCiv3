@@ -99,6 +99,9 @@ namespace C7Engine {
 	public class MsgScienceGuidance : MessageToUI { }
 	public class MsgShowScienceAdvisor : MessageToUI { }
 
+	// Asks the player to pick a tech, or to spend a free tech advance.
+	public class MsgPromptResearch : MessageToUI { }
+
 	public class MsgUpdateUiAfterDomesticChange : MessageToUI { }
 
 	public class MsgWarDeclarationNotification : MessageToUI {

@@ -1,6 +1,7 @@
 using Godot;
 using C7GameData;
 using Serilog;
+using System;
 
 [GlobalClass]
 [Tool]
@@ -26,6 +27,9 @@ public partial class PopupOverlay : HBoxContainer {
 
 	Control currentChild = null;
 
+	// Set when a popup defers its decision until an advisor screen is closed.
+	private Action advisorCloseAction;
+
 	[Export]
 	private Control control;
 
@@ -46,6 +50,16 @@ public partial class PopupOverlay : HBoxContainer {
 	}
 
 	public bool ShowingPopup => currentChild is not null;
+
+	public void SetAdvisorCloseAction(Action action) {
+		advisorCloseAction = action;
+	}
+
+	public void OnAdvisorClosed() {
+		Action action = advisorCloseAction;
+		advisorCloseAction = null;
+		action?.Invoke();
+	}
 
 	public void PlaySound(AudioStream stream) {
 		AudioStreamPlayer player = GetNode<AudioStreamPlayer>("PopupSound");

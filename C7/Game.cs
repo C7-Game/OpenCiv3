@@ -4,6 +4,7 @@ using System.Diagnostics;
 using C7Engine;
 using C7GameData;
 using Serilog;
+using C7.UIElements;
 using C7Engine.Pathing;
 using System.Collections.Generic;
 using System.Linq;
@@ -177,6 +178,8 @@ public partial class Game : Node {
 		FileDialog = GetNode<Civ3FileDialog>("%LoadDialog");
 		FileDialog.Canceled += OnResolved;
 		FileDialog.FileSelected += path => OnResolved();
+
+		advisor.VisibilityChanged += OnAdvisorVisibilityChanged;
 
 		try {
 			await InitializeGame();
@@ -380,6 +383,9 @@ public partial class Game : Node {
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
 				break;
+			case MsgPromptResearch:
+				PromptForResearchIfNeeded();
+				break;
 			case MsgUpdateUiAfterDomesticChange mUUASC:
 				// Ensure the citizen moods are correct before displaying them.
 				foreach (City c in controller.cities) {
@@ -501,6 +507,40 @@ public partial class Game : Node {
 		}
 	}
 
+	// Runs any action a popup deferred until an advisor screen was closed.
+	private void OnAdvisorVisibilityChanged() {
+		if (!advisor.Visible) {
+			popupOverlay.OnAdvisorClosed();
+		}
+	}
+
+	// Prompts for a tech to research, or auto-picks one if prompts are disabled.
+	private void PromptForResearchIfNeeded() {
+		if (controller.cities.Count == 0 || popupOverlay.ShowingPopup) {
+			return;
+		}
+		if (controller.GetAvailableTechsToResearch(EngineStorage.gameData.techs).Count == 0) {
+			return;
+		}
+
+		if (controller.freeTechsRemaining > 0) {
+			popupOverlay.ShowPopup(new ScienceSelection(controller, claimingFreeTech: true), PopupOverlay.PopupCategory.Info);
+			return;
+		}
+
+		if (controller.currentlyResearchedTech != null) {
+			return;
+		}
+
+		bool promptForResearch = PreferencesSettings.GetPromptForResearch();
+
+		if (promptForResearch) {
+			popupOverlay.ShowPopup(new ScienceSelection(controller), PopupOverlay.PopupCategory.Info);
+		} else {
+			PlayerAI.MaybePickTechToResearch(controller, EngineStorage.gameData.techs);
+		}
+	}
+
 	private void OnPlayerStartTurn() {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			log.Information("Starting player turn");
@@ -520,17 +560,7 @@ public partial class Game : Node {
 
 			// If the player can pick a new tech to research, prompt them to do so
 			// once they have a city.
-			if (controller.cities.Count > 0
-					&& controller.currentlyResearchedTech == null
-					&& controller.GetAvailableTechsToResearch(gameData.techs).Count > 0) {
-				popupOverlay.ShowPopup(
-						new ScienceSelection(controller),
-						PopupOverlay.PopupCategory.Info);
-
-				if (controller.currentlyResearchedTech == null && controller.GetAvailableTechsToResearch(gameData.techs).Count > 0) {
-					PlayerAI.MaybePickTechToResearch(controller, gameData.techs);
-				}
-			}
+			PromptForResearchIfNeeded();
 
 			// Allow fast forwarding in observer mode.
 			if (gameData.observerMode && turnsLeftToFastForward > 0) {
