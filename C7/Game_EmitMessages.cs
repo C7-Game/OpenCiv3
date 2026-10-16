@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using C7.UIElements;
 using C7.UIElements.Popups;
 using C7Engine;
 using C7GameData;
@@ -72,7 +73,11 @@ public partial class Game {
 	public void EmitGameMainMenuSignal() {
 		var options = new List<ButtonAction>();
 
-		// TODO: add Map option. This opens a new pop-up with more options
+		var mapBtn = new ButtonAction() {
+			message = "Map",
+			action = () => EmitMapMenuSignal(),
+		};
+		options.Add(mapBtn);
 
 		var loadGameBtn = new ButtonAction() {
 			message = "Load Game",
@@ -82,7 +87,14 @@ public partial class Game {
 
 		// TODO: add New Game option. This seems to do exactly the same as Retire in the original game
 
-		// TODO: add Preferences option
+		var preferencesBtn = new ButtonAction() {
+			message = "Preferences (Ctrl-P)",
+			action = () => {
+				popupOverlay.OnHidePopup();
+				OnOpenPreferences();
+			},
+		};
+		options.Add(preferencesBtn);
 
 		var retireBtn = new ButtonAction() {
 			message = "Retire",
@@ -642,6 +654,42 @@ public partial class Game {
 				Advisor.None,
 				Mood.None,
 				hSize: 600,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	public void EmitMapMenuSignal() {
+		var options = new List<ButtonAction>();
+
+		bool gridVisible = mapView != null ? mapView.gridLayer.visible : PreferencesSettings.GetShowGrid();
+		var showGridBtn = new ButtonAction() {
+			message = $"Show Grid (Ctrl+G): {(gridVisible ? "On" : "Off")}",
+			action = () => {
+				if (mapView != null) {
+					bool newValue = !mapView.gridLayer.visible;
+					mapView.gridLayer.visible = newValue;
+					PreferencesSettings.SetShowGrid(newValue);
+				} else {
+					bool newValue = !PreferencesSettings.GetShowGrid();
+					PreferencesSettings.SetShowGrid(newValue);
+				}
+				// Re-open map menu to reflect updated state
+				EmitMapMenuSignal();
+			},
+			pressed = gridVisible,
+		};
+		options.Add(showGridBtn);
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new MapMenuPopUp(
+				controller.id,
+				"Map Options",
+				null,
+				options,
+				Advisor.None,
+				Mood.None,
+				hSize: 350,
 				margins: new Margins(top: 100)
 			)
 		));

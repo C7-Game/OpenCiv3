@@ -11,6 +11,8 @@ public static class PreferencesSettings {
 	public const string SectionName = "Preferences";
 	public const string PromptForResearch = nameof(PromptForResearch);
 	public const bool DefaultPromptForResearch = true;
+	public const string ShowGrid = nameof(ShowGrid);
+	public const bool DefaultShowGrid = false;
 
 	public static bool GetPromptForResearch() {
 		return C7Settings.GetBoolOrDefault(SectionName, PromptForResearch, DefaultPromptForResearch);
@@ -18,6 +20,15 @@ public static class PreferencesSettings {
 
 	public static void SetPromptForResearch(bool value) {
 		C7Settings.SetBool(SectionName, PromptForResearch, value);
+		C7Settings.SaveSettings();
+	}
+
+	public static bool GetShowGrid() {
+		return C7Settings.GetBoolOrDefault(SectionName, ShowGrid, DefaultShowGrid);
+	}
+
+	public static void SetShowGrid(bool value) {
+		C7Settings.SetBool(SectionName, ShowGrid, value);
 		C7Settings.SaveSettings();
 	}
 }

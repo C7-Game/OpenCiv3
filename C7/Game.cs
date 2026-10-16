@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using C7.UIElements;
 using C7.UIElements.Popups;
 using static AdvisorHead;
 using static C7GameData.MapUnit;
@@ -295,7 +296,7 @@ public partial class Game : Node {
 			AddChild(mapView);
 
 			mapView.cameraZoom = (float)1.0;
-			mapView.gridLayer.visible = false;
+			mapView.gridLayer.visible = PreferencesSettings.GetShowGrid();
 
 			if (!cameraLocation.HasValue) {
 				// Set initial camera location. If the UI controller has any cities, focus on their capital. Otherwise, focus on their
@@ -1099,7 +1100,9 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.ToggleGrid) {
-			this.mapView.gridLayer.visible = !this.mapView.gridLayer.visible;
+			bool newValue = !this.mapView.gridLayer.visible;
+			this.mapView.gridLayer.visible = newValue;
+			PreferencesSettings.SetShowGrid(newValue);
 		}
 
 		if (currentAction == C7Action.ToggleCoordinates) {
