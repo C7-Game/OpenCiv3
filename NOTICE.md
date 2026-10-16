@@ -7,14 +7,18 @@ Copyright (c) OpenCiv3 contributors
 All content is the property of the respective authors. For more information regarding the authorship of content,
 see the applicable source repository logs and/or credits files in the respective directories.
 
+OpenCiv3 seeks to be a mechanically compatible black-box reimplementation of _Civilization III_. No part or product of _Civilization III_ ships with OpenCiv3. OpenCiv3 reimplements _Civilization III_ gameplay using original code and media produced by the community, based on publicly available information and observations. OpenCiv3 provides the option to load media from the player's own locally installed copy of _Civilization III_ for a more faithful experience.
+
 OpenCiv3 is not affiliated with or endorsed by civfanatics.com, Firaxis Games, BreakAway Games, Hasbro Interactive, Infogrames Interactive, Atari Interactive, or Take-Two Interactive Software.
 CIV and CIVILIZATION are registered trademarks of Take-Two Interactive Software, Inc. All trademarks are property of their respective owners.
 
 ### Declared License
 
-OpenCiv3 is made available under the terms of The MIT License which is available in the file [LICENSE](LICENSE).
+OpenCiv3 source code is made available under the terms of The MIT License which is available in the file [LICENSE](LICENSE).
 
-### Notices
+OpenCiv3 contains media assets not original to the project, which are NOT covered by the MIT License of the source code. See the asset credits for details.
+
+### Third Party Notices
 
 The following is a list of licensed components used in OpenCiv3, including those that have been modified.
 
