@@ -52,7 +52,8 @@ public partial class Credits : Node2D {
 	}
 
 	private void ShowCredits() {
-		string combined = creditsText + assetCreditsText + licencesText + specialText;
+		string combined = string.Join(System.Environment.NewLine,
+			[creditsText, assetCreditsText, licencesText, specialText]);
 
 		creditsLabel.Position = new Vector2(80, 120);
 		creditsLabel.Size = new Vector2(864, 528);
