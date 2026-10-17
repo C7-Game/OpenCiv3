@@ -1,10 +1,10 @@
-[gd_scene load_steps=30 format=3 uid="uid://cldl5nk4n61m2"]
+[gd_scene load_steps=38 format=3 uid="uid://cldl5nk4n61m2"]
 
 [ext_resource type="Script" uid="uid://yxhiwx46tety" path="res://Game.cs" id="1"]
 [ext_resource type="Script" uid="uid://cfenrvu7tnp40" path="res://DoubleClickHandler.cs" id="2_t735q"]
 [ext_resource type="Script" uid="uid://dflpmvue8o7uo" path="res://UnitSelector.cs" id="2_w8hq2"]
 [ext_resource type="Script" uid="uid://ifoasmoofo6r" path="res://UIElements/Advisors/Advisors.cs" id="3"]
-[ext_resource type="PackedScene" path="res://UIElements/preferences.tscn" id="3_prefs"]
+[ext_resource type="PackedScene" uid="uid://dovuaki161yfi" path="res://UIElements/preferences.tscn" id="3_prefs"]
 [ext_resource type="Script" uid="uid://bvmc8fimjfo2j" path="res://Animations/AnimationController.cs" id="3_rmrhh"]
 [ext_resource type="Script" uid="uid://3wtlmr00bmfb" path="res://UIElements/UpperLeftNav/MenuButton.cs" id="4"]
 [ext_resource type="Script" uid="uid://cproyms6andlc" path="res://UIElements/UpperLeftNav/CivilopediaButton.cs" id="5"]
@@ -32,7 +32,55 @@
 [ext_resource type="PackedScene" uid="uid://dvrx5adwjd0w4" path="res://UIElements/GameViews/demographics_view.tscn" id="27_gbxbf"]
 [ext_resource type="PackedScene" uid="uid://pj6wd6kxfd12" path="res://UIElements/Popups/InteractablePopUpController.tscn" id="29_v3pw1"]
 
-[node name="C7Game" type="Node" node_paths=PackedStringArray("Toolbar", "popupOverlay", "cityScreen", "advisor", "gameViews", "diplomacy", "interactablePopUpController", "preferences", "doubleClickHandler", "animationController", "unitSelector")]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_th08t"]
+content_margin_left = 5.0
+content_margin_top = 2.0
+content_margin_right = 5.0
+content_margin_bottom = 2.0
+bg_color = Color(0.972549, 0.972549, 0.972549, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Theme" id="Theme_rpa6e"]
+TooltipLabel/colors/font_color = Color(0, 0, 0, 1)
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_th08t")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qrevi"]
+content_margin_left = 5.0
+content_margin_top = 2.0
+content_margin_right = 5.0
+content_margin_bottom = 2.0
+bg_color = Color(0.972549, 0.972549, 0.972549, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Theme" id="Theme_y31gw"]
+TooltipLabel/colors/font_color = Color(0, 0, 0, 1)
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_qrevi")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pgrr3"]
+content_margin_left = 5.0
+content_margin_top = 2.0
+content_margin_right = 5.0
+content_margin_bottom = 2.0
+bg_color = Color(0.972549, 0.972549, 0.972549, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Theme" id="Theme_gbxbf"]
+TooltipLabel/colors/font_color = Color(0, 0, 0, 1)
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_pgrr3")
+
+[node name="C7Game" type="Node" node_paths=PackedStringArray("Toolbar", "popupOverlay", "cityScreen", "advisor", "gameViews", "diplomacy", "preferences", "interactablePopUpController", "doubleClickHandler", "animationController", "unitSelector")]
 script = ExtResource("1")
 Toolbar = NodePath("CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer")
 popupOverlay = NodePath("CanvasLayer/PopupOverlay")
@@ -40,8 +88,8 @@ cityScreen = NodePath("CanvasLayer/CityScreen")
 advisor = NodePath("CanvasLayer/Advisor")
 gameViews = NodePath("CanvasLayer/GameViews")
 diplomacy = NodePath("CanvasLayer/Diplomacy")
-interactablePopUpController = NodePath("CanvasLayer/InteractablePopUpController")
 preferences = NodePath("CanvasLayer/Preferences")
+interactablePopUpController = NodePath("CanvasLayer/InteractablePopUpController")
 doubleClickHandler = NodePath("DoubleClickHandler")
 animationController = NodePath("AnimationController")
 unitSelector = NodePath("UnitSelector")
@@ -121,15 +169,22 @@ layout_mode = 2
 
 [node name="MenuButton" type="TextureButton" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer" node_paths=PackedStringArray("popupOverlay")]
 layout_mode = 2
+tooltip_text = "Main Menu"
+theme = SubResource("Theme_rpa6e")
 script = ExtResource("4")
 popupOverlay = NodePath("../../../../../PopupOverlay")
 
 [node name="CivilopediaButton" type="TextureButton" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Not Implemented yet :/"
+theme = SubResource("Theme_y31gw")
+disabled = true
 script = ExtResource("5")
 
 [node name="AdvisorButton" type="TextureButton" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer"]
 layout_mode = 2
+tooltip_text = "Advisors"
+theme = SubResource("Theme_gbxbf")
 script = ExtResource("6")
 
 [node name="UiBarEndTurnButton" type="Button" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer"]
@@ -204,12 +259,6 @@ tooltipText = "Spaceship"
 
 [node name="Preferences" parent="CanvasLayer" instance=ExtResource("3_prefs")]
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="Advisor" type="CenterContainer" parent="CanvasLayer" node_paths=PackedStringArray("domesticAdvisor", "tradeAdvisor", "militaryAdvisor", "foreignAdvisor", "culturalAdvisor", "scienceAdvisor")]
 anchors_preset = 15
@@ -229,7 +278,6 @@ scienceAdvisor = NodePath("ScienceAdvisor")
 [node name="DomesticAdvisor" parent="CanvasLayer/Advisor" instance=ExtResource("15")]
 visible = false
 layout_mode = 2
-mouse_filter = 0
 
 [node name="TradeAdvisor" parent="CanvasLayer/Advisor" instance=ExtResource("15_4pqcd")]
 visible = false
@@ -313,10 +361,7 @@ alignment = 2
 script = ExtResource("9")
 control = NodePath("../Control")
 
-[node name="PopupSound" type="AudioStreamPlayer" parent="CanvasLayer/PopupOverlay"]
-
 [node name="InteractablePopUpController" parent="CanvasLayer" instance=ExtResource("29_v3pw1")]
-visible = false
 
 [node name="LoadDialog" parent="." instance=ExtResource("12_yjlfl")]
 unique_name_in_owner = true
@@ -348,8 +393,8 @@ visible = false
 [connection signal="BuildCity" from="CanvasLayer/PopupOverlay" to="." method="OnBuildCity"]
 [connection signal="DiplomacySelection" from="CanvasLayer/PopupOverlay" to="." method="OnDiplomacySelected"]
 [connection signal="HidePopup" from="CanvasLayer/PopupOverlay" to="CanvasLayer/PopupOverlay" method="OnHidePopup"]
+[connection signal="LoadGame" from="CanvasLayer/PopupOverlay" to="." method="OnLoadGame"]
+[connection signal="OpenPreferences" from="CanvasLayer/PopupOverlay" to="." method="OnOpenPreferences"]
 [connection signal="Quit" from="CanvasLayer/PopupOverlay" to="." method="OnQuitTheGame"]
 [connection signal="Retire" from="CanvasLayer/PopupOverlay" to="." method="OnRetire"]
 [connection signal="SaveGame" from="CanvasLayer/PopupOverlay" to="." method="OnSaveGame"]
-[connection signal="LoadGame" from="CanvasLayer/PopupOverlay" to="." method="OnLoadGame"]
-[connection signal="OpenPreferences" from="CanvasLayer/PopupOverlay" to="." method="OnOpenPreferences"]

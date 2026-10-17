@@ -47,12 +47,6 @@ public partial class PopupOverlay : HBoxContainer {
 
 	public bool ShowingPopup => currentChild is not null;
 
-	public void PlaySound(AudioStream stream) {
-		AudioStreamPlayer player = GetNode<AudioStreamPlayer>("PopupSound");
-		player.Stream = stream;
-		player.Play();
-	}
-
 	public void ShowPopup(Popup child, PopupCategory category) {
 		if (child is null) {
 			// not necessary if we don't pass null?
@@ -73,12 +67,10 @@ public partial class PopupOverlay : HBoxContainer {
 			_ => null
 		};
 
-		var wav = soundFile == null ? null : AudioLoader.Load(soundFile);
-
 		ShowChild(child);
 
-		if (wav != null) {
-			PlaySound(wav);
+		if (soundFile != null) {
+			GlobalAudio.manager.PlayUIAudio(soundFile);
 		}
 	}
 

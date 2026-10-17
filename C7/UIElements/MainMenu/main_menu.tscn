@@ -6,7 +6,7 @@
 [ext_resource type="FontFile" uid="uid://b1xkj8g82jbx5" path="res://Fonts/NotoSans-BoldItalic.ttf" id="3_x68dx"]
 [ext_resource type="Texture2D" uid="uid://ovwv08a53d7k" path="res://title.png" id="4_brea7"]
 [ext_resource type="PackedScene" uid="uid://bvncm1bgcii5e" path="res://UIElements/civ3_file_dialog.tscn" id="5_rw2g7"]
-[ext_resource type="PackedScene" path="res://UIElements/preferences.tscn" id="6_prefs"]
+[ext_resource type="PackedScene" uid="uid://dovuaki161yfi" path="res://UIElements/preferences.tscn" id="6_prefs"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbij8"]
 
@@ -211,8 +211,6 @@ label_settings = SubResource("LabelSettings_brea7")
 horizontal_alignment = 1
 vertical_alignment = 2
 autowrap_mode = 3
-
-[node name="SoundEffectPlayer" type="AudioStreamPlayer" parent="."]
 
 [node name="SetCiv3HomeDialog" type="FileDialog" parent="."]
 mode = 3
