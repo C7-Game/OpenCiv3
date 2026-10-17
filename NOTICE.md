@@ -1,7 +1,7 @@
 ## Notices for OpenCiv3
 
 OpenCiv3
-www.openciv3.org
+[www.openciv3.org](www.openciv3.org)
 Copyright (c) OpenCiv3 contributors
 
 All content is the property of the respective authors. For more information regarding the authorship of content,
@@ -14,7 +14,7 @@ CIV and CIVILIZATION are registered trademarks of Take-Two Interactive Software,
 
 ### Declared License
 
-OpenCiv3 source code is made available under the terms of The MIT License which is available in the file [LICENSE](LICENSE).
+OpenCiv3 source code is made available under the terms of The MIT License which is available in the file [LICENSE](https://github.com/C7-Game/OpenCiv3/blob/Development/LICENSE).
 
 OpenCiv3 contains media assets not original to the project, which are NOT covered by the MIT License of the source code. See the asset credits for details.
 
@@ -27,44 +27,44 @@ The following is a list of licensed components used in OpenCiv3, including those
 #### Godot Engine
 
 This product uses 'Godot Engine'
-https://godotengine.org
+[https://godotengine.org](https://godotengine.org)
 Copyright (c) 2014-present Godot Engine contributors.
 Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.
-Licensed under The MIT License available at https://godotengine.org/license
+Licensed under The MIT License available at [https://godotengine.org/license](https://godotengine.org/license)
 
 ---
 
 #### Blast
 
 This product contains 'Blast'
-https://github.com/jamestelfer/Blast
+[https://github.com/jamestelfer/Blast](https://github.com/jamestelfer/Blast)
 Copyright 2012 James Telfer
-Licensed under Apache License, Version 2.0 available at https://github.com/jamestelfer/Blast/blob/master/LICENSE.md
+Licensed under Apache License, Version 2.0 available at [https://github.com/jamestelfer/Blast/blob/master/LICENSE.md](https://github.com/jamestelfer/Blast/blob/master/LICENSE.md)
 
 ---
 
 #### OpenSimplex Noise
 
 This product contains 'OpenSimplex Noise'
-https://gist.github.com/digitalshadow/134a3a02b67cecd72181
-Licensed under the Unlicense, available at https://unlicense.org/
+[https://gist.github.com/digitalshadow/134a3a02b67cecd72181](https://gist.github.com/digitalshadow/134a3a02b67cecd72181)
+Licensed under the Unlicense, available at [https://unlicense.org/](https://unlicense.org/)
 
 ---
 
 #### MoonSharp
 
 This product contains 'MoonSharp'
-https://github.com/moonsharp-devs/moonsharp
+[https://github.com/moonsharp-devs/moonsharp](https://github.com/moonsharp-devs/moonsharp)
 Copyright (c) 2014-2016, Marco Mastropaolo
 All rights reserved.
 
-Parts of the string library are based on the KopiLua project (https://github.com/NLua/KopiLua)
+Parts of the string library are based on the KopiLua project ([https://github.com/NLua/KopiLua](https://github.com/NLua/KopiLua))
 Copyright (c) 2012 LoDC
 
-Visual Studio Code debugger code is based on code from Microsoft vscode-mono-debug project (https://github.com/Microsoft/vscode-mono-debug).
+Visual Studio Code debugger code is based on code from Microsoft vscode-mono-debug project ([https://github.com/Microsoft/vscode-mono-debug](https://github.com/Microsoft/vscode-mono-debug)).
 Copyright (c) Microsoft Corporation - released under MIT license.
 
-Remote Debugger icons are from the Eclipse project (https://www.eclipse.org/).
+Remote Debugger icons are from the Eclipse project ([https://www.eclipse.org/](https://www.eclipse.org/)).
 Copyright of The Eclipse Foundation
 
 The MoonSharp icon is (c) Isaac, 2014-2015
@@ -99,34 +99,34 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #### ini-parser
 
 This product contains 'ini-parser'
-https://github.com/rickyah/ini-parser
+[https://github.com/rickyah/ini-parser](https://github.com/rickyah/ini-parser)
 Copyright (c) 2008 Ricardo Amores Hernández
-Licensed under The MIT License, available at https://github.com/rickyah/ini-parser/blob/development/LICENSE
+Licensed under The MIT License, available at [https://github.com/rickyah/ini-parser/blob/development/LICENSE](https://github.com/rickyah/ini-parser/blob/development/LICENSE)
 
 ---
 
 #### Serilog
 
 This product contains 'Serilog'
-https://github.com/serilog/serilog
+[https://github.com/serilog/serilog](https://github.com/serilog/serilog)
 Copyright (c) Serilog Contributors
-Licensed under the Apache License, Version 2.0, available at http://www.apache.org/licenses/
+Licensed under the Apache License, Version 2.0, available at [http://www.apache.org/licenses/](http://www.apache.org/licenses/)
 
 ---
 
 #### Noto Sans
 
 This product contains 'Noto Sans'
-https://fonts.google.com/noto/specimen/Noto+Sans
+[https://fonts.google.com/noto/specimen/Noto+Sans](https://fonts.google.com/noto/specimen/Noto+Sans)
 Copyright 2022 The Noto Project Authors
-Licensed under the SIL Open Font License Version 1.1 available at https://fonts.google.com/noto/specimen/Noto+Sans/license
+Licensed under the SIL Open Font License Version 1.1 available at [https://fonts.google.com/noto/specimen/Noto+Sans/license](https://fonts.google.com/noto/specimen/Noto+Sans/license)
 
 ---
 
 #### MarkdownLabel
 
 This product contains 'MarkdownLabel'
-https://github.com/daenvil/MarkdownLabel
+[https://github.com/daenvil/MarkdownLabel](https://github.com/daenvil/MarkdownLabel)
 Copyright (c) 2023 Daenvil
-Licensed under The MIT License, available at https://github.com/daenvil/MarkdownLabel/blob/main/LICENSE
+Licensed under The MIT License, available at [https://github.com/daenvil/MarkdownLabel/blob/main/LICENSE](https://github.com/daenvil/MarkdownLabel/blob/main/LICENSE)
 
