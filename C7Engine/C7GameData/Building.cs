@@ -15,6 +15,7 @@ namespace C7GameData {
 		}
 
 		public string name { get; set; }
+		public string civilopediaEntry { get; set; }
 		public int shieldCost { get; set; }
 		public int populationCost { get; set; } // Will always be equal to 0 in the Civ3 rule set
 
@@ -68,6 +69,7 @@ namespace C7GameData {
 			dataSource = building;
 
 			name = building.name;
+			civilopediaEntry = building.civilopediaEntry;
 			shieldCost = building.shieldCost;
 			populationCost = building.populationCost;
 			isSmallWonder = building.isSmallWonder;

@@ -56,6 +56,7 @@ namespace C7GameData {
 	 **/
 	public class UnitPrototype : IProducible {
 		public string name { get; set; }
+		public string civilopediaEntry { get; set; }
 		public Art art { get; set; }
 		public int shieldCost { get; set; }
 		public int populationCost { get; set; }
@@ -114,6 +115,19 @@ namespace C7GameData {
 			}
 		}
 
+		// Wheeled units cannot enter terrain that Civ3 marks as impassable to
+		// wheeled units (mountains, jungle, marsh and volcano in the base game).
+		public bool wheeled {
+			get => flags.Contains(SaveUnitPrototype.Flag.Wheeled);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.Wheeled);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.Wheeled);
+				}
+			}
+		}
+
 		public HashSet<string> categories = new HashSet<string>();
 
 		public HashSet<UnitAction> actions = [];
@@ -134,6 +148,8 @@ namespace C7GameData {
 		public UnitPrototype(SaveUnitPrototype proto, IEnumerable<Terraform> terraforms) {
 			(name, art, shieldCost, populationCost)
 				= (proto.name, proto.art, proto.shieldCost, proto.populationCost);
+
+			civilopediaEntry = proto.civilopediaEntry;
 
 			(attack, defense, bombard, bombardRange, rateOfFire)
 				= (proto.attack, proto.defense, proto.bombard, proto.bombardRange, proto.rateOfFire);

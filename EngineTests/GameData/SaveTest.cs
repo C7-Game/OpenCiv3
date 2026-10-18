@@ -87,13 +87,19 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 			while (EngineStorage.TryDequeueNextMessageToUI(out MessageToUI msg)) {
 				switch (msg) {
+					case MsgNewGame mNG:
+						continue;
 					case MsgStartTurn mST:
 						return;
-					case MsgWarDeclaration mWD:
+					case MsgWarDeclarationNotification mWD:
 						continue;
 					case MsgShowTemporaryPopup mSTP:
 						continue;
+					case MsgCityRaised mCR:
+						continue;
 					case MsgCityDestroyed mCD:
+						continue;
+					case MsgCityRansacked mCRS:
 						continue;
 					case MsgCivilizationDestroyed mCVD:
 						continue;
@@ -206,7 +212,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 		// Load the saved game and save it again.
 		string roundTrippedSavePath = PathUtils.getDataPath($"output/headless-game-round-tripped-save-{outputFilePostfix}.json");
-		C7GameData.GameData roundTrippedGameData = ToGameData(SaveGame.Load(outputDirectSavePath, (string unused) => { return unused; }));
+		C7GameData.GameData roundTrippedGameData = ToGameData(SaveGame.Load(outputDirectSavePath, (string unused) => { return unused; }, (string unused) => { return unused; }));
 		SaveGame.FromGameData(roundTrippedGameData).Save(roundTrippedSavePath);
 
 		string[] directSaveLines = File.ReadAllLines(outputDirectSavePath);
@@ -218,6 +224,33 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 		// And they should be the same, despite round-tripping through the GameData format.
 		Assert.Equal(directSaveLines, roundTrippedSaveLines);
+	}
+
+	[Fact]
+	public async Task SaveInObserverModeIsLoadable() {
+		Player human = await CreateHeadlessGame(fixture.saveGame);
+		WaitForStartTurnMessage();
+
+		// Mimic the UI's observer mode: no player is human, but the engine remembers who the human was.
+		C7GameData.GameData game = null;
+		EngineStorage.ReadGameData((C7GameData.GameData gameData) => { game = gameData; });
+		foreach (Player p in game.players) {
+			p.isHuman = false;
+		}
+		game.observerMode = true;
+
+		string observerSavePath = PathUtils.getDataPath("output/observer-mode-save.json");
+		SaveGame.FromGameData(game).Save(observerSavePath);
+
+		// The save should load again and have the original human player.
+		SaveGame loaded = SaveGame.Load(observerSavePath, (string unused) => { return unused; }, (string unused) => { return unused; });
+		Player loadedHuman = await CreateGame.createGame(loaded, (_) => { return fixture.behaviors; });
+		Assert.Equal(human.id, loadedHuman.id);
+		Assert.Equal(1, EngineStorage.gameData.players.Count(p => p.isHuman));
+
+		// Saving must not alter the running game.
+		Assert.True(game.observerMode);
+		Assert.DoesNotContain(game.players, p => p.isHuman);
 	}
 
 	[Fact]
@@ -402,6 +435,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			Exception ex = Record.Exception(() => {
 				game = ImportCiv3.ImportSav(saveFileInfo.FullName, PathUtils.defaultBicPath, (relativeModePath) => {
 					return PathUtils.defaultPediaIconsPath;
+				}, (relativeModePath) => {
+					return PathUtils.defaultCivilopediaTextPath;
 				});
 			});
 			Assert.Null(ex);
@@ -489,10 +524,14 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 				return Path.GetFullPath(Path.Combine(Civ3Location.GetCiv3Path(), subfolder, relativeModPath, "Text", "PediaIcons.txt"));
 			};
 
+			Func<string, string> getCivilopediaTextPath = (relativeModPath) => {
+				return Path.Combine(Civ3Location.GetCiv3Path(), subfolder, "Conquests", "Text", "Civilopedia.txt");
+			};
+
 			EngineStorage.animationsEnabled = false;
 
 			Exception ex = Record.Exception(() => {
-				game = ImportCiv3.ImportBiq(saveFileInfo.FullName, PathUtils.defaultBicPath, getPediaIconsPath);
+				game = ImportCiv3.ImportBiq(saveFileInfo.FullName, PathUtils.defaultBicPath, getPediaIconsPath, getCivilopediaTextPath);
 			});
 			Assert.True(ex == null, name + ": " + ex?.ToString());
 			ex = Record.Exception(() => {

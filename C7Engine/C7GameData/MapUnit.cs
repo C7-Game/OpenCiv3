@@ -393,10 +393,12 @@ namespace C7GameData {
 			if (!Tile.IsTileValid(tile))
 				return Intent.Disabled;
 
-			// Impassable terrain (e.g. some mods' deserts) cannot be entered
-			// by any unit, but a barbarian camp tile stays enterable (like a
-			// city) so the camp's garrison can move out and back in.
-			if (tile.IsImpassable() && !tile.hasBarbarianCamp)
+			// Terrain can be impassable to every unit (e.g. some mods'
+			// deserts) or only to some of them (mountains, jungle, marsh and
+			// volcano are impassable to wheeled units, unless the tile is
+			// roaded). A barbarian camp tile stays enterable either way, like a
+			// city, so the camp's garrison can move out and back in.
+			if (tile.IsImpassableTo(this.unitType) && !tile.hasBarbarianCamp)
 				return Intent.Disabled;
 
 			var unitOwner = this.owner;

@@ -15,6 +15,7 @@ public class RemoteSaveLoader {
 	private static string getDataPath(string file) => Path.Combine(testDirectory, "data", file);
 	private static string defaultBicPath => Path.Combine(Civ3Location.GetCiv3Path(), "Conquests", "conquests.biq");
 	private static string defaultPediaIconsPath => Path.Combine(Civ3Location.GetCiv3Path(), "Conquests", "Text", "PediaIcons.txt");
+	private static string defaultCivilopediaTextPath => Path.Combine(Civ3Location.GetCiv3Path(), "Conquests", "Text", "Civilopedia.txt");
 
 	private static string testDirectory {
 		get {
@@ -43,7 +44,8 @@ public class RemoteSaveLoader {
 		SaveGame game = null;
 		Exception ex = Record.Exception(() => {
 			game = SaveManager.LoadSave(saveFile.FullName, biqPath == "default" ? defaultBicPath : biqPath,
-				(relativeModePath) => { return pediaPath == "default" ? defaultPediaIconsPath : pediaPath; });
+				(relativeModePath) => { return pediaPath == "default" ? defaultPediaIconsPath : pediaPath; },
+				(relativeModePath) => { return defaultCivilopediaTextPath; });
 		});
 
 		return (game, ex, savePath);

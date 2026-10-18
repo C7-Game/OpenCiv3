@@ -1,9 +1,6 @@
 using C7Engine;
 using C7GameData;
 using Godot;
-using System;
-using System.Collections.Generic;
-using ConvertCiv3Media;
 
 public partial class TalkScreen : TextureRect {
 	private ID humanPlayerId;
@@ -45,6 +42,7 @@ public partial class TalkScreen : TextureRect {
 		int gap = 20;
 
 		Button proposeDeal = new();
+		proposeDeal.FocusMode = Control.FocusModeEnum.None;
 		proposeDeal.Text = "We would like to propose a deal...";
 		proposeDeal.SetPosition(new Vector2(512 - 205, offset));
 		proposeDeal.Theme = fontTheme;
@@ -57,6 +55,7 @@ public partial class TalkScreen : TextureRect {
 		EngineStorage.ReadGameData((GameData gD) => {
 			if (!gD.AreInLockedPeace(gD.GetPlayer(humanPlayerId), gD.GetPlayer(opponentPlayerId))) {
 				Button declareWar = new();
+				declareWar.FocusMode = Control.FocusModeEnum.None;
 				declareWar.Text = "That's it! Prepare for WAR!";
 				declareWar.SetPosition(new Vector2(512 - 205, offset));
 				declareWar.Theme = fontTheme;
@@ -64,6 +63,7 @@ public partial class TalkScreen : TextureRect {
 				AddChild(declareWar);
 			} else {
 				Button tradeWorldMaps = new();
+				tradeWorldMaps.FocusMode = Control.FocusModeEnum.None;
 				tradeWorldMaps.Text = "Care to trade World Maps?";
 				tradeWorldMaps.SetPosition(new Vector2(512 - 205, offset));
 				tradeWorldMaps.Theme = fontTheme;
@@ -74,6 +74,7 @@ public partial class TalkScreen : TextureRect {
 		});
 
 		Button goodbye = new();
+		goodbye.FocusMode = Control.FocusModeEnum.None;
 		goodbye.Text = $"That's it. Goodbye, {leaderName}";
 		goodbye.SetPosition(new Vector2(512 - 205, offset));
 		goodbye.Theme = fontTheme;
@@ -82,15 +83,12 @@ public partial class TalkScreen : TextureRect {
 	}
 
 	private void DeclareWar() {
-		EngineStorage.ReadGameData((GameData gD) => {
-			Player humanPlayer = gD.players.Find(x => x.id == humanPlayerId);
-			Player opponentPlayer = gD.players.Find(x => x.id == opponentPlayerId);
-			GetParent<Diplomacy>().popupOverlay.ShowPopup(new WarConfirmation(opponentPlayer,
-				() => {
-					humanPlayer.DeclareWarOn(opponentPlayer, gD.turn);
-					GetParent<Diplomacy>().Hide();
-				}), PopupOverlay.PopupCategory.Advisor);
-		});
+		new MsgDiplomacyWarDeclarationConfirmation(
+			EngineStorage.uiControllerID,
+			opponentPlayerId,
+			() => {
+				GetParent<Diplomacy>().Hide();
+			}).send();
 	}
 
 	private void TradeWorldMaps() {

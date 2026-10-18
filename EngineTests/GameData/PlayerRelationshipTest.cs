@@ -65,7 +65,7 @@ public class PlayerRelationshipTest : IClassFixture<SaveGameFixture> {
 		Assert.True(HaveActiveRightOfPassage(playerA, playerB));
 
 		int refusal = 10;
-		DeclareWar(playerA, playerB, false, refusal);
+		DeclareWar(playerA, playerB, false, 0, refusal);
 		Assert.True(AtWar(playerA, playerB));
 		Assert.True(IsInAnyWar(playerA, gd.players));
 		Assert.True(IsInAnyWar(playerB, gd.players));

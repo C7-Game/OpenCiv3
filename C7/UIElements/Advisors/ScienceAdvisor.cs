@@ -50,7 +50,7 @@ public partial class ScienceAdvisor : Control {
 
 		_advisorHead = AdvisorUtils.CreateAdvisorHead(background, AdvisorHead.Advisor.Science);
 		_close = AdvisorUtils.CreateExitButton(background);
-		_close.Pressed += () => { this.GetParent<Advisors>().Hide(); };
+		_close.Pressed += () => { this.GetParent<Advisors>().OnHide(); };
 		(_dialogBox, _dialogBoxLabel) = AdvisorUtils.CreateAdvisorDialogBox(background);
 
 		AdvisorUtils.CreateAdvisorTitle(background, AncientBackground.GetWidth(), "SCIENCE ADVISOR");

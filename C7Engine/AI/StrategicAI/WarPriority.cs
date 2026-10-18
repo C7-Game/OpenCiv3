@@ -77,7 +77,7 @@ namespace C7GameData.AIData {
 			}
 			player.DeclareWarOn(toFight, EngineStorage.gameData.turn);
 			log.Information($"{player} declared war on {toFight}");
-			new MsgWarDeclaration(player, toFight).send();
+			new MsgWarDeclarationNotification(player, toFight).send();
 			this.calculatedWeight = 1000;
 		}
 

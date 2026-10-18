@@ -1,6 +1,8 @@
+using System.Linq;
 using Godot;
 using Serilog;
 using C7Engine;
+using C7GameData;
 
 /**
  * Handles managing the advisor screens.
@@ -26,6 +28,9 @@ public partial class Advisors : CenterContainer {
 	private void OnShowGameView(string gameView) {
 		HideAdvisors();
 		Hide();
+	}
+	private void OnShowGameView() {
+		OnShowGameView(null);
 	}
 
 	private void ShowLatestAdvisor() {
@@ -72,5 +77,20 @@ public partial class Advisors : CenterContainer {
 		foreignAdvisor.Hide();
 		culturalAdvisor.Hide();
 		scienceAdvisor.Hide();
+	}
+
+	public void OnHide() {
+		if (scienceAdvisor.Visible) {
+			Player controller = null;
+			EngineStorage.ReadGameData(data => {
+				controller = data.players.First(p => p.id == EngineStorage.uiControllerID);
+			});
+			if (controller.currentlyResearchedTech == null) {
+				new MsgScienceGuidance().send();
+				return;
+			}
+		}
+
+		OnShowGameView();
 	}
 }

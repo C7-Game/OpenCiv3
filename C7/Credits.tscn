@@ -1,6 +1,101 @@
-[gd_scene load_steps=2 format=3 uid="uid://pfefjvwiljdp"]
+[gd_scene load_steps=16 format=3 uid="uid://pfefjvwiljdp"]
 
 [ext_resource type="Script" uid="uid://0qchn4tg1h03" path="res://Credits.cs" id="1"]
+[ext_resource type="Script" uid="uid://dbap0gqox0ty1" path="res://addons/markdownlabel/addons/markdownlabel/markdownlabel.gd" id="2_6hb5c"]
+[ext_resource type="Script" uid="uid://dcx7crs23nf4" path="res://addons/markdownlabel/addons/markdownlabel/header_formats/h1_format.gd" id="3_uuw8f"]
+[ext_resource type="Script" uid="uid://d0sin64i4v3op" path="res://addons/markdownlabel/addons/markdownlabel/header_formats/h2_format.gd" id="4_8dx6g"]
+[ext_resource type="Script" uid="uid://dlok0dv1tq2bf" path="res://addons/markdownlabel/addons/markdownlabel/header_formats/h3_format.gd" id="5_1ybrq"]
+[ext_resource type="Script" uid="uid://bayuh2vafablg" path="res://addons/markdownlabel/addons/markdownlabel/header_formats/h4_format.gd" id="6_lpn6h"]
+[ext_resource type="Script" uid="uid://dfr1w7u3jgni3" path="res://addons/markdownlabel/addons/markdownlabel/header_formats/h5_format.gd" id="7_2d5g6"]
+[ext_resource type="Script" uid="uid://bsi6dexoofpe6" path="res://addons/markdownlabel/addons/markdownlabel/header_formats/h6_format.gd" id="8_ckf10"]
+[ext_resource type="Script" uid="uid://doqipc4rnaotx" path="res://UIElements/Civ3TextureRect.cs" id="9_mght3"]
 
-[node name="Node2D" type="Node2D"]
+[sub_resource type="Resource" id="Resource_nnoy8"]
+resource_local_to_scene = true
+script = ExtResource("3_uuw8f")
+font_size = 2.285
+is_bold = false
+is_italic = false
+is_underlined = false
+override_font_color = false
+font_color = Color(1, 1, 1, 1)
+draw_horizontal_rule = false
+
+[sub_resource type="Resource" id="Resource_44ffi"]
+resource_local_to_scene = true
+script = ExtResource("4_8dx6g")
+font_size = 1.714
+is_bold = false
+is_italic = false
+is_underlined = false
+override_font_color = false
+font_color = Color(1, 1, 1, 1)
+draw_horizontal_rule = false
+
+[sub_resource type="Resource" id="Resource_a837p"]
+resource_local_to_scene = true
+script = ExtResource("5_1ybrq")
+font_size = 1.428
+is_bold = false
+is_italic = false
+is_underlined = false
+override_font_color = false
+font_color = Color(1, 1, 1, 1)
+draw_horizontal_rule = false
+
+[sub_resource type="Resource" id="Resource_ws3rs"]
+resource_local_to_scene = true
+script = ExtResource("6_lpn6h")
+font_size = 1.142
+is_bold = false
+is_italic = false
+is_underlined = false
+override_font_color = false
+font_color = Color(1, 1, 1, 1)
+draw_horizontal_rule = false
+
+[sub_resource type="Resource" id="Resource_8vhpe"]
+resource_local_to_scene = true
+script = ExtResource("7_2d5g6")
+font_size = 1.0
+is_bold = false
+is_italic = false
+is_underlined = false
+override_font_color = false
+font_color = Color(1, 1, 1, 1)
+draw_horizontal_rule = false
+
+[sub_resource type="Resource" id="Resource_hrp0y"]
+resource_local_to_scene = true
+script = ExtResource("8_ckf10")
+font_size = 0.857
+is_bold = false
+is_italic = false
+is_underlined = false
+override_font_color = false
+font_color = Color(1, 1, 1, 1)
+draw_horizontal_rule = false
+
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("background", "creditsLabel")]
 script = ExtResource("1")
+background = NodePath("Background")
+creditsLabel = NodePath("Background/CreditsLabel")
+
+[node name="Background" type="TextureRect" parent="."]
+offset_right = 582.0
+offset_bottom = 390.0
+script = ExtResource("9_mght3")
+textureConfigKey = "credits.background"
+metadata/_custom_type_script = "uid://doqipc4rnaotx"
+
+[node name="CreditsLabel" type="RichTextLabel" parent="Background"]
+bbcode_enabled = true
+script = ExtResource("2_6hb5c")
+markdown_text = "# CREDITS LABEL"
+h1 = SubResource("Resource_nnoy8")
+h2 = SubResource("Resource_44ffi")
+h3 = SubResource("Resource_a837p")
+h4 = SubResource("Resource_ws3rs")
+h5 = SubResource("Resource_8vhpe")
+h6 = SubResource("Resource_hrp0y")
+metadata/_custom_type_script = "uid://dbap0gqox0ty1"

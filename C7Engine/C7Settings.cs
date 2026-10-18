@@ -7,10 +7,21 @@ using IniParser.Exceptions;
 namespace C7Engine {
 	public class C7Settings {
 		private const string SETTINGS_FILE_NAME = "C7.ini";
+
+		/// <summary>
+		/// The full path to the settings file. Callers that host the engine (the
+		/// Godot layer) should set this to a writable location, since the
+		/// process' current working directory is not reliable on all platforms.
+		/// For example, a macOS app launched from Finder has "/" as its working
+		/// directory, so a relative path cannot be read from or written to.
+		/// </summary>
+		public static string SettingsFilePath { get; set; } = SETTINGS_FILE_NAME;
+
 		public static IniData settings;
 
 		public static class Audio {
 			public const string SectionName = nameof(Audio);
+			public const string MasterVolume = nameof(MasterVolume);
 			public const string MusicVolume = nameof(MusicVolume);
 			public const string SfxAudioVolume = nameof(SfxAudioVolume);
 			public const string UiAudioVolume = nameof(UiAudioVolume);
@@ -39,7 +50,7 @@ namespace C7Engine {
 
 		public static void LoadSettings() {
 			try {
-				settings = Util.GetFileIniDataParser().ReadFile(SETTINGS_FILE_NAME);
+				settings = Util.GetFileIniDataParser().ReadFile(SettingsFilePath);
 			} catch (ParsingException) {
 				//First run.  The file doesn't exist.  That's okay.  We'll use sensible defaults.
 				settings = new IniData();
@@ -48,7 +59,13 @@ namespace C7Engine {
 		}
 
 		public static void SaveSettings() {
-			Util.GetFileIniDataParser().WriteFile(SETTINGS_FILE_NAME, settings);
+			try {
+				Util.GetFileIniDataParser().WriteFile(SettingsFilePath, settings);
+			} catch (Exception ex) {
+				// A read-only install directory shouldn't take the game down with
+				// it; the in-memory settings still apply for this session.
+				Console.Error.WriteLine($"Failed to save settings to {SettingsFilePath}: {ex.Message}");
+			}
 		}
 
 		public static void SetValue(string section, string key, string value) {

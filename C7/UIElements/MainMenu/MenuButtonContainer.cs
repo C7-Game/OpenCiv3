@@ -11,7 +11,6 @@ public partial class MenuButtonContainer : VBoxContainer {
 	public Civ3MenuButton HallOfFame { get; private set; }
 	public Civ3MenuButton ToggleGraphics { get; private set; }
 	public Civ3MenuButton Preferences { get; private set; }
-	public Civ3MenuButton AudioPreferences { get; private set; }
 	public Civ3MenuButton Credits { get; private set; }
 	public Civ3MenuButton Exit { get; private set; }
 
@@ -29,7 +28,6 @@ public partial class MenuButtonContainer : VBoxContainer {
 		HallOfFame = null;
 		ToggleGraphics = null;
 		Preferences = null;
-		AudioPreferences = null;
 		Credits = null;
 		Exit = null;
 
@@ -56,9 +54,6 @@ public partial class MenuButtonContainer : VBoxContainer {
 
 		Preferences = new Civ3MenuButton() { Text = "Preferences" };
 		AddChild(Preferences);
-
-		AudioPreferences = new Civ3MenuButton() { Text = "Audio Preferences" };
-		AddChild(AudioPreferences);
 
 		Credits = new Civ3MenuButton() { Text = "Credits" };
 		AddChild(Credits);

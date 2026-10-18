@@ -4,3 +4,4 @@
 [submodule "C7/addons/markdownlabel"]
 	path = C7/addons/markdownlabel
 	url = https://github.com/daenvil/MarkdownLabel.git
+	ignore = all

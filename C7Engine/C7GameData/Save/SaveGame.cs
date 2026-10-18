@@ -86,7 +86,17 @@ namespace C7GameData.Save {
 				Winner = data.winner != null ? new SavePlayer(data.winner) : null,
 				TerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
 				GameModeConfig = data.gameModeConfig,
+				Codex = data.Codex,
 			};
+			if (data.observerMode) {
+				// In observer mode no player is marked human, which would make the save
+				// unloadable. Write the save as if observer mode were switched off.
+				Player human = data.GetPlayer(EngineStorage.uiControllerID) ?? data.GetFirstHumanPlayer();
+				SavePlayer humanSave = human is null ? null : save.Players.Find(p => p.id == human.id);
+				if (humanSave is not null) {
+					humanSave.human = true;
+				}
+			}
 			foreach (var saveCivilization in save.Civilizations) {
 				saveCivilization.cultureGroupKey = save.CultureGroups.First(c => c.name == saveCivilization.cultureGroup.name).name;
 			}
@@ -243,6 +253,7 @@ namespace C7GameData.Save {
 				victoryConditions = VictoryConditions,
 				history = History,
 				GreatWondersBuilt = GreatWondersBuilt,
+				Codex = Codex,
 			};
 
 			return data;
@@ -507,6 +518,11 @@ namespace C7GameData.Save {
 		// assets.
 		public string ScenarioSearchPath;
 
+		// The parsed Civilopedia text. Not serialized; regenerated from the
+		// scenario search path on load.
+		[JsonIgnore]
+		public Codex Codex;
+
 		public List<Difficulty> Difficulties = new();
 		public Difficulty GameDifficulty = new();
 
@@ -523,12 +539,13 @@ namespace C7GameData.Save {
 			return JsonSerializer.Deserialize<SaveGame>(json, JsonOptions);
 		}
 
-		public static SaveGame Load(string path, Func<string, string> getPediaIconsPath) {
+		public static SaveGame Load(string path, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			SaveGame result = LoadFromJSON(File.ReadAllText(path));
 
 			// This lambda has side effects in the Game.cs code.
 			if (result.ScenarioSearchPath?.Count() > 0) {
 				getPediaIconsPath(result.ScenarioSearchPath);
+				result.Codex = new Codex(getCivilopediaTextPath(result.ScenarioSearchPath));
 			}
 			return result;
 		}
