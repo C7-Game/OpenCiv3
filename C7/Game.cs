@@ -544,6 +544,10 @@ public partial class Game : Node {
 
 	private void OnPlayerStartTurn() {
 		EngineStorage.ReadGameData((GameData gameData) => {
+			if (IsHumanDefeated(gameData)) {
+				return;
+			}
+
 			log.Information("Starting player turn");
 
 			// TODO: Before we call this method to automatically end obsolete deals, we could make this more versatile.
