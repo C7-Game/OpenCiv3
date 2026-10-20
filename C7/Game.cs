@@ -432,6 +432,9 @@ public partial class Game : Node {
 			case MsgSelectGovernment mSG:
 				EmitSelectGovernmentSignal(mSG);
 				break;
+			case MsgSelectTransport mSelT:
+				EmitSelectTransportSignal(mSelT);
+				break;
 			case MsgConfirmStartRevolution mSR:
 				EmitStartARevolutionSignal(mSR);
 				break;
@@ -1224,7 +1227,6 @@ public partial class Game : Node {
 
 
 		if (currentAction == C7Action.UnitLoad) {
-			// TODO: Which transport?
 			new MsgLoadToTransport(CurrentlySelectedUnit.id).send();
 		}
 		if (currentAction == C7Action.UnitUnload) {
