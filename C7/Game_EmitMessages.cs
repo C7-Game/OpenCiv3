@@ -254,6 +254,23 @@ public partial class Game {
 		));
 	}
 
+	public void EmitBarbarianCampDispersedSignal(MsgBarbarianCampDispersed msg) {
+		string message = msg.goldEarned > 0
+			? $"We cleared a barbarian encampment and earned {msg.goldEarned} gold!"
+			: "We cleared a barbarian encampment!";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Military Advisor",
+				message,
+				Advisor.Military,
+				Mood.Happy,
+				350
+			)
+		));
+	}
+
 	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
 		var friend = false;
 		EngineStorage.ReadGameData(data => {
