@@ -79,6 +79,9 @@ namespace C7Engine {
 			// resource access.
 			gameData.InvalidateCachedTradeNetwork();
 
+			// If that was the capital, the palace moves to another city.
+			owner.RelocateCapitalIfLost(gameData.Buildings.Find(x => x.isCenterOfEmpire));
+
 			// Redo corruption calculations after a city is destroyed, since it
 			// may change rank corruption values.
 			owner.DoCorruptionCalculations(gameData);
