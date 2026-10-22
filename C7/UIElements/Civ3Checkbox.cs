@@ -67,14 +67,20 @@ public partial class Civ3Checkbox : CheckBox {
 
 	public Civ3Checkbox(TextPosition textPosition = TextPosition.TextRightOfIcon) {
 		this.textPosition = textPosition;
-
-		Flat = true;
-		FontSize = 12;
-		SizeFlagsHorizontal = SizeFlags.Expand;
-		SizeFlagsVertical = SizeFlags.ShrinkCenter;
 	}
 
 	public override void _Ready() {
+		Flat = true;
+		FontSize = 14;
+		SizeFlagsHorizontal = SizeFlags.Expand;
+		SizeFlagsVertical = SizeFlags.ShrinkCenter;
+
+		// Local style overrides: we manage the draw textures ourselves
+		StyleBoxEmpty empty = new();
+		foreach (string styleName in new[] { "normal", "pressed", "hover_pressed", "disabled", "focus" }) {
+			AddThemeStyleboxOverride(styleName, empty);
+		}
+
 		normalTexture = TextureLoader.Load("ui.checkbox.inactive");
 		hoverTexture = TextureLoader.Load("ui.checkbox.hover");
 		pressedTexture = TextureLoader.Load("ui.checkbox.pressed");

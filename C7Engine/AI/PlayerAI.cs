@@ -76,6 +76,14 @@ namespace C7Engine {
 		}
 
 		public static void MaybePickTechToResearch(Player player, List<Tech> techs) {
+			// AI players get no prompt, so they spend any free advances immediately.
+			while (!player.isHuman && player.freeTechsRemaining > 0) {
+				Tech freeTech = player.GetAvailableTechsToResearch(techs).FirstOrDefault();
+				if (freeTech == null || !player.ClaimFreeTech(EngineStorage.gameData, freeTech)) {
+					break;
+				}
+			}
+
 			while (player.currentlyResearchedTech == null || player.knownTechs.Contains(player.currentlyResearchedTech)) {
 				Tech toResearch = player.GetAvailableTechsToResearch(techs).FirstOrDefault();
 				if (toResearch == null) {

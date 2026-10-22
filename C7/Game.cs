@@ -4,11 +4,13 @@ using System.Diagnostics;
 using C7Engine;
 using C7GameData;
 using Serilog;
+using C7.UIElements;
 using C7Engine.Pathing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using C7.UIElements;
 using C7.UIElements.Popups;
 using static AdvisorHead;
 using static C7GameData.MapUnit;
@@ -178,6 +180,8 @@ public partial class Game : Node {
 		FileDialog.Canceled += OnResolved;
 		FileDialog.FileSelected += path => OnResolved();
 
+		advisor.VisibilityChanged += OnAdvisorVisibilityChanged;
+
 		try {
 			await InitializeGame();
 			await StartGame();
@@ -295,7 +299,7 @@ public partial class Game : Node {
 			AddChild(mapView);
 
 			mapView.cameraZoom = (float)1.0;
-			mapView.gridLayer.visible = false;
+			mapView.gridLayer.visible = PreferencesSettings.GetShowGrid();
 
 			if (!cameraLocation.HasValue) {
 				// Set initial camera location. If the UI controller has any cities, focus on their capital. Otherwise, focus on their
@@ -379,6 +383,9 @@ public partial class Game : Node {
 				break;
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
+				break;
+			case MsgPromptResearch:
+				PromptForResearchIfNeeded();
 				break;
 			case MsgUpdateUiAfterDomesticChange mUUASC:
 				// Ensure the citizen moods are correct before displaying them.
@@ -501,6 +508,40 @@ public partial class Game : Node {
 		}
 	}
 
+	// Runs any action a popup deferred until an advisor screen was closed.
+	private void OnAdvisorVisibilityChanged() {
+		if (!advisor.Visible) {
+			popupOverlay.OnAdvisorClosed();
+		}
+	}
+
+	// Prompts for a tech to research, or auto-picks one if prompts are disabled.
+	private void PromptForResearchIfNeeded() {
+		if (controller.cities.Count == 0 || popupOverlay.ShowingPopup) {
+			return;
+		}
+		if (controller.GetAvailableTechsToResearch(EngineStorage.gameData.techs).Count == 0) {
+			return;
+		}
+
+		if (controller.freeTechsRemaining > 0) {
+			popupOverlay.ShowPopup(new ScienceSelection(controller, claimingFreeTech: true), PopupOverlay.PopupCategory.Info);
+			return;
+		}
+
+		if (controller.currentlyResearchedTech != null) {
+			return;
+		}
+
+		bool promptForResearch = PreferencesSettings.GetPromptForResearch();
+
+		if (promptForResearch) {
+			popupOverlay.ShowPopup(new ScienceSelection(controller), PopupOverlay.PopupCategory.Info);
+		} else {
+			PlayerAI.MaybePickTechToResearch(controller, EngineStorage.gameData.techs);
+		}
+	}
+
 	private void OnPlayerStartTurn() {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			log.Information("Starting player turn");
@@ -520,17 +561,7 @@ public partial class Game : Node {
 
 			// If the player can pick a new tech to research, prompt them to do so
 			// once they have a city.
-			if (controller.cities.Count > 0
-					&& controller.currentlyResearchedTech == null
-					&& controller.GetAvailableTechsToResearch(gameData.techs).Count > 0) {
-				popupOverlay.ShowPopup(
-						new ScienceSelection(controller),
-						PopupOverlay.PopupCategory.Info);
-
-				if (controller.currentlyResearchedTech == null && controller.GetAvailableTechsToResearch(gameData.techs).Count > 0) {
-					PlayerAI.MaybePickTechToResearch(controller, gameData.techs);
-				}
-			}
+			PromptForResearchIfNeeded();
 
 			// Allow fast forwarding in observer mode.
 			if (gameData.observerMode && turnsLeftToFastForward > 0) {
@@ -1099,7 +1130,9 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.ToggleGrid) {
-			this.mapView.gridLayer.visible = !this.mapView.gridLayer.visible;
+			bool newValue = !this.mapView.gridLayer.visible;
+			this.mapView.gridLayer.visible = newValue;
+			PreferencesSettings.SetShowGrid(newValue);
 		}
 
 		if (currentAction == C7Action.ToggleCoordinates) {

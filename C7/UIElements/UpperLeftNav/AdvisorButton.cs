@@ -9,4 +9,8 @@ public partial class AdvisorButton : Civ3TextureButton {
 		this.TooltipText = "Advisors";
 		this.Theme = GetToolTipTheme();
 	}
+
+	public override void _Pressed() {
+		this.FocusMode = FocusModeEnum.None;
+	}
 }

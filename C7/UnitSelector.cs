@@ -95,15 +95,15 @@ public partial class UnitSelector : Node {
 			unit.currentAI = null;
 		}
 
+		if (unit != MapUnit.NONE && !unit.movementPoints.canMove) {
+			return false;
+		}
+
 		this.CurrentlySelectedUnit = unit;
 		this.KeepCSUWhenFortified = unit.isFortified; // If fortified, make sure the autoselector doesn't immediately skip past the unit
 
 		if (unit != MapUnit.NONE) {
 			game.ensureLocationIsInView(unit.location);
-		}
-
-		if (unit != MapUnit.NONE && !unit.movementPoints.canMove) {
-			return false;
 		}
 
 		// Also emit the signal for a new unit being selected, so other areas such as Game Status and Unit Buttons can update

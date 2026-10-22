@@ -10,4 +10,8 @@ public partial class CivilopediaButton : Civ3TextureButton {
 		this.TooltipText = "Not Implemented yet :/";
 		this.Theme = GetToolTipTheme();
 	}
+
+	public override void _Pressed() {
+		this.FocusMode = FocusModeEnum.None;
+	}
 }

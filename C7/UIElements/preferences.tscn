@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://dovuaki161yfi"]
 
-[ext_resource type="Script" path="res://UIElements/Preferences.cs" id="1_prefs"]
+[ext_resource type="Script" uid="uid://yxa7ec31ejvw" path="res://UIElements/Preferences.cs" id="1_prefs"]
 [ext_resource type="Script" uid="uid://doqipc4rnaotx" path="res://UIElements/Civ3TextureRect.cs" id="2_bg"]
 [ext_resource type="Script" uid="uid://b4grm7mhaqgri" path="res://UIElements/Civ3Checkbox.cs" id="3_checkbox"]
 [ext_resource type="Script" uid="uid://clv4mgavtlrul" path="res://UIElements/Civ3HSlider.cs" id="4_slider"]

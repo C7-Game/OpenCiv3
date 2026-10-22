@@ -136,6 +136,40 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		return game.ToGameData(fixture.behaviors);
 	}
 
+	[Fact]
+	public void BaseRulesetBuildings_HaveNavalAndAirData() {
+		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
+
+		Building coastalFortress = buildings["Coastal Fortress"];
+		Assert.Equal(8, coastalFortress.navalBombardDefense);
+		Assert.Equal(8, coastalFortress.navalPower);
+		Assert.Equal(0, coastalFortress.airPower);
+		Assert.Equal(8, buildings["SAM Missile Battery"].airPower);
+		Assert.NotNull(coastalFortress.navalDefenseBonus);
+
+		Building walls = buildings["Walls"];
+		Assert.Equal(0, walls.navalBombardDefense);
+		Assert.Equal(0, walls.navalPower);
+		Assert.Null(walls.navalDefenseBonus);
+	}
+
+	[Fact]
+	public void BaseRulesetBuildings_HaveWonderData() {
+		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
+
+		Assert.Equal(buildings["Temple"], buildings["The Oracle"].greatWonderProperties.buildingWithDoubledHappiness);
+		Assert.Equal(buildings["Cathedral"], buildings["Sistine Chapel"].greatWonderProperties.buildingWithDoubledHappiness);
+		Assert.Null(buildings["The Pyramids"].greatWonderProperties.buildingWithDoubledHappiness);
+
+		Assert.True(buildings["Wall Street"].HasWonderFlag(SaveBuilding.WonderFlag.TreasuryEarnsInterest));
+		Assert.True(buildings["Forbidden Palace"].HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption));
+		Assert.True(buildings["Secret Police HQ"].HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption));
+		Assert.Equal("Communism", buildings["Secret Police HQ"].requiredGovernment.name);
+		Assert.Null(buildings["Forbidden Palace"].requiredGovernment);
+		Assert.True(buildings["Iron Works"].goodsMustBeInCityRadius);
+		Assert.Equal(1, buildings["The Hanging Gardens"].contentFacesInAllCities);
+	}
+
 	private void CheckAiInvariants() {
 		EngineStorage.ReadGameData((C7GameData.GameData gameData) => {
 			C7GameData.GameData game = gameData;
@@ -224,6 +258,33 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 		// And they should be the same, despite round-tripping through the GameData format.
 		Assert.Equal(directSaveLines, roundTrippedSaveLines);
+	}
+
+	[Fact]
+	public async Task SaveInObserverModeIsLoadable() {
+		Player human = await CreateHeadlessGame(fixture.saveGame);
+		WaitForStartTurnMessage();
+
+		// Mimic the UI's observer mode: no player is human, but the engine remembers who the human was.
+		C7GameData.GameData game = null;
+		EngineStorage.ReadGameData((C7GameData.GameData gameData) => { game = gameData; });
+		foreach (Player p in game.players) {
+			p.isHuman = false;
+		}
+		game.observerMode = true;
+
+		string observerSavePath = PathUtils.getDataPath("output/observer-mode-save.json");
+		SaveGame.FromGameData(game).Save(observerSavePath);
+
+		// The save should load again and have the original human player.
+		SaveGame loaded = SaveGame.Load(observerSavePath, (string unused) => { return unused; }, (string unused) => { return unused; });
+		Player loadedHuman = await CreateGame.createGame(loaded, (_) => { return fixture.behaviors; });
+		Assert.Equal(human.id, loadedHuman.id);
+		Assert.Equal(1, EngineStorage.gameData.players.Count(p => p.isHuman));
+
+		// Saving must not alter the running game.
+		Assert.True(game.observerMode);
+		Assert.DoesNotContain(game.players, p => p.isHuman);
 	}
 
 	[Fact]

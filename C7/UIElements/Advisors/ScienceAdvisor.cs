@@ -106,7 +106,7 @@ public partial class ScienceAdvisor : Control {
 		});
 	}
 
-	void DrawTechTree(string eraName, Player player, List<Tech> allTechs, HashSet<Tech> availableTechsToResearch) {
+	void DrawTechTree(string eraName, Player player, List<Tech> allTechs, List<Tech> availableTechsToResearch) {
 		// clear all tech-box items so we don't draw new ones over the old ones
 		foreach (TechBox tb in techBoxes) {
 			background.RemoveChild(tb);

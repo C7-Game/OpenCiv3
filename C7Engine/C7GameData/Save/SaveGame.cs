@@ -88,6 +88,15 @@ namespace C7GameData.Save {
 				GameModeConfig = data.gameModeConfig,
 				Codex = data.Codex,
 			};
+			if (data.observerMode) {
+				// In observer mode no player is marked human, which would make the save
+				// unloadable. Write the save as if observer mode were switched off.
+				Player human = data.GetPlayer(EngineStorage.uiControllerID) ?? data.GetFirstHumanPlayer();
+				SavePlayer humanSave = human is null ? null : save.Players.Find(p => p.id == human.id);
+				if (humanSave is not null) {
+					humanSave.human = true;
+				}
+			}
 			foreach (var saveCivilization in save.Civilizations) {
 				saveCivilization.cultureGroupKey = save.CultureGroups.First(c => c.name == saveCivilization.cultureGroup.name).name;
 			}
@@ -176,6 +185,17 @@ namespace C7GameData.Save {
 
 			// TODO: add victory options to data.victories based on data.victoryConditions
 			// NOTE: Order matters
+
+			if (conditions.AllowDominationVictory) {
+				var dominationAreaLimit = 66f; // TODO: ruleset, dom area victory condition
+				var dominationPopulationLimit = 66f; // TODO: ruleset, dom pop victory condition
+				data.victories.Add(new DominationVictory(dominationAreaLimit, dominationPopulationLimit));
+			}
+
+			if (conditions.AllowConquestVictory) { // TODO: implement conquest victory
+												   // TODO: ruleset, Conquest victory condition
+				data.victories.Add(new ConquestVictory(rivalsAliveLimit: 0));
+			}
 
 			// There is no "score victory", but we can treat score as if it were, so
 			// we can render the current score alongside the state of other conditions
@@ -309,6 +329,7 @@ namespace C7GameData.Save {
 
 			var buildingDict = data.Buildings.ToDictionary(b => b.name);
 			var techDict = data.techs.ToDictionary(t => t.id);
+			var govDict = data.governments.ToDictionary(g => g.id);
 			var resDict = data.Resources.ToDictionary(r => r.Key);
 
 			foreach (SaveBuilding saveBuilding in Buildings) {
@@ -321,6 +342,9 @@ namespace C7GameData.Save {
 				if (saveBuilding.requiredTech != null) {
 					building.requiredTech = techDict[saveBuilding.requiredTech];
 				}
+				if (saveBuilding.requiredGovernment != null) {
+					building.requiredGovernment = govDict[saveBuilding.requiredGovernment];
+				}
 				if (saveBuilding.renderedObsoleteBy != null) {
 					building.renderedObsoleteBy = techDict[saveBuilding.renderedObsoleteBy];
 				}
@@ -329,6 +353,9 @@ namespace C7GameData.Save {
 				}
 				if (saveBuilding.greatWonderProperties?.buildingGainedInEveryCityOnContinent?.Length > 0) {
 					building.greatWonderProperties.buildingGainedInEveryCityOnContinent = buildingDict[saveBuilding.greatWonderProperties.buildingGainedInEveryCityOnContinent];
+				}
+				if (saveBuilding.greatWonderProperties?.buildingWithDoubledHappiness?.Length > 0) {
+					building.greatWonderProperties.buildingWithDoubledHappiness = buildingDict[saveBuilding.greatWonderProperties.buildingWithDoubledHappiness];
 				}
 
 				building.requiredResources = saveBuilding.requiredResources.Select(a => resDict[a]).ToHashSet();
@@ -342,6 +369,15 @@ namespace C7GameData.Save {
 			var unitPrototypeDict = data.unitPrototypes.ToDictionary(b => b.name);
 			var civDict = data.civilizations.ToDictionary(c => c.name);
 			var resDict = data.Resources.ToDictionary(r => r.Key);
+
+			// Buildings are converted before unit prototypes exist, so resolve
+			// the units they produce here.
+			var buildingDict = data.Buildings.ToDictionary(b => b.name);
+			foreach (SaveBuilding saveBuilding in Buildings) {
+				if (saveBuilding.unitProduced != null) {
+					buildingDict[saveBuilding.name].unitProduced = unitPrototypeDict[saveBuilding.unitProduced];
+				}
+			}
 
 			foreach (SaveUnitPrototype saveProto in UnitPrototypes) {
 				UnitPrototype proto = unitPrototypeDict[saveProto.name];

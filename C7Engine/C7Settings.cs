@@ -42,6 +42,12 @@ namespace C7Engine {
 			public const string Opponents = nameof(Opponents);
 		}
 
+		public static class Rules {
+			public const string SectionName = nameof(Rules);
+			public const string AllowDominationVictory = nameof(AllowDominationVictory);
+			public const string AllowConquestVictory = nameof(AllowConquestVictory);
+		}
+
 		public static void LoadSettings() {
 			try {
 				settings = Util.GetFileIniDataParser().ReadFile(SettingsFilePath);
