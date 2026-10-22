@@ -51,12 +51,17 @@ namespace C7GameData {
 		public TimeOptions timeOptions;
 		public Dictionary<string, List<HistTurnRecord>> history;
 		public Codex Codex;
+		public PediaIcons pediaIcons;
 
 		public VictoryConditions victoryConditions;
 		public List<IVictory> victories = new();
 		public bool gameOver;
 		public Player winner;
 		// TODO: Victory type serialization
+
+		// Read-only access to the civilizations in the ruleset, for UI that
+		// needs to browse all of them (e.g. the Codex).
+		public IReadOnlyList<Civilization> Civilizations => civilizations;
 
 		public BarbarianInfo barbarianInfo = new BarbarianInfo();
 

@@ -173,12 +173,13 @@ tooltip_text = "Main Menu"
 theme = SubResource("Theme_rpa6e")
 script = ExtResource("4")
 
-[node name="CivilopediaButton" type="TextureButton" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer"]
+[node name="CivilopediaButton" type="TextureButton" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer" node_paths=PackedStringArray("popupOverlay")]
 layout_mode = 2
 tooltip_text = "Not Implemented yet :/"
 theme = SubResource("Theme_y31gw")
 disabled = true
 script = ExtResource("5")
+popupOverlay = NodePath("../../../../../PopupOverlay")
 
 [node name="AdvisorButton" type="TextureButton" parent="CanvasLayer/Control/ToolBar/MarginContainer/HBoxContainer"]
 layout_mode = 2
