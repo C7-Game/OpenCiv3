@@ -274,11 +274,21 @@ public partial class Game {
 
 	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
 		var friend = false;
+		var humanDefeated = false;
 		EngineStorage.ReadGameData(data => {
+			humanDefeated = IsHumanDefeated(data);
 			var destroyedPlayer = data.players.First(p => p.civilization == msg.civilization);
 			if (controller.IsAtPeaceWith(destroyedPlayer))
 				friend = true;
 		});
+
+		// Once the human is out, the game over popup is the only one that matters.
+		if (humanDefeated) {
+			if (msg.civilization == controller.civilization)
+				EmitDefeatSignal();
+			return;
+		}
+
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(
 				controller.id,
@@ -288,6 +298,34 @@ public partial class Game {
 				friend ? Mood.Sad : Mood.Happy,
 				350
 			)
+		));
+	}
+
+	// The human has been destroyed and can only leave the game. Observers keep watching.
+	private bool IsHumanDefeated(GameData data) {
+		return controller.defeated && !data.observerMode;
+	}
+
+	private void EmitDefeatSignal() {
+		var options = new List<ButtonAction>() {
+			new ButtonAction() {
+				message = "Return to the main menu",
+				action = () => OnRetire()
+			}
+		};
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Game Over",
+				$"The {controller.civilization.noun} have been destroyed.\n"
+				+ "This game is over.\n\n",
+				options,
+				Advisor.Military,
+				Mood.Sad,
+				hSize: 600,
+				margins: new Margins(top: 100)
+			) { hasCancel = false }
 		));
 	}
 
@@ -642,6 +680,11 @@ public partial class Game {
 	}
 
 	private void EmitVictorySignal(MsgVictory msg) {
+		var humanDefeated = false;
+		EngineStorage.ReadGameData(data => humanDefeated = IsHumanDefeated(data));
+		if (humanDefeated)
+			return;
+
 		var endMsg =
 			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory!\n"
 			+ "This game is over: No further score will be entered.\n\n";
@@ -662,7 +705,7 @@ public partial class Game {
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new OptionsPopUp(
 				controller.id,
-				"You Win!",
+				msg.winner.id == controller.id ? "You Win!" : "Game Over",
 				endMsg,
 				options,
 				Advisor.None,
