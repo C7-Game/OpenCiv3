@@ -32,6 +32,7 @@ namespace C7GameData.Save {
 			ReducesWarWeariness,
 			DoublesSacrifice,
 			ContinentalMoodEffects,
+			NoAgeBonus,
 		}
 
 		// Flags that apply to wonders, both small and great. Kept separate from
