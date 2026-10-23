@@ -1042,67 +1042,6 @@ namespace C7GameData {
 			}
 		}
 
-		// How far (in tiles of walking distance) a city counts as a neighbor
-		// when choosing a new capital: a 17x17 tile square.
-		public const int CapitalNeighborDistance = 8;
-
-		// How strongly a city claims to be the new capital when the old one is
-		// lost, using Civ3's formula from
-		// https://civfanatics.com/civ3/strategy/game-mechanics/free-palace-jump/:
-		// 3 points per citizen of our nationality, 1 per foreign citizen, 1 per
-		// military unit in the city, and 1/2/3 points per neighboring town/city/
-		// metropolis of ours within CapitalNeighborDistance.
-		public int CapitalScore(City city) {
-			int score = 0;
-			foreach (CityResident resident in city.residents) {
-				score += resident.nationality == null || resident.nationality == civilization ? 3 : 1;
-			}
-			score += city.location.unitsOnTile.Count(u => u.owner == this && u.IsCombatUnit());
-			foreach (City neighbor in cities) {
-				if (neighbor == city || city.location.DistanceTo(neighbor.location) > CapitalNeighborDistance) {
-					continue;
-				}
-				int size = neighbor.residents.Count;
-				score += size <= rules.MaximumLevel1CitySize ? 1 : size <= rules.MaximumLevel2CitySize ? 2 : 3;
-			}
-			return score;
-		}
-
-		// The city that becomes the capital when the old one is lost: the one
-		// with the highest CapitalScore. Ties go to the city that comes first in
-		// our list of cities, which is founding order (as in Civ3, where ties go
-		// to the first city in the database, usually the oldest). Null if we
-		// have no cities left.
-		public City ChooseNewCapital() {
-			City best = null;
-			int bestScore = int.MinValue;
-			foreach (City city in cities) {
-				int score = CapitalScore(city);
-				if (score > bestScore) {
-					best = city;
-					bestScore = score;
-				}
-			}
-			return best;
-		}
-
-		// Moves the capital, and the palace, to the best remaining city when we
-		// no longer have one (e.g. it was destroyed or abandoned). Any Forbidden
-		// Palace in the new capital stays: its effects stack with the capital's.
-		// Returns the new capital, or null if there was nothing to do.
-		public City RelocateCapitalIfLost(Building palace) {
-			if (cities.Count == 0 || cities.Any(c => c.IsCapital())) {
-				return null;
-			}
-			City newCapital = ChooseNewCapital();
-			newCapital.capital = true;
-			if (palace != null && !newCapital.constructed_buildings.Any(b => b.building == palace)) {
-				newCapital.AddBuilding(palace);
-			}
-			log.Information($"{civilization?.name} lost its capital; the palace moves to {newCapital.name}");
-			return newCapital;
-		}
-
 		public void DoCorruptionCalculations(GameData gameData) {
 			if (cities.Count == 0) {
 				return;

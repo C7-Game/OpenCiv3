@@ -1,11 +1,14 @@
 using System.Linq;
 using C7Engine.AI;
+using Serilog;
 
 namespace C7Engine {
 	using System;
 	using C7GameData;
 
 	public class CityInteractions {
+		private static ILogger log = Log.ForContext<CityInteractions>();
+
 		public static City BuildCity(Tile tileWithNewCity, Player owner, string name) {
 			GameData gameData = EngineStorage.gameData;
 			City newCity = new City(tileWithNewCity, owner, name, gameData.ids.CreateID("city"));
@@ -18,6 +21,7 @@ namespace C7Engine {
 			tileWithNewCity.cityAtTile = newCity;
 
 			CityResident firstResident = new CityResident();
+			firstResident.nationality = owner.civilization;
 			firstResident.city = newCity;
 			firstResident.citizenType = gameData.citizenTypes.Find(x => x.IsDefaultCitizen);
 			newCity.AddCitizen(firstResident);
@@ -80,11 +84,67 @@ namespace C7Engine {
 			gameData.InvalidateCachedTradeNetwork();
 
 			// If that was the capital, the palace moves to another city.
-			owner.RelocateCapitalIfLost(gameData.Buildings.Find(x => x.isCenterOfEmpire));
+			RelocateCapitalIfLost(owner, gameData.Buildings.Find(x => x.isCenterOfEmpire));
 
 			// Redo corruption calculations after a city is destroyed, since it
 			// may change rank corruption values.
 			owner.DoCorruptionCalculations(gameData);
+		}
+
+		// How strongly a city claims to be the new capital when the old one is
+		// lost, using Civ3's formula from
+		// https://civfanatics.com/civ3/strategy/game-mechanics/free-palace-jump/:
+		// 3 points per citizen of the owner's nationality, 1 per foreign citizen,
+		// 1 per military unit in the city, and 1/2/3 points per neighboring
+		// town/city/metropolis of the owner's within the rules'
+		// CapitalNeighborDistance.
+		public static int CapitalScore(Player owner, City city) {
+			int score = 0;
+			foreach (CityResident resident in city.residents) {
+				score += resident.nationality == owner.civilization ? 3 : 1;
+			}
+			score += city.location.unitsOnTile.Count(u => u.owner == owner && u.IsCombatUnit());
+			foreach (City neighbor in owner.cities) {
+				if (neighbor != city && city.location.DistanceTo(neighbor.location) <= owner.rules.CapitalNeighborDistance) {
+					score += neighbor.SizeLevel();
+				}
+			}
+			return score;
+		}
+
+		// The city that becomes the capital when the old one is lost: the one
+		// with the highest CapitalScore. Ties go to the city that comes first in
+		// the owner's list of cities, which is founding order (as in Civ3, where
+		// ties go to the first city in the database, usually the oldest). Null if
+		// no cities are left.
+		public static City ChooseNewCapital(Player owner) {
+			City best = null;
+			int bestScore = int.MinValue;
+			foreach (City city in owner.cities) {
+				int score = CapitalScore(owner, city);
+				if (score > bestScore) {
+					best = city;
+					bestScore = score;
+				}
+			}
+			return best;
+		}
+
+		// Moves the capital, and the palace, to the best remaining city when the
+		// owner no longer has one (e.g. it was destroyed or abandoned). Any
+		// Forbidden Palace in the new capital stays: its effects stack with the
+		// capital's. Returns the new capital, or null if there was nothing to do.
+		public static City RelocateCapitalIfLost(Player owner, Building palace) {
+			if (owner.cities.Count == 0 || owner.cities.Any(c => c.IsCapital())) {
+				return null;
+			}
+			City newCapital = ChooseNewCapital(owner);
+			newCapital.capital = true;
+			if (palace != null && !newCapital.constructed_buildings.Any(b => b.building == palace)) {
+				newCapital.AddBuilding(palace);
+			}
+			log.Information($"{owner.civilization?.name} lost its capital; the palace moves to {newCapital.name}");
+			return newCapital;
 		}
 	}
 }

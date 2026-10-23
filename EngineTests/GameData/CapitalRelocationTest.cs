@@ -56,15 +56,7 @@ public class CapitalRelocationTest {
 	[Fact]
 	public void OwnCitizensScoreThreeAndForeignCitizensOne() {
 		City city = AddCity("Mixed", 0, citizens: 4, foreignCitizens: 2);
-		Assert.Equal(4 * 3 + 2 * 1, player.CapitalScore(city));
-	}
-
-	[Fact]
-	public void CitizensWithoutANationalityCountAsOurs() {
-		// A city's first citizen is created without a nationality.
-		City city = AddCity("Founded", 0, citizens: 0);
-		city.residents.Add(new CityResident { city = city });
-		Assert.Equal(3, player.CapitalScore(city));
+		Assert.Equal(4 * 3 + 2 * 1, CityInteractions.CapitalScore(player, city));
 	}
 
 	[Fact]
@@ -73,7 +65,7 @@ public class CapitalRelocationTest {
 		AddCity("Town", 2, citizens: 6);         // 1 point (sizes 1-6)
 		AddCity("City", 4, citizens: 7);         // 2 points (sizes 7-12)
 		AddCity("Metropolis", 6, citizens: 13);  // 3 points (sizes 13+)
-		Assert.Equal(3 + 1 + 2 + 3, player.CapitalScore(city));
+		Assert.Equal(3 + 1 + 2 + 3, CityInteractions.CapitalScore(player, city));
 	}
 
 	[Fact]
@@ -81,7 +73,26 @@ public class CapitalRelocationTest {
 		City city = AddCity("Center", 0, citizens: 1);
 		AddCity("Eight away", 8, citizens: 1);
 		AddCity("Nine away", 9, citizens: 1);
-		Assert.Equal(3 + 1, player.CapitalScore(city));
+		Assert.Equal(3 + 1, CityInteractions.CapitalScore(player, city));
+	}
+
+	[Fact]
+	public void TheNeighborDistanceComesFromTheRules() {
+		player.rules.CapitalNeighborDistance = 3;
+		City city = AddCity("Center", 0, citizens: 1);
+		AddCity("Three away", 3, citizens: 1);
+		AddCity("Four away", 4, citizens: 1);
+		Assert.Equal(3 + 1, CityInteractions.CapitalScore(player, city));
+	}
+
+	[Fact]
+	public void CitySizeLevelsFollowTheRules() {
+		player.rules.MaximumLevel1CitySize = 3;
+		player.rules.MaximumLevel2CitySize = 5;
+		Assert.Equal(1, AddCity("Town", 0, citizens: 3).SizeLevel());
+		Assert.Equal(2, AddCity("City", 20, citizens: 4).SizeLevel());
+		Assert.Equal(2, AddCity("Bigger city", 40, citizens: 5).SizeLevel());
+		Assert.Equal(3, AddCity("Metropolis", 60, citizens: 6).SizeLevel());
 	}
 
 	[Fact]
@@ -89,7 +100,7 @@ public class CapitalRelocationTest {
 		map.wrapHorizontally = true;
 		City west = AddCity("West edge", 0, citizens: 1);
 		AddCity("East edge", 97, citizens: 1);  // 3 tiles away across the seam
-		Assert.Equal(3 + 1, player.CapitalScore(west));
+		Assert.Equal(3 + 1, CityInteractions.CapitalScore(player, west));
 	}
 
 	[Fact]
@@ -99,7 +110,7 @@ public class CapitalRelocationTest {
 		AddUnit(city, attack: 0, defense: 2);
 		AddUnit(city, attack: 0, defense: 0);  // a worker
 		AddUnit(city, attack: 2, defense: 1, owner: new Player());
-		Assert.Equal(3 + 2, player.CapitalScore(city));
+		Assert.Equal(3 + 2, CityInteractions.CapitalScore(player, city));
 	}
 
 	// The article's example (in the article's own 1/3-point scale): Kyoto,
@@ -117,17 +128,17 @@ public class CapitalRelocationTest {
 		}
 		AddCity("Too far from Neapolis", 69, citizens: 1);
 
-		Assert.Equal(18, player.CapitalScore(kyoto));
-		Assert.Equal(17, player.CapitalScore(neapolis));
-		Assert.Same(kyoto, player.ChooseNewCapital());
+		Assert.Equal(18, CityInteractions.CapitalScore(player, kyoto));
+		Assert.Equal(17, CityInteractions.CapitalScore(player, neapolis));
+		Assert.Same(kyoto, CityInteractions.ChooseNewCapital(player));
 	}
 
 	[Fact]
 	public void TiesGoToTheFirstCityFounded() {
 		City older = AddCity("Older", 0, citizens: 3);
 		City newer = AddCity("Newer", 20, citizens: 3);
-		Assert.Equal(player.CapitalScore(older), player.CapitalScore(newer));
-		Assert.Same(older, player.ChooseNewCapital());
+		Assert.Equal(CityInteractions.CapitalScore(player, older), CityInteractions.CapitalScore(player, newer));
+		Assert.Same(older, CityInteractions.ChooseNewCapital(player));
 	}
 
 	[Fact]
@@ -136,7 +147,7 @@ public class CapitalRelocationTest {
 		City small = AddCity("Small", 0, citizens: 2);
 		City big = AddCity("Big", 20, citizens: 5);
 
-		City newCapital = player.RelocateCapitalIfLost(palace);
+		City newCapital = CityInteractions.RelocateCapitalIfLost(player, palace);
 
 		Assert.Same(big, newCapital);
 		Assert.True(big.IsCapital());
@@ -151,7 +162,7 @@ public class CapitalRelocationTest {
 		City city = AddCity("Second city", 0, citizens: 5);
 		city.AddBuilding(forbiddenPalace);
 
-		player.RelocateCapitalIfLost(palace);
+		CityInteractions.RelocateCapitalIfLost(player, palace);
 
 		Assert.True(city.IsCapital());
 		Assert.Contains(city.constructed_buildings, b => b.building == forbiddenPalace);
@@ -165,7 +176,7 @@ public class CapitalRelocationTest {
 		capital.capital = true;
 		City bigger = AddCity("Bigger", 20, citizens: 10);
 
-		Assert.Null(player.RelocateCapitalIfLost(palace));
+		Assert.Null(CityInteractions.RelocateCapitalIfLost(player, palace));
 		Assert.True(capital.IsCapital());
 		Assert.False(bigger.IsCapital());
 		Assert.Empty(bigger.constructed_buildings);
@@ -173,13 +184,13 @@ public class CapitalRelocationTest {
 
 	[Fact]
 	public void NothingHappensWithNoCitiesLeft() {
-		Assert.Null(player.RelocateCapitalIfLost(MakeBuilding("Palace", isCenterOfEmpire: true)));
+		Assert.Null(CityInteractions.RelocateCapitalIfLost(player, MakeBuilding("Palace", isCenterOfEmpire: true)));
 	}
 
 	[Fact]
 	public void CapitalStillMovesWhenTheRulesetHasNoPalace() {
 		City city = AddCity("Only city", 0, citizens: 1);
-		Assert.Same(city, player.RelocateCapitalIfLost(null));
+		Assert.Same(city, CityInteractions.RelocateCapitalIfLost(player, null));
 		Assert.True(city.IsCapital());
 		Assert.Empty(city.constructed_buildings);
 	}
