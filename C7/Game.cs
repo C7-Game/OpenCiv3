@@ -974,6 +974,12 @@ public partial class Game : Node {
 		});
 	}
 
+	private void ToggleRevealMap() {
+		EngineStorage.ReadGameData((GameData gameData) => {
+			gameData.revealMap = !gameData.revealMap;
+		});
+	}
+
 	private void SetObserverModeOn(GameData gameData) {
 		foreach (Player player in gameData.players) {
 			player.isHuman = false;

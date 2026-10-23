@@ -92,6 +92,14 @@ public partial class Game {
 		};
 		options.Add(preferencesBtn);
 
+		if (DeveloperSettings.GetDeveloper()) {
+			var devToolsBtn = new ButtonAction() {
+				message = "Dev Tools",
+				action = () => EmitDevToolsMenuSignal(),
+			};
+			options.Add(devToolsBtn);
+		}
+
 		var retireBtn = new ButtonAction() {
 			message = "Retire (Ctrl-Q)",
 			action = () => EmitRetireConfirmationSignal(),
@@ -705,6 +713,66 @@ public partial class Game {
 			new OptionsPopUp(
 				controller.id,
 				"Map Options",
+				null,
+				options,
+				Advisor.None,
+				Mood.None,
+				hSize: 350,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	public void EmitDevToolsMenuSignal(bool selectRevealMap = false) {
+		var options = new List<ButtonAction>();
+
+		bool observerMode = false;
+		bool revealMap = false;
+		EngineStorage.ReadGameData((GameData gameData) => {
+			observerMode = gameData.observerMode;
+			revealMap = gameData.revealMap;
+		});
+
+		var observerModeBtn = new ButtonAction() {
+			message = $"Observer Mode (Ctrl+Shift+Alt+O): {(observerMode ? "On" : "Off")}",
+			action = () => {
+				bool wasOn = false;
+				EngineStorage.ReadGameData((GameData gameData) => {
+					wasOn = gameData.observerMode;
+				});
+				ToggleObserverMode();
+				// Enabling observer mode opens the fast-forward dialog, so only
+				// re-open the menu when disabling to refresh the label
+				if (wasOn) {
+					EmitDevToolsMenuSignal();
+				}
+			},
+			pressed = !selectRevealMap,
+		};
+		options.Add(observerModeBtn);
+
+		var revealMapBtn = new ButtonAction() {
+			message = $"Reveal Map: {(revealMap ? "On" : "Off")}",
+			action = () => {
+				ToggleRevealMap();
+				// Re-open dev tools menu to reflect updated state, keeping
+				// this row selected
+				EmitDevToolsMenuSignal(selectRevealMap: true);
+			},
+			pressed = selectRevealMap,
+		};
+		options.Add(revealMapBtn);
+
+		var backBtn = new ButtonAction() {
+			message = "Back",
+			action = () => EmitGameMainMenuSignal(),
+		};
+		options.Add(backBtn);
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Dev Tools",
 				null,
 				options,
 				Advisor.None,
