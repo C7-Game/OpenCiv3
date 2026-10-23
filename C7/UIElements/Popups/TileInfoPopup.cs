@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using C7Engine;
 using C7GameData;
 using Godot;
@@ -15,8 +16,8 @@ public partial class TileInfoPopup : Popup {
 	private TextureButton closeButton = new();
 
 	private Label terrainLabel = new();
-	private Label overlayLabel = new();
 	private Label resourceLabel = new();
+	private Label featuresLabel = new();
 
 	private Label foodLabel = new();
 	private Label shieldLabel = new();
@@ -35,7 +36,7 @@ public partial class TileInfoPopup : Popup {
 		margins = new Margins();
 		alignment = BoxContainer.AlignmentMode.Begin;
 
-		_labels.AddRange([terrainLabel, overlayLabel, resourceLabel, foodLabel, shieldLabel, goldLabel]);
+		_labels.AddRange([terrainLabel, resourceLabel, featuresLabel, foodLabel, shieldLabel, goldLabel]);
 
 		InitBoxTexture();
 		InitCloseButton();
@@ -79,13 +80,13 @@ public partial class TileInfoPopup : Popup {
 		closeButton.SetScale(scale);
 
 		// Re-position labels
-		var xStep = 100 * _zoom;
+		var xStep = 140 * _zoom;
 		var yStep = 15 * _zoom;
 		var contentOffset = new Vector2(25, 105) * _zoom;
 		var contentAnchor = boxTextureRect.Position + contentOffset;
 		terrainLabel.SetPosition(contentAnchor + new Vector2(0, 0));
-		overlayLabel.SetPosition(contentAnchor + new Vector2(0, yStep));
-		resourceLabel.SetPosition(contentAnchor + new Vector2(0, 2 * yStep));
+		resourceLabel.SetPosition(contentAnchor + new Vector2(0, yStep));
+		featuresLabel.SetPosition(contentAnchor + new Vector2(0, 2 * yStep));
 		foodLabel.SetPosition(contentAnchor + new Vector2(xStep, 0));
 		shieldLabel.SetPosition(contentAnchor + new Vector2(xStep, yStep));
 		goldLabel.SetPosition(contentAnchor + new Vector2(xStep, 2 * yStep));
@@ -113,23 +114,30 @@ public partial class TileInfoPopup : Popup {
 		var isObserverMode = gameData.observerMode;
 
 		if (player.tileKnowledge.isTileKnown(tile) || isObserverMode) {
-			terrainLabel.Text = tile.baseTerrainType?.DisplayName ?? "";
-			overlayLabel.Text = tile.overlayTerrainType?.DisplayName ?? "";
-			resourceLabel.Text = tile.Resource?.Name ?? "";
+			if (tile.baseTerrainType == tile.overlayTerrainType) {
+				terrainLabel.Text = tile.baseTerrainType?.DisplayName ?? "";
+			} else {
+				terrainLabel.Text = string.Join(" ", tile.baseTerrainType?.DisplayName, tile.overlayTerrainType?.DisplayName);
+			}
+			resourceLabel.Text = tile.Resource?.Name ?? (tile.isBonusShield ? "Bonus" : "");
+			featuresLabel.Text = string.Join(", ", new string[] {
+				tile.OwningPlayer()?.civilization.adjective,
+				tile.hasHadForestCleared ? "Cleared" : null,
+				(tile.isFreshWater || tile.IsLand() && (tile.BordersRiver() || tile.NeighborsFreshWater())) ? "Freshwater" : null,
+				(tile.IsWater() && !tile.isFreshWater) ? "Saltwater" : null,
+				(tile.IsLand() && tile.NeighborsOcean()) ? "Coastal" : null
+			}.Where(s => !string.IsNullOrEmpty(s)));
 			foodLabel.Text = $"Food: {tile.FoodYield(player).baseYield}";
 			shieldLabel.Text = $"Shields: {tile.ProductionYield(player).baseYield}";
 			goldLabel.Text = $"Gold: {tile.CommerceYield(player).baseYield}";
-
-			if (tile.baseTerrainType == tile.overlayTerrainType)
-				overlayLabel.Text = "";
 
 			if (tile.Resource != null && !player.KnowsAboutResource(tile.Resource) && !isObserverMode)
 				resourceLabel.Text = "";
 
 		} else {
 			terrainLabel.Text = "";
-			overlayLabel.Text = "No information available";
-			resourceLabel.Text = "";
+			resourceLabel.Text = "No information available";
+			featuresLabel.Text = "";
 			foodLabel.Text = "";
 			shieldLabel.Text = "";
 			goldLabel.Text = "";
