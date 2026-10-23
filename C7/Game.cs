@@ -650,6 +650,10 @@ public partial class Game : Node {
 	}
 
 	public override void _Input(InputEvent @event) {
+		if ((HasVisibleModal() && !IsModalSwitchEvent(@event)) || CurrentState == GameState.ComputerTurn) {
+			return;
+		}
+
 		if (@event is InputEventKey e && e.Pressed && !e.IsAction(C7Action.UnitGoto)) {
 			this.SetGotoMode(false);
 		}
@@ -660,6 +664,14 @@ public partial class Game : Node {
 		if ((HasVisibleModal() && !IsModalSwitchEvent(@event)) || CurrentState == GameState.ComputerTurn) {
 			IsMovingCamera = false;
 			return;
+		}
+
+		// If a text input has focus, don't send keys/mouse actions to the game
+		if (@event is InputEventKey || @event is InputEventMouseButton) {
+			Control focusOwner = GetViewport().GuiGetFocusOwner();
+			if (focusOwner is LineEdit || focusOwner is TextEdit) {
+				return;
+			}
 		}
 
 		// Control node must not be in the way and/or have mouse pass enabled
@@ -1030,6 +1042,12 @@ public partial class Game : Node {
 			return true;
 
 		if (advisor.Visible || gameViews.Visible || preferences.Visible)
+			return true;
+
+		if (FileDialog != null && FileDialog.Visible)
+			return true;
+
+		if (interactablePopUpController != null && interactablePopUpController.Visible)
 			return true;
 
 		return false;
