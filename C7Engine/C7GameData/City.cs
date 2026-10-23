@@ -178,6 +178,18 @@ namespace C7GameData {
 			return gameData.GetTradeNetwork().GetResourcesAvailableToCity(owner, this).Keys.ToHashSet();
 		}
 
+		// 1 for a town, 2 for a city, 3 for a metropolis, by the rules' size limits.
+		public int SizeLevel() {
+			Rules rules = owner.rules;
+			if (residents.Count <= rules.MaximumLevel1CitySize) {
+				return 1;
+			} else if (residents.Count <= rules.MaximumLevel2CitySize) {
+				return 2;
+			} else {
+				return 3;
+			}
+		}
+
 		public int FoodNeededToGrow() {
 			Rules rules = owner.rules;
 			if (residents.Count <= rules.MaximumLevel1CitySize) {

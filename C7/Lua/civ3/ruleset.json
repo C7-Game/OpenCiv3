@@ -11480,6 +11480,7 @@
     "turnPenaltyForEachHurrySacrifice": 20,
     "maximumLevel1CitySize": 6,
     "maximumLevel2CitySize": 12,
+    "capitalNeighborDistance": 8,
     "foodNeededToGrowForLevel1Cities": 20,
     "foodNeededToGrowForLevel2Cities": 40,
     "foodNeededToGrowForLevel3Cities": 60,
