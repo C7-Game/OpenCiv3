@@ -11489,6 +11489,7 @@
     "scoutUnitType": "Scout",
     "maxRankOfWorkableTiles": 2,
     "maxRankOfBarbarianCampTiles": 2,
+    "barbarianCampGold": 25,
     "defaultDealDuration": 20,
     "treasuryInterestRate": 0.05,
     "maxInterest": 50,

@@ -37,10 +37,10 @@ public partial class MapUnit {
 			tile.hasBarbarianCamp = false;
 			animate(MapUnit.AnimatedAction.VICTORY);
 
-			// TODO: make this configurable
-			owner.gold += 25;
+			int gold = owner.rules.BarbarianCampGold;
+			owner.gold += gold;
 			if (owner.isHuman) {
-				new MsgShowMilitaryAdvisorPopup($"We cleared a barbarian encampment and earned 25 gold!", happy: true).send();
+				new MsgBarbarianCampDispersed(owner.id, gold).send();
 			}
 		}
 
