@@ -538,24 +538,21 @@ namespace C7GameData {
 			return IsLoadable() && IsLoaded() && tile.IsLand();
 		}
 
-		private MapUnit SelectTransportToBoard(Tile tile) {
-			// TODO: Let human player choose via UI which transport to load unit in
-
-			var availableTransports = tile.unitsOnTile
-				.Where(u => u.CanTransport())
-				.Where(u => !u.IsFull());
-
+		/// <summary>
+		/// The transports on the tile that this unit can board, best candidate first.
+		/// </summary>
+		internal List<MapUnit> GetTransportsToBoard(Tile tile) {
 			// Sort candidates by free capacity, but prefer transports that already have units
-			availableTransports = availableTransports
+			return tile.unitsOnTile
+				.Where(u => u.CanTransport() && u.CanLoad(this))
 				.OrderBy(t => !t.IsEmpty())
-				.ThenByDescending(t => t.FreeCapacity());
+				.ThenByDescending(t => t.FreeCapacity())
+				.ToList();
+		}
 
-			foreach (var transport in availableTransports) {
-				if (transport.CanLoad(this))
-					return transport;
-			}
-
-			return null;
+		private MapUnit SelectTransportToBoard(Tile tile) {
+			// TODO: Let the human player choose when moving onto a tile with several transports
+			return GetTransportsToBoard(tile).FirstOrDefault();
 		}
 
 		private MapUnit FindTransportToUnboard(Tile tile, ID transport) {

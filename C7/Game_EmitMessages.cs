@@ -492,6 +492,35 @@ public partial class Game {
 		));
 	}
 
+	private void EmitSelectTransportSignal(MsgSelectTransport msg) {
+		var options = new List<ButtonAction>();
+
+		EngineStorage.ReadGameData(data => {
+			foreach (MapUnit transport in msg.transports) {
+				var capacity = transport.unitType.capacity;
+				options.Add(new ButtonAction() {
+					message = $"{transport.GetDisplayName()} ({capacity - transport.FreeCapacity()}/{capacity})",
+					action = () => {
+						new MsgLoadToTransport(msg.unit.id, transport.id).send();
+					}
+				});
+			}
+		});
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Transports",
+				$"Select a transport for the {msg.unit.GetDisplayName()}.",
+				options,
+				Advisor.None,
+				Mood.None,
+				hSize: 350,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
 	private void EmitAlreadyInRevolutionSignal(MsgAlreadyInRevolution msg) {
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(
