@@ -240,6 +240,48 @@ public partial class Game : Node {
 			await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
 		}
 
+		try {
+			if (Global.LoadGamePath == null) {
+				try {
+					Autosave.ClearAutosaveDirectory();
+				} catch {
+				}
+			}
+			Autosave.PerformAutosave();
+			if (Global.LoadGamePath == null) {
+				try {
+					int turn = TurnHandling.GetTurnNumber();
+					if (turn == 0) {
+						string autoDir = SaveNameGenerator.GetAutosaveDirectory();
+						string pattern = "-Turn 000-";
+						foreach (string f in System.IO.Directory.GetFiles(autoDir, "*.json")) {
+							if (System.IO.Path.GetFileName(f).Contains(pattern)) {
+								C7Engine.C7Settings.SetLastWorldSave(f);
+								break;
+							}
+						}
+					}
+				} catch {
+				}
+			} else {
+				try {
+					int turn = TurnHandling.GetTurnNumber();
+					if (turn == 0) {
+						string autoDir = SaveNameGenerator.GetAutosaveDirectory();
+						string pattern = "-Turn 000-";
+						foreach (string f in System.IO.Directory.GetFiles(autoDir, "*.json")) {
+							if (System.IO.Path.GetFileName(f).Contains(pattern)) {
+								C7Engine.C7Settings.SetLastWorldSave(f);
+								break;
+							}
+						}
+					}
+				} catch {
+				}
+			}
+		} catch {
+		}
+
 		Global.ResetLoadGameFields();
 	}
 
@@ -563,6 +605,12 @@ public partial class Game : Node {
 			// once they have a city.
 			PromptForResearchIfNeeded();
 
+			// Autosave at start of player turn
+			try {
+				Autosave.PerformAutosave();
+			} catch {
+			}
+
 			// Allow fast forwarding in observer mode.
 			if (gameData.observerMode && turnsLeftToFastForward > 0) {
 				--turnsLeftToFastForward;
@@ -617,16 +665,39 @@ public partial class Game : Node {
 	}
 
 	public void OnSaveGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForSaving(@"Conquests/Saves");
+		string saveDir = C7Engine.C7Settings.GetSaveFolder();
+		try {
+			if (!System.IO.Directory.Exists(saveDir)) {
+				System.IO.Directory.CreateDirectory(saveDir);
+			}
+		} catch {
+		}
+		FileDialog.SetDirectoryForSavingAbsolute(saveDir);
+
+		string fileName = null;
+		EngineStorage.ReadGameData((GameData gameData) => {
+			fileName = C7Engine.SaveNameGenerator.GenerateSaveFileName(gameData, controller);
+		});
+		if (!string.IsNullOrEmpty(fileName)) {
+			FileDialog.SetSaveFileName(fileName);
+		}
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
 	}
 
 	public void OnLoadGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForLoading(@"Conquests/Saves");
+		try {
+			FileDialog.SetupForLoadWithLatestSave();
+		} catch {
+			try {
+				string saveDir = C7Engine.C7Settings.GetSaveFolder();
+				if (!string.IsNullOrEmpty(saveDir)) {
+					FileDialog.SetDirectoryForSavingAbsolute(saveDir);
+				}
+			} catch {
+			}
+		}
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();

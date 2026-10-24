@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://clv4mgavtlrul" path="res://UIElements/Civ3HSlider.cs" id="4_slider"]
 [ext_resource type="Script" uid="uid://dcrdcjop64t6t" path="res://UIElements/Civ3TextureButton.cs" id="5_close"]
 
-[node name="Preferences" type="CenterContainer" node_paths=PackedStringArray("promptForResearch", "masterVolume", "musicVolume", "sfxVolume", "uiVolume", "ambienceVolume", "masterVolumeLabel", "musicVolumeLabel", "sfxVolumeLabel", "uiVolumeLabel", "ambienceVolumeLabel", "masterVolumeRow", "musicVolumeRow", "sfxVolumeRow", "uiVolumeRow", "ambienceVolumeRow", "close", "background")]
+[node name="Preferences" type="CenterContainer" node_paths=PackedStringArray("promptForResearch", "masterVolume", "musicVolume", "sfxVolume", "uiVolume", "ambienceVolume", "masterVolumeLabel", "musicVolumeLabel", "sfxVolumeLabel", "uiVolumeLabel", "ambienceVolumeLabel", "masterVolumeRow", "musicVolumeRow", "sfxVolumeRow", "uiVolumeRow", "ambienceVolumeRow", "autosaveToggle", "autosaveCount", "autosaveLabel", "autosaveRow", "close", "background")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -14,7 +14,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 script = ExtResource("1_prefs")
-promptForResearch = NodePath("Background/Rows/GameSection/GameGrid/PromptForResearch")
+promptForResearch = NodePath("Background/Rows/GameSection/GameGrid/GameFirstCol/PromptForResearch")
 masterVolume = NodePath("Background/Rows/AudioSection/MasterVolumeRow/MasterVolume")
 musicVolume = NodePath("Background/Rows/AudioSection/MusicVolumeRow/MusicVolume")
 sfxVolume = NodePath("Background/Rows/AudioSection/SfxVolumeRow/SfxVolume")
@@ -30,6 +30,10 @@ musicVolumeRow = NodePath("Background/Rows/AudioSection/MusicVolumeRow")
 sfxVolumeRow = NodePath("Background/Rows/AudioSection/SfxVolumeRow")
 uiVolumeRow = NodePath("Background/Rows/AudioSection/UiVolumeRow")
 ambienceVolumeRow = NodePath("Background/Rows/AudioSection/AmbienceVolumeRow")
+autosaveToggle = NodePath("Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow/AutosaveToggle")
+autosaveCount = NodePath("Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow/AutosaveCount")
+autosaveLabel = NodePath("Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow/AutosaveLabel")
+autosaveRow = NodePath("Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow")
 close = NodePath("Background/Close")
 background = NodePath("Background")
 
@@ -68,13 +72,41 @@ size_flags_horizontal = 3
 mouse_filter = 0
 columns = 3
 
-[node name="PromptForResearch" type="CheckBox" parent="Background/Rows/GameSection/GameGrid"]
+[node name="GameFirstCol" type="VBoxContainer" parent="Background/Rows/GameSection/GameGrid"]
+	layout_mode = 2
+	mouse_filter = 0
+	theme_override_constants/separation = 2
+
+[node name="PromptForResearch" type="CheckBox" parent="Background/Rows/GameSection/GameGrid/GameFirstCol"]
 custom_minimum_size = Vector2(212, 18)
 layout_mode = 2
 size_flags_horizontal = 0
 script = ExtResource("3_checkbox")
 Text = "Ask which tech to research next"
-FontSize = 13
+FontSize = 11
+
+[node name="AutosaveRow" type="HBoxContainer" parent="Background/Rows/GameSection/GameGrid/GameFirstCol"]
+	layout_mode = 2
+	mouse_filter = 0
+	theme_override_constants/separation = 8
+
+[node name="AutosaveToggle" type="CheckBox" parent="Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow"]
+	custom_minimum_size = Vector2(18, 18)
+	layout_mode = 2
+	script = ExtResource("3_checkbox")
+
+[node name="AutosaveLabel" type="Label" parent="Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow"]
+	layout_mode = 2
+	mouse_filter = 0
+	theme_override_colors/font_color = Color(0.129412, 0.0980392, 0.054902, 1)
+	theme_override_font_sizes/font_size = 13
+	text = "Number of autosaves"
+
+[node name="AutosaveCount" type="LineEdit" parent="Background/Rows/GameSection/GameGrid/GameFirstCol/AutosaveRow"]
+	custom_minimum_size = Vector2(30, 18)
+	layout_mode = 2
+	text = "5"
+	max_length = 2
 
 [node name="UnitsSection" type="VBoxContainer" parent="Background/Rows"]
 layout_mode = 2
