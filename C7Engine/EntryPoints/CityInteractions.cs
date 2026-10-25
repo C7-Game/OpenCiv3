@@ -42,6 +42,8 @@ namespace C7Engine {
 			// may change rank corruption values.
 			owner.DoCorruptionCalculations(gameData);
 
+			new MsgShowTemporaryPopup(owner.id, $"{newCity.name} founded: {gameData.timeOptions.GetDisplayTime(TurnHandling.GetTurnNumber())}", newCity.location).send();
+
 			return newCity;
 		}
 

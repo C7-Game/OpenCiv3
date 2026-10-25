@@ -255,10 +255,12 @@ namespace C7Engine {
 	}
 
 	public class MsgShowTemporaryPopup : MessageToUI {
+		public ID controllerId;
 		public string message;
 		public Tile location;
 
-		public MsgShowTemporaryPopup(string message, Tile location) {
+		public MsgShowTemporaryPopup(ID receiver, string message, Tile location) {
+			this.controllerId = receiver;
 			this.message = message;
 			this.location = location;
 		}

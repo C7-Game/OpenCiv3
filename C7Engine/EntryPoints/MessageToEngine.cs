@@ -443,7 +443,7 @@ namespace C7Engine {
 			this.worker.resetWorkerJob();
 			this.worker.isAutomated = false;
 			if (!this.worker.movementPoints.canMove)
-				new MsgShowTemporaryPopup("This unit has already moved.", this.worker.location).send();
+				new MsgShowTemporaryPopup(this.worker.owner.id, "This unit has already moved.", this.worker.location).send();
 		}
 	}
 
