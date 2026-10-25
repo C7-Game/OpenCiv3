@@ -655,6 +655,11 @@ public partial class MapView : Node2D {
 	private LowerRightInfoBox lowerRightInfoBox;
 	private MiniMap miniMap;
 
+	public enum CameraPosition {
+		Absolute, // means that the camera does not respect the wrapping of the world
+		Relative  // means the camera respects the wrapping of the world, or lack thereof, not allowing to go off limits
+	}
+
 	public override void _Ready() {
 		lowerRightInfoBox = GetNode<LowerRightInfoBox>("/root/C7Game/CanvasLayer/Control/GameStatus/LowerRightInfoBox");
 		lowerRightInfoBox.game = game;
@@ -787,13 +792,13 @@ public partial class MapView : Node2D {
 		setCameraLocation(cameraLocation + offset);
 	}
 
-	public void setCameraLocation(Vector2 location) {
+	public void setCameraLocation(Vector2 location, CameraPosition cameraPosition = CameraPosition.Relative) {
 		// Prevent the camera from moving beyond an unwrapped edge of the map. One complication here is that the viewport might actually be
 		// larger than the map (if we're zoomed far out) so in that case we must apply the constraint the other way around, i.e. constrain the
 		// map to the viewport rather than the viewport to the map.
 		Vector2 visAreaSize = getVisibleAreaSize();
 		Vector2 mapPixelSize = new Vector2(cameraZoom, cameraZoom) * (new Vector2(cellSize.X * (mapWidth + 1), cellSize.Y * (mapHeight + 1)));
-		if (!wrapHorizontally) {
+		if (cameraPosition == CameraPosition.Relative && !wrapHorizontally) {
 			float leftLim, rightLim;
 			{
 				if (mapPixelSize.X >= visAreaSize.X) {
@@ -809,7 +814,7 @@ public partial class MapView : Node2D {
 			else if (location.X > rightLim)
 				location.X = rightLim;
 		}
-		if (!wrapVertically) {
+		if (cameraPosition == CameraPosition.Relative && !wrapVertically) {
 			// These margins allow the player to move the camera that far off those map edges so that the UI controls don't cover up the
 			// map. TODO: These values should be read from the sizes of the UI elements instead of hardcoded.
 			float topMargin = 70, bottomMargin = 140;
@@ -880,9 +885,9 @@ public partial class MapView : Node2D {
 		return map.tileAt(X, Y);
 	}
 
-	public void centerCameraOnTile(Tile t) {
+	public void centerCameraOnTile(Tile t, CameraPosition cameraPosition = CameraPosition.Relative) {
 		var tileCenter = new Vector2(t.XCoordinate + 1, t.YCoordinate + 1) * scaledCellSize;
-		setCameraLocation(tileCenter - (float)0.5 * getVisibleAreaSize());
+		setCameraLocation(tileCenter - (float)0.5 * getVisibleAreaSize(), cameraPosition);
 	}
 
 	public void OnCenterCameraOnUnit() {

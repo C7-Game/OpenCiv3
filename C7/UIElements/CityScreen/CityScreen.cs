@@ -80,6 +80,8 @@ public partial class CityScreen : Control {
 
 	private Dictionary<string, ImageTexture> effectIcons = new();
 
+	private City lastInspectedCity; // the last city a player zoomed in
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
 		background.Texture = TextureLoader.Load("city_screen.background");
@@ -289,7 +291,8 @@ public partial class CityScreen : Control {
 
 	private void OnShowCityScreenLocked(GameData gameData, ParameterWrapper<City> city) {
 		this.Show();
-		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH]);
+		lastInspectedCity = city.Value;
+		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH], MapView.CameraPosition.Absolute);
 		tileAssignmentLayer.city = city.Value;
 		cityName.Text = city.Value.name;
 		RenderPopHeads(city.Value);
@@ -305,6 +308,7 @@ public partial class CityScreen : Control {
 	private void OnExit() {
 		productionMenu.Hide();
 		tileAssignmentLayer.city = null;
+		mapView.centerCameraOnTile(lastInspectedCity.location.neighbors[TileDirection.SOUTH]);
 	}
 
 	private void RenderStrategicResources(GameData gameData, City city) {
