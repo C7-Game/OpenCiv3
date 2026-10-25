@@ -39,7 +39,7 @@ Licensed under The MIT License available at [https://godotengine.org/license](ht
 This product contains 'Blast'  
 [https://github.com/jamestelfer/Blast](https://github.com/jamestelfer/Blast)  
 Copyright 2012 James Telfer  
-Licensed under Apache License, Version 2.0 available at [https://github.com/jamestelfer/Blast/blob/master/LICENSE.md]  (https://github.com/jamestelfer/Blast/blob/master/LICENSE.md)
+Licensed under Apache License, Version 2.0 available at [https://github.com/jamestelfer/Blast/blob/master/LICENSE.md](https://github.com/jamestelfer/Blast/blob/master/LICENSE.md)  
 
 ---
 
