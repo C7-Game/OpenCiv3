@@ -24,7 +24,8 @@ The latest stable version with installation instructions and a full list of new 
 ### System Requirements
 
 - 64-bit Windows, Linux, or Mac OS. Other platforms may be supported in future releases.
-- Minimum hardware requirements have not yet been identified. Please let us know if OpenCiv3 does not perform well on your system.
+- Minimum hardware requirements have not yet been identified. Refer to [Godot's system requirements](https://docs.godotengine.org/en/stable/about/system_requirements.html#exported-godot-project) as a baseline. Please let us know if OpenCiv3 does not perform well on your system, or how it does on a particularly old system.
+- Currently the OpenCiv3 installation is about 200-300 Mb but this is expected to increase significantly as we add media.
 - Recommended: A locally installed copy (the game itself does NOT have to run) of _Civilization III Conquests_ or _Complete_ edition. Standalone mode is available with placeholder graphics for those who do not have a copy.
   - _Civilization III Complete_ is available for a pittance from [Steam](https://store.steampowered.com/app/3910/Sid_Meiers_Civilization_III_Complete/) or [GOG](https://www.gog.com/en/game/sid_meiers_civilization_iii_complete)
 
