@@ -180,7 +180,7 @@ jobs:
         cp LICENSE ${PROJECT_DIR}/LICENSE
 
         cd ${PROJECT_DIR}
-        if zip -r ../build/${FOLDER_NAME}.zip Assets Text Lua
+        if zip -r ../build/${FOLDER_NAME}.zip Assets Text Lua LICENSE
         then
           echo "successfully copied static files to build"
         else
