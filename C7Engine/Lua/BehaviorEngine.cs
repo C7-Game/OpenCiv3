@@ -52,6 +52,41 @@ public class BehaviorEngine {
 		return (T)(object)del;
 	}
 
+	/// Loads a Lua function the same way as ImportFunc, but returns false
+	/// instead of throwing when the path does not resolve to a function, so
+	/// callers can make a function optional.
+	public bool TryImportFunc<T>(string functionPath, out T func) where T : Delegate {
+		if (string.IsNullOrEmpty(functionPath)) {
+			func = null;
+			return false;
+		}
+
+		if (funcCache.TryGetValue(functionPath, out Delegate cachedFunc)) {
+			func = (T)(object)cachedFunc;
+			return true;
+		}
+
+		if (script == null || rules == null) {
+			func = null;
+			return false;
+		}
+
+		Closure closure;
+		try {
+			closure = ResolveFunctionPath(functionPath);
+		} catch (ArgumentException) {
+			func = null;
+			return false;
+		}
+
+		Delegate del = DelegateConverter.CreateDelegate(script, closure, typeof(T));
+
+		funcCache[functionPath] = del;
+
+		func = (T)(object)del;
+		return true;
+	}
+
 	Closure ResolveFunctionPath(string functionPath) {
 		string[] parts = functionPath.Split('.');
 		Table current = rules;

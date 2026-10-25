@@ -11495,7 +11495,16 @@
     "shieldCostPerGold": 4,
     "shieldRateForDisbanding": 0.25,
     "allowLesserUnitProduction": false,
-    "radarTileVisibility": 2
+    "radarTileVisibility": 2,
+    "ageBonus": {
+      "enabled": true,
+      "yearsToDouble": 1000,
+      "multiplier": 2,
+      "repeatable": false,
+      "appliesToWonders": true,
+      "appliesToImprovements": true,
+      "luaFunctionPath": "gameplay.culture.age_bonus_multiplier"
+    }
   },
   "timeOptions": {
     "baseUnit": "years",

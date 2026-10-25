@@ -130,6 +130,12 @@ gameplay = {
     display_text = function(context)
       return get_display_time_text(context)
     end,
+  },
+  culture = {
+    -- Context = AgeBonusContext
+    age_bonus_multiplier = function(context)
+      return context.baseMultiplier
+    end,
   }
 }
 

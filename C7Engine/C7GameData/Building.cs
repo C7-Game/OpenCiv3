@@ -139,6 +139,9 @@ namespace C7GameData {
 		// onFinishedUnitProduction, which City.AddUnit applies to new units.
 		public bool providesVeteranGroundUnits;
 
+		// Opts this building out of the age bonus. See AgeBonusRules.
+		public bool noAgeBonus;
+
 		// Wonder flags, shared by small and great wonders. Use HasWonderFlag.
 		//
 		// Implemented flags:
@@ -247,6 +250,7 @@ namespace C7GameData {
 			doublesSacrifice = building.flags.Contains(SaveBuilding.Flag.DoublesSacrifice);
 			continentalMoodEffects = building.flags.Contains(SaveBuilding.Flag.ContinentalMoodEffects);
 			providesVeteranGroundUnits = building.flags.Contains(SaveBuilding.Flag.VeteranGroundUnits);
+			noAgeBonus = building.flags.Contains(SaveBuilding.Flag.NoAgeBonus);
 
 			wonderFlags = new(building.wonderFlags);
 
@@ -260,6 +264,11 @@ namespace C7GameData {
 		[LuaMethod]
 		public bool IsGreatWonder() {
 			return this.greatWonderProperties != null;
+		}
+
+		[LuaMethod]
+		public bool IsWonder() {
+			return this.greatWonderProperties != null || this.isSmallWonder;
 		}
 
 		public bool HasWonderFlag(SaveBuilding.WonderFlag flag) {

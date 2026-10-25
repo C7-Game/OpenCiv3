@@ -132,6 +132,10 @@ namespace C7GameData.Save {
 			data.luaBehaviorEngine = behaviors;
 			data.gameModeConfig = GameModeConfig;
 
+			if (behaviors != null) {
+				behaviors.TryImportFunc<Func<AgeBonusContext, int>>(data.rules?.ageBonus?.luaFunctionPath, out data.ageBonusMultiplierFunc);
+			}
+
 			ConvertTerrainImprovements(data);
 			ConvertTerraforms(data);
 			// convert technologies earlier than the player data,
