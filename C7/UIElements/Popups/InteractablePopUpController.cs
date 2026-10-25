@@ -64,6 +64,7 @@ public partial class InteractablePopUpController : Control {
 		this.panelGrabber.SetSize(this.headerLabel.Size);
 		this.panelGrabber.SetPosition(this.headerLabel.Position);
 		this.panelGrabber.FocusMode = FocusModeEnum.None;
+		this.panelGrabber.MouseDefaultCursorShape = Control.CursorShape.Drag;
 		this.headerContainer.AddChild(this.panelGrabber);
 
 		this.audioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
