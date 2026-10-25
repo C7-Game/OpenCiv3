@@ -53,8 +53,18 @@ public partial class InteractablePopUpController : Control {
 
 	AudioManager audioManager;
 
+	private TextureButton panelGrabber = new();
+
+	private Vector2 currentMousePos;
+	private Vector2 initContainerPos;
+	private bool isPanelGrabberPressed = false;
+
 	public override void _Ready() {
 		base._Ready();
+		this.panelGrabber.SetSize(this.headerLabel.Size);
+		this.panelGrabber.SetPosition(this.headerLabel.Position);
+		this.panelGrabber.FocusMode = FocusModeEnum.None;
+		this.headerContainer.AddChild(this.panelGrabber);
 
 		this.audioManager = GetNode<AudioManager>("/root/GlobalAudioManager");
 
@@ -90,6 +100,26 @@ public partial class InteractablePopUpController : Control {
 			if (eventKey.Keycode == Key.Down) {
 				this.Cycle(true);
 			}
+		}
+	}
+
+	public override void _Process(double delta) {
+		base._Process(delta);
+		if (this.panelGrabber.IsPressed()) {
+			if (!this.isPanelGrabberPressed) {
+				this.isPanelGrabberPressed = true;
+				this.currentMousePos = GetGlobalMousePosition();
+				this.initContainerPos = this.mainContainer.Position;
+			}
+			// Don't let the mouse go out of screen bounds and we can't grab the container
+			if (GetGlobalMousePosition().X > 0
+				&& GetGlobalMousePosition().X < GetViewportRect().Size.X
+				&& GetGlobalMousePosition().Y > 0
+				&& GetGlobalMousePosition().Y < GetViewportRect().Size.Y) {
+				this.mainContainer.Position = this.initContainerPos + (GetGlobalMousePosition() - this.currentMousePos);
+			}
+		} else {
+			this.isPanelGrabberPressed = false;
 		}
 	}
 
