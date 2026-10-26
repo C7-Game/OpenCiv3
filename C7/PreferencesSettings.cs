@@ -31,4 +31,16 @@ public static class PreferencesSettings {
 		C7Settings.SetBool(SectionName, ShowGrid, value);
 		C7Settings.SaveSettings();
 	}
+
+	public const string AutosaveTurns = nameof(AutosaveTurns);
+	public const int DefaultAutosaveTurns = 5;
+
+	public static int GetAutosaveTurns() {
+		return C7Settings.GetIntOrDefault(SectionName, AutosaveTurns, DefaultAutosaveTurns);
+	}
+
+	public static void SetAutosaveTurns(int value) {
+		C7Settings.SetInt(SectionName, AutosaveTurns, value);
+		C7Settings.SaveSettings();
+	}
 }
