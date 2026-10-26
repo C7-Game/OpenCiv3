@@ -245,12 +245,13 @@ namespace C7Engine {
 		}
 	}
 
-	public class MsgShowMilitaryAdvisorPopup : MessageToUI {
-		public string message;
-		public bool happy;
-		public MsgShowMilitaryAdvisorPopup(string message, bool happy) {
-			this.message = message;
-			this.happy = happy;
+	public class MsgBarbarianCampDispersed : MessageToUI {
+		public ID controllerId;
+		public int goldEarned;
+
+		public MsgBarbarianCampDispersed(ID controllerId, int goldEarned) {
+			this.controllerId = controllerId;
+			this.goldEarned = goldEarned;
 		}
 	}
 

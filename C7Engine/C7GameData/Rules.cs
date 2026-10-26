@@ -17,6 +17,7 @@ namespace C7GameData {
 		public string ScoutUnitType;
 		public int MaxRankOfWorkableTiles;
 		public int MaxRankOfBarbarianCampTiles;
+		public int BarbarianCampGold = 25; // gold for dispersing a barbarian camp; not in Civ3's BIQ, so this is also the default for Civ3 saves and older OpenCiv3 saves
 		public int DefaultDealDuration;
 		public float TreasuryInterestRate = .05f;
 		public int MaxInterest = 50;
