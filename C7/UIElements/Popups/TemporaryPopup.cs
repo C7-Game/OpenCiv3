@@ -17,9 +17,11 @@ public partial class TemporaryPopup : Label {
 		if (Game.tempPopupQueue.TryGetValue(initialLocation, out var queue)) {
 			posInQueue = queue.ToList().IndexOf(this);
 		}
-		Vector2 offset = new(-(this.Size.X / 2), -32 - this.Size.Y - (posInQueue*50));
-		Vector2 screenLocation = mapView.screenLocationOfTile(initialLocation);
-		this.SetPosition(new Vector2(screenLocation.X, screenLocation.Y) + offset);
+
+		var popupMargin = 50 * mapView.cameraZoom;
+		Vector2 offset = new(-(this.Size.X / 2), -(32 * mapView.cameraZoom) - this.Size.Y -(posInQueue * popupMargin));
+		Vector2 screenLocation = mapView.screenLocationOfTileAbsolute(initialLocation);
+		this.SetPosition(screenLocation + offset);
 	}
 
 	public TemporaryPopup(MapView mapView, Tile initialLocation, string text, float durationInSec) {

@@ -823,7 +823,7 @@ public partial class Game : Node {
 	public void ShowTileInfo(Tile tile) {
 		tileInfo = new TileInfo(tile);
 		var zoom = mapView.cameraZoom;
-		var tileCenter = mapView.screenLocationOfTile(tile, true);
+		var tileCenter = mapView.screenLocationOfTileAbsolute(tile, true);
 		var tileInfoPopup = new TileInfoPopup(this, tile, tileCenter, zoom);
 		popupOverlay.ShowPopup(tileInfoPopup, PopupOverlay.PopupCategory.TileInfo);
 	}
