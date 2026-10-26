@@ -50,19 +50,16 @@ public class TransportSelectionTest : IDisposable {
 	};
 
 	[Fact]
-	public void MoreThanOneTransport_AsksTheUiInsteadOfPickingOne() {
+	public void NoTransportId_LoadsIntoTheBestCandidateWithoutAsking() {
 		MapUnit galley = AddUnit(Boat("Galley", 2));
 		MapUnit caravel = AddUnit(Boat("Caravel", 3));
 		MapUnit warrior = AddUnit(Soldier());
 
 		new MsgLoadToTransport(warrior.id).process();
 
-		MsgSelectTransport msg = Assert.Single(EngineStorage.messagesToUI.OfType<MsgSelectTransport>());
-		Assert.Same(warrior, msg.unit);
-		Assert.Equal(2, msg.transports.Count);
-		Assert.Contains(galley, msg.transports);
-		Assert.Contains(caravel, msg.transports);
-		Assert.False(warrior.IsLoaded());
+		Assert.True(warrior.IsLoadedIn(caravel));
+		Assert.False(warrior.IsLoadedIn(galley));
+		Assert.Empty(EngineStorage.messagesToUI.OfType<MsgSelectTransport>());
 	}
 
 	[Fact]

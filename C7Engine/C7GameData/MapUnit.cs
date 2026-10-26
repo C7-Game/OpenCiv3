@@ -541,7 +541,7 @@ namespace C7GameData {
 		/// <summary>
 		/// The transports on the tile that this unit can board, best candidate first.
 		/// </summary>
-		internal List<MapUnit> GetTransportsToBoard(Tile tile) {
+		public List<MapUnit> GetTransportsToBoard(Tile tile) {
 			// Sort candidates by free capacity, but prefer transports that already have units
 			return tile.unitsOnTile
 				.Where(u => u.CanTransport() && u.CanLoad(this))

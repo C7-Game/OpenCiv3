@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Serilog;
@@ -112,15 +111,11 @@ namespace C7Engine {
 
 		public override void process() {
 			MapUnit unit = EngineStorage.gameData.GetUnit(unitID);
-			List<MapUnit> transports = unit.GetTransportsToBoard(unit.location);
 			if (this.transportUnitId != null) {
 				// Only board a transport that can still take the unit, the choice may be out of date
-				unit.BoardTransport(transports.Find(t => t.id == transportUnitId));
-			} else if (transports.Count > 1) {
-				new MsgSelectTransport(unit, transports).send();
-			} else {
+				unit.BoardTransport(unit.GetTransportsToBoard(unit.location).Find(t => t.id == transportUnitId));
+			} else
 				unit.TryBoardingTransportOnTile(unit.location);
-			}
 		}
 	}
 

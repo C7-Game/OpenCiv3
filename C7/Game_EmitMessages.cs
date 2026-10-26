@@ -466,6 +466,16 @@ public partial class Game {
 	}
 
 	private void EmitSelectTransportSignal(MsgSelectTransport msg) {
+		// The load hotkey works even when there is no transport here
+		if (msg.transports.Count == 0)
+			return;
+
+		// Nothing to choose from, load the unit right away
+		if (msg.transports.Count == 1) {
+			new MsgLoadToTransport(msg.unit.id, msg.transports[0].id).send();
+			return;
+		}
+
 		var options = new List<ButtonAction>();
 
 		EngineStorage.ReadGameData(data => {
