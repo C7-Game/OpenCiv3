@@ -137,6 +137,30 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
+	public void WorldSettingsSurviveSaveRoundTrip() {
+		SaveGame save = SaveGame.FromGameData(ToGameData(GetSave(SaveType.basic)));
+		save.WorldSettings = new WorldSettings {
+			worldSize = "Standard",
+			customWorldSize = true,
+			landform = WorldCharacteristics.Landform.Continents,
+			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
+			climate = WorldCharacteristics.Climate.Normal,
+			temperature = WorldCharacteristics.Temperature.Temperate,
+			age = WorldCharacteristics.Age.Billion_4,
+		};
+
+		WorldSettings roundTripped = SaveGame.FromGameData(ToGameData(save)).WorldSettings;
+
+		Assert.Equal(save.WorldSettings.worldSize, roundTripped.worldSize);
+		Assert.Equal(save.WorldSettings.customWorldSize, roundTripped.customWorldSize);
+		Assert.Equal(save.WorldSettings.landform, roundTripped.landform);
+		Assert.Equal(save.WorldSettings.oceanCoverage, roundTripped.oceanCoverage);
+		Assert.Equal(save.WorldSettings.climate, roundTripped.climate);
+		Assert.Equal(save.WorldSettings.temperature, roundTripped.temperature);
+		Assert.Equal(save.WorldSettings.age, roundTripped.age);
+	}
+
+	[Fact]
 	public void BaseRulesetBuildings_HaveNavalAndAirData() {
 		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
 

@@ -14,6 +14,7 @@ namespace C7GameData {
 		private static ILogger log = Log.ForContext<GameData>();
 
 		public int seed = -1;   //change here to set a hard-coded seed
+		public WorldSettings worldSettings = new();
 		public int turn { get; set; }
 		public static Random rng; // TODO: Is GameData really the place for this?
 		public ID.Factory ids = new();
