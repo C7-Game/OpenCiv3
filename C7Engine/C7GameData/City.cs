@@ -320,6 +320,7 @@ namespace C7GameData {
 			log.Debug($"Produced {producedItem} in {this}");
 			if (producedItem is UnitPrototype prototype) {
 				AddUnit(prototype, gameData);
+				new MsgShowTemporaryPopup(this.owner.id, $"{this.name} built {prototype.name}.", this.location).send();
 			} else if (producedItem is Building building) {
 				AddBuilding(building);
 

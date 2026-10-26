@@ -849,6 +849,14 @@ public partial class MapView : Node2D {
 		return screenLocationOfTileCoords(tile.XCoordinate, tile.YCoordinate, center);
 	}
 
+	// Returns the absolute position of a tile on the screen, meaning, it ignores world wrapping.
+	// This helps us when we want to render e.x. a popup on the screen, at the exact place that we want, no matter where the camera is.
+	public Vector2 screenLocationOfTileAbsolute(Tile tile, bool center = true) {
+		var coords = screenLocationOfTileCoords(tile.XCoordinate, tile.YCoordinate, center);
+		coords = new Vector2(Mathf.PosMod(coords.X, this.scaledCellSize.X * this.mapWidth), Mathf.PosMod(coords.Y, this.scaledCellSize.Y * this.mapHeight));
+		return coords;
+	}
+
 	// Returns the virtual tile coordinates on screen at the given location. "Virtual" meaning the coordinates are unwrapped and there isn't
 	// necessarily a tile there at all.
 	public (int, int) tileCoordsInMainCamera(Vector2 screenLocation) {

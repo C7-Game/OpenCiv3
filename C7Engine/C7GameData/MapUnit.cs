@@ -333,18 +333,24 @@ namespace C7GameData {
 			if (owner.civilization.traits.Contains(Civilization.Trait.Militaristic))
 				promotionChance *= 2;
 			if (GameData.rng.NextDouble() < promotionChance) {
-				Promote();
-				animate(AnimatedAction.VICTORY);
+				if (Promote()) {
+					var previousRank = EngineStorage.gameData.GetExperienceLevelBefore(this.experienceLevel).key;
+					new MsgShowTemporaryPopup(this.owner.id, $"Our {previousRank} {this.name} is now a {experienceLevelKey}!", this.location).send();
+					animate(AnimatedAction.VICTORY);
+				}
 			}
 		}
 
-		public void Promote() {
+		public bool Promote() {
 			ExperienceLevel nextLevel = EngineStorage.gameData.GetExperienceLevelAfter(experienceLevel);
 			if (nextLevel != null) {
 				experienceLevelKey = nextLevel.key;
 				experienceLevel = nextLevel;
 				hitPointsRemaining++;
+				return true;
 			}
+
+			return false;
 		}
 
 		public double RetreatChance(MapUnit opponent, bool isAttacking) {
