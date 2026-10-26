@@ -256,8 +256,9 @@ public partial class Game {
 		});
 
 		// Once the human is out, the game over popup is the only one that matters.
+		// If this happens during the AI turns, it's shown when the human's turn starts.
 		if (humanDefeated) {
-			if (msg.civilization == controller.civilization)
+			if (msg.civilization == controller.civilization && CurrentState == GameState.PlayerTurn)
 				EmitDefeatSignal();
 			return;
 		}
@@ -274,7 +275,7 @@ public partial class Game {
 		));
 	}
 
-	// The human has been destroyed and can only leave the game. Observers keep watching.
+	// The human has been destroyed and isn't watching in observer mode.
 	private bool IsHumanDefeated(GameData data) {
 		return controller.defeated && !data.observerMode;
 	}
@@ -284,6 +285,10 @@ public partial class Game {
 			new ButtonAction() {
 				message = "Return to the main menu",
 				action = () => OnRetire()
+			},
+			new ButtonAction() {
+				message = "Let the game play on without me",
+				action = () => ToggleObserverMode()
 			}
 		};
 
