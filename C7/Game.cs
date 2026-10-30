@@ -544,6 +544,13 @@ public partial class Game : Node {
 
 	private void OnPlayerStartTurn() {
 		EngineStorage.ReadGameData((GameData gameData) => {
+			// Keep input enabled, so observer mode can still be switched on after the popup.
+			if (IsHumanDefeated(gameData)) {
+				EmitDefeatSignal();
+				CurrentState = GameState.PlayerTurn;
+				return;
+			}
+
 			log.Information("Starting player turn");
 
 			// TODO: Before we call this method to automatically end obsolete deals, we could make this more versatile.
