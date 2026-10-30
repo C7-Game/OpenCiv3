@@ -1,6 +1,7 @@
 namespace C7Engine {
 	using C7GameData;
 	using System;
+	using System.Collections.Generic;
 
 	public interface IMessageToUI {
 		public void send();
@@ -194,6 +195,16 @@ namespace C7Engine {
 
 		public MsgSelectGovernment(ID controllerId) {
 			this.controllerId = controllerId;
+		}
+	}
+
+	public class MsgSelectTransport : MessageToUI {
+		public MapUnit unit;
+		public List<MapUnit> transports;
+
+		public MsgSelectTransport(MapUnit unit, List<MapUnit> transports) {
+			this.unit = unit;
+			this.transports = transports;
 		}
 	}
 
