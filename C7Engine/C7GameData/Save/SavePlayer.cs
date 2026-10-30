@@ -18,6 +18,7 @@ namespace C7GameData.Save {
 		public string civilization;
 
 		public List<TileLocation> tileKnowledge = new List<TileLocation>();
+		public Dictionary<string, List<string>> knownTerrainImprovements = new ();
 
 		// A map from player id to the relationship this player has with the other player.
 		public Dictionary<string, PlayerRelationship> playerRelationships = new();
@@ -101,6 +102,9 @@ namespace C7GameData.Save {
 			foreach (TileLocation tile in tileKnowledge) {
 				player.tileKnowledge.AddTileToKnown(map.tileAt(tile.X, tile.Y));
 			}
+			foreach (var kti in knownTerrainImprovements) {
+				player.tileKnowledge.knownTerrainImprovements.TryAdd(ID.FromString(kti.Key), kti.Value);
+			}
 			foreach (ID techId in player.civilization.startingTechs) {
 				if (!player.knownTechs.Contains(techId)) {
 					player.knownTechs.Add(techId);
@@ -164,6 +168,16 @@ namespace C7GameData.Save {
 
 			foreach (KeyValuePair<ID, PlayerRelationship> keyValuePair in player.playerRelationships) {
 				playerRelationships.Add(keyValuePair.Key.ToString(), keyValuePair.Value);
+			}
+
+			foreach (var tkti in player.tileKnowledge.knownTerrainImprovements) {
+				if (!tkti.Value.Any()) continue;
+				if (knownTerrainImprovements.TryGetValue(tkti.Key.ToString(), out _)) {
+					var lsit = tkti.Value.ToList();
+					knownTerrainImprovements[tkti.Key.ToString()] = lsit;
+				} else {
+					knownTerrainImprovements.TryAdd(tkti.Key.ToString(), tkti.Value.ToList());
+				}
 			}
 		}
 
