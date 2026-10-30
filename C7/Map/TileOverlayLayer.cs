@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using C7Engine;
 using C7GameData;
 using Godot;
 using static C7GameData.Tile.TileOverlays;
@@ -21,6 +22,8 @@ namespace C7.Map {
 
 		private int rng = 0;
 		private Dictionary<string, int> rngs = new();
+
+		private List<TerrainImprovement> terrainImprovements;
 
 		FontFile debugFont = new();
 
@@ -44,6 +47,8 @@ namespace C7.Map {
 
 			rng = GameData.rng.Next(0, 5000) * 2 + 1;
 
+			terrainImprovements = EngineStorage.gameData.terrainImprovements.ToList();
+
 			debugFont = ResourceLoader.Load<FontFile>("res://Fonts/NotoSans-Regular.ttf", null, ResourceLoader.CacheMode.Ignore);
 			debugFont.FixedSize = 12;
 		}
@@ -51,7 +56,7 @@ namespace C7.Map {
 		public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
 			Rect2 screenTarget = new Rect2(tileCenter - tileSize / 2, tileSize);
 
-			var improvements = tile.overlays.GetImprovements();
+			var improvements = RenderableTerrainImprovements(tile);
 
 			foreach (TerrainImprovement ti in improvements.OrderBy(ti => ti.zIndex)) {
 				switch (ti.key) {
@@ -80,13 +85,29 @@ namespace C7.Map {
 			}
 		}
 
+		private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {
+			var knownTerrainImprovements = new List<TerrainImprovement>();
+			if (!EngineStorage.gameData.observerMode) {
+				var knownImprovements = player.tileKnowledge.knownTerrainImprovements;
+
+				foreach (var improvement in terrainImprovements) {
+					if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {
+						if (imprs.Contains(improvement.key))
+							knownTerrainImprovements.Add(improvement);
+					}
+				}
+				return knownTerrainImprovements;
+			}
+			return tile.overlays.GetImprovements().ToList();
+		}
+
 		private void DrawIrrigation(LooseView looseView, Tile tile, Rect2 screenTarget) {
 			// Figure out which index into the irrigation texture to use for
 			// this tile.
 			int irrigationIndex = 0;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasIrrigation()) {
+				if (neighbour.HasIrrigationGraphics()) {
 					irrigationIndex |= GetIrrigationFlag(dirToTile.Key);
 				}
 			}
@@ -106,9 +127,10 @@ namespace C7.Map {
 
 		private void DrawRoad(LooseView looseView, Tile tile, Rect2 screenTarget) {
 			int roadIndex = 0;
+			if (tile.HasRailroadGraphics()) return;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasRoad() || neighbour.HasRailroad()) {
+				if (neighbour.HasRoadGraphics() || neighbour.HasRailroadGraphics()) {
 					roadIndex |= GetRoadFlag(dirToTile.Key);
 				}
 			}
@@ -120,9 +142,9 @@ namespace C7.Map {
 			int railroadIndex = 0;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasRailroad()) {
+				if (neighbour.HasRailroadGraphics()) {
 					railroadIndex |= GetRoadFlag(dirToTile.Key);
-				} else if (dirToTile.Value.HasRoad()) {
+				} else if (dirToTile.Value.HasRoadGraphics()) {
 					roadIndex |= GetRoadFlag(dirToTile.Key);
 				}
 			}
@@ -145,7 +167,7 @@ namespace C7.Map {
 			int pollutionIndex = 0;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasPollution()) {
+				if (neighbour.HasPollutionGraphics()) {
 					pollutionIndex |= GetPollutionIndex(dirToTile.Key);
 				}
 			}

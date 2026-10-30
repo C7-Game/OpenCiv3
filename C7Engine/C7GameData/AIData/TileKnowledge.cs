@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using C7Engine;
+using Serilog;
 
 namespace C7GameData {
 	public class TileKnowledge {
@@ -11,6 +12,7 @@ namespace C7GameData {
 		}
 
 		public HashSet<Tile> knownTiles { get; private set; } = new();
+		public Dictionary<ID, IEnumerable<string>> knownTerrainImprovements { get; private set; } = new();
 		public HashSet<Tile> borderTiles { get; private set; } = new();
 		private HashSet<Tile> activeTiles = new HashSet<Tile>();
 
@@ -21,9 +23,9 @@ namespace C7GameData {
 		// The set of tiles this player currently has explorers headed towards.
 		public HashSet<Tile> aiExplorationTargets = new();
 
-		public void AddTilesToKnown(Tile unitLocation, bool recomputeActiveTiles = true) {
-			knownTiles.Add(unitLocation);
-			borderTiles.Remove(unitLocation);
+		public void AddTilesToKnown(Tile location, bool recomputeActiveTiles = true) {
+			knownTiles.Add(location);
+			borderTiles.Remove(location);
 
 			// Crude benchmarking tool for GetTilesVisibleToUnit, which can be
 			// a hot function when profiling.
@@ -32,7 +34,7 @@ namespace C7GameData {
 			// 	stopwatch.Start();
 
 			// 	for (int i = 0; i < 10000; ++i) {
-			// 		foreach (Tile t in GetTilesVisibleToUnit(unitLocation)) {
+			// 		foreach (Tile t in GetTilesVisibleToUnit(location)) {
 			// 			knownTiles.Add(t);
 			// 		}
 			// 	}
@@ -40,9 +42,11 @@ namespace C7GameData {
 			// 	System.Console.WriteLine($"10k runs took: {stopwatch.ElapsedMilliseconds} milliseconds");
 			// }
 
-			foreach (Tile t in GetTilesVisibleToUnit(unitLocation)) {
+			foreach (Tile t in GetTilesVisibleFrom(location)) {
 				knownTiles.Add(t);
 				borderTiles.Remove(t);
+
+				knownTerrainImprovements[t.Id] = t.overlays.GetImprovements().Select(ti => ti.key).ToList();
 
 				foreach (Tile border in t.neighbors.Values) {
 					if (border == Tile.NONE) {
@@ -57,6 +61,19 @@ namespace C7GameData {
 			if (recomputeActiveTiles) {
 				RecomputeActiveTiles();
 			}
+		}
+
+		public List<Tile> GetTilesVisibleFrom(Tile location) {
+			if (location.unitsOnTile.Count > 0) {
+				return GetTilesVisibleToUnit(location);
+			}
+
+			List<Tile> tiles = new List<Tile>();
+			foreach (var neighbor in location.neighbors.Values) {
+				tiles.Add(neighbor);
+			}
+
+			return tiles;
 		}
 
 		public List<Tile> GetTilesVisibleToUnit(Tile unitLocation) {
