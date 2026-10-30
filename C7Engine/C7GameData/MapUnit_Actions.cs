@@ -270,12 +270,13 @@ public partial class MapUnit {
 		// Make sure the unit is on the new location before claiming we have entered the tile
 		newLoc.unitsOnTile.Add(this);
 		location = newLoc;
-		OnEnterTile(newLoc);
 
 		if (wait)
 			await animateAsync(MapUnit.AnimatedAction.RUN);
 		else
 			animate(MapUnit.AnimatedAction.RUN);
+
+		OnEnterTile(newLoc);
 
 		movementPoints.onUnitMove(movementCost);
 
