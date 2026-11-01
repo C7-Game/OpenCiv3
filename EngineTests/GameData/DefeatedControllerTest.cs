@@ -61,8 +61,8 @@ public class DefeatedControllerTest : IClassFixture<SaveGameFixture>, IDisposabl
 
 		DestroyCiv(human);
 		Assert.True(human.defeated);
-		Assert.Contains(EngineStorage.messagesToUI.OfType<MsgCivilizationDestroyed>(),
-			m => m.civilization == human.civilization);
+		Assert.Contains(EngineStorage.messagesToUI.OfType<MsgPlayerDefeated>(),
+			m => m.playerId == human.id);
 
 		await EndTurn(human);
 

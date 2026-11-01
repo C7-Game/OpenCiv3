@@ -250,8 +250,13 @@ namespace C7GameData {
 		public void CheckForCivDestructionAndNotifyUi(Player player) {
 			if (this.CheckForCivDestruction(player)) {
 				this.CivDestructionCallback(player);
+
 				// Let the UI know about the civ destruction.
-				new MsgCivilizationDestroyed(EngineStorage.uiControllerID, player.civilization).send();
+				if (player.id == EngineStorage.uiControllerID) {
+					new MsgPlayerDefeated(EngineStorage.uiControllerID).send();
+				} else {
+					new MsgCivilizationDestroyed(EngineStorage.uiControllerID, player.civilization).send();
+				}
 			}
 		}
 
