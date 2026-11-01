@@ -5,6 +5,8 @@ using C7.Textures;
 using C7GameData;
 using Godot;
 
+namespace C7.Map;
+
 public partial class UnitLayer : LooseLayer {
 	private ImageTexture unitMovementIndicators;
 
