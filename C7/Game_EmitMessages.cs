@@ -246,22 +246,12 @@ public partial class Game {
 	}
 
 	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
-		var friend = false;
-		var humanDefeated = false;
+		var disposition = Mood.Sad;
 		EngineStorage.ReadGameData(data => {
-			humanDefeated = IsHumanDefeated(data);
 			var destroyedPlayer = data.players.First(p => p.civilization == msg.civilization);
 			if (controller.IsAtPeaceWith(destroyedPlayer))
-				friend = true;
+				disposition = Mood.Happy;
 		});
-
-		// Once the human is out, the game over popup is the only one that matters.
-		// If this happens during the AI turns, it's shown when the human's turn starts.
-		if (humanDefeated) {
-			if (msg.civilization == controller.civilization && CurrentState == GameState.PlayerTurn)
-				EmitDefeatSignal();
-			return;
-		}
 
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(
@@ -269,18 +259,13 @@ public partial class Game {
 				"Military Advisor",
 				$"The {msg.civilization.noun} have been destroyed.",
 				Advisor.Military,
-				friend ? Mood.Sad : Mood.Happy,
+				disposition,
 				350
 			)
 		));
 	}
 
-	// The human has been destroyed and isn't watching in observer mode.
-	private bool IsHumanDefeated(GameData data) {
-		return controller.defeated && !data.observerMode;
-	}
-
-	private void EmitDefeatSignal() {
+	private void EmitDefeatSignal(ID playerId) {
 		var options = new List<ButtonAction>() {
 			new ButtonAction() {
 				message = "Return to the main menu",
@@ -658,27 +643,21 @@ public partial class Game {
 	}
 
 	private void EmitVictorySignal(MsgVictory msg) {
-		var humanDefeated = false;
-		EngineStorage.ReadGameData(data => humanDefeated = IsHumanDefeated(data));
-		if (humanDefeated)
-			return;
-
 		var endMsg =
 			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory!\n"
 			+ "This game is over: No further score will be entered.\n\n";
 
-		var options = new List<ButtonAction>();
+		var continueAction = controller.defeated ? "see how it plays out for" : "play";
 
-		var retireBtn = new ButtonAction() {
-			message = "Good! I’m Done!",
-			action = () => OnRetire()
+		var options = new List<ButtonAction> {
+			new ButtonAction() {
+				message = "Good! I’m Done!",
+				action = () => OnRetire()
+			},
+			new ButtonAction() {
+				message = $"Wait, lemme just {continueAction} a couple of more turns..."
+			}
 		};
-		var continueBtn = new ButtonAction() {
-			message = "Wait, lemme just play a couple of more turns..."
-		};
-
-		options.Add(retireBtn);
-		options.Add(continueBtn);
 
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new OptionsPopUp(
