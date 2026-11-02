@@ -821,7 +821,6 @@ public partial class Game : Node {
 	}
 
 	public void ShowTileInfo(Tile tile) {
-		GD.Print($"{tile} - {tile.Id}");
 		tileInfo = new TileInfo(tile);
 		var zoom = mapView.cameraZoom;
 		var tileCenter = mapView.screenLocationOfTile(tile, true);
