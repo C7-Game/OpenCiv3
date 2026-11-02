@@ -86,8 +86,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			EngineStorage.ProcessNextMessageToEngine();
 
 			while (EngineStorage.TryDequeueNextMessageToUI(out MessageToUI msg)) {
-                if (msg is MsgStartTurn)
-                    return;
+				if (msg is MsgStartTurn)
+					return;
 			}
 		}
 	}
