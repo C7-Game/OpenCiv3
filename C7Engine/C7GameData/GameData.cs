@@ -458,22 +458,5 @@ namespace C7GameData {
 		public static ID GenerateID(this GameData gameData, string identifier) {
 			return gameData.ids.CreateID(identifier);
 		}
-
-		public static float GetRandom(Tile tile, TileDirection tileDirection, int worldSeed, int offset = 0) {
-			// if (!tile.neighbors[tileDirection].overlayTerrainType.isHilly()) return 0.0f;
-			unchecked {
-				uint hash = (uint)tile.Id.GetN;
-				hash ^= (uint)worldSeed;
-				hash ^= (uint)offset * 0x9e3779b9;
-
-				hash ^= hash >> 16;
-				hash *= 0x85ebca6b;
-				hash ^= hash >> 13;
-				hash *= 0xc2b2ae35;
-				hash ^= hash >> 16;
-
-				return hash / (float)uint.MaxValue;
-			}
-		}
 	}
 }
