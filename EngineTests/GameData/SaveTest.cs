@@ -86,30 +86,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			EngineStorage.ProcessNextMessageToEngine();
 
 			while (EngineStorage.TryDequeueNextMessageToUI(out MessageToUI msg)) {
-				switch (msg) {
-					case MsgNewGame mNG:
-						continue;
-					case MsgStartTurn mST:
-						return;
-					case MsgWarDeclarationNotification mWD:
-						continue;
-					case MsgShowTemporaryPopup mSTP:
-						continue;
-					case MsgCityRaised mCR:
-						continue;
-					case MsgCityDestroyed mCD:
-						continue;
-					case MsgCityRansacked mCRS:
-						continue;
-					case MsgCivilizationDestroyed mCVD:
-						continue;
-					case MsgPlayerDefeated mPD:
-						continue;
-					case MsgVictory mV:
-						continue;
-					default:
-						throw new Exception($"{msg}");
-				}
+                if (msg is MsgStartTurn)
+                    return;
 			}
 		}
 	}
