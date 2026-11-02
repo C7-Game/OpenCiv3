@@ -105,6 +105,7 @@ local c7_texture_list = {
   "Art/city screen/buildings-small.png",
   "Art/city screen/buildings-large.png",
   "Art/Cursor.png",
+  "Art/SCROLL.png",
   "Art/interface/box trans color.png",
   "Art/SpaceShip/SHIPbackground.png",
   "Art/Advisors/trade.png",
