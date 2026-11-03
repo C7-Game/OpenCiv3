@@ -79,7 +79,7 @@ public partial class Game {
 		options.Add(mapBtn);
 
 		var loadGameBtn = new ButtonAction() {
-			message = "Load Game",
+			message = "Load Game (Ctrl-L)",
 			action = () => OnLoadGame(),
 		};
 		options.Add(loadGameBtn);
@@ -93,13 +93,13 @@ public partial class Game {
 		options.Add(preferencesBtn);
 
 		var retireBtn = new ButtonAction() {
-			message = "Retire",
-			action = () => OnRetire(),
+			message = "Retire (Ctrl-Q)",
+			action = () => EmitRetireConfirmationSignal(),
 		};
 		options.Add(retireBtn);
 
 		var saveBtn = new ButtonAction() {
-			message = "Save Game",
+			message = "Save Game (Ctrl-S)",
 			action = () => OnSaveGame(),
 		};
 		options.Add(saveBtn);
@@ -120,6 +120,24 @@ public partial class Game {
 				Mood.None,
 				hSize: 350,
 				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	public void EmitRetireConfirmationSignal() {
+		var message = "Retire from this game? All progress since your last save will be lost.";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Do you want to retire?",
+				message,
+				Advisor.None,
+				Mood.None,
+				"Yes, retire from this game",
+				"No, let me keep playing",
+				() => OnRetire(),
+				hSize: 500
 			)
 		));
 	}
@@ -255,21 +273,49 @@ public partial class Game {
 	}
 
 	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
-		var friend = false;
+		var disposition = Mood.Sad;
 		EngineStorage.ReadGameData(data => {
 			var destroyedPlayer = data.players.First(p => p.civilization == msg.civilization);
 			if (controller.IsAtPeaceWith(destroyedPlayer))
-				friend = true;
+				disposition = Mood.Happy;
 		});
+
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(
 				controller.id,
 				"Military Advisor",
 				$"The {msg.civilization.noun} have been destroyed.",
 				Advisor.Military,
-				friend ? Mood.Sad : Mood.Happy,
+				disposition,
 				350
 			)
+		));
+	}
+
+	private void EmitDefeatSignal(ID playerId) {
+		var options = new List<ButtonAction>() {
+			new ButtonAction() {
+				message = "Return to the main menu",
+				action = () => OnRetire()
+			},
+			new ButtonAction() {
+				message = "Let the game play on without me",
+				action = () => ToggleObserverMode()
+			}
+		};
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Game Over",
+				$"The {controller.civilization.noun} have been destroyed.\n"
+				+ "This game is over.\n\n",
+				options,
+				Advisor.Military,
+				Mood.Sad,
+				hSize: 600,
+				margins: new Margins(top: 100)
+			) { hasCancel = false }
 		));
 	}
 
@@ -628,23 +674,22 @@ public partial class Game {
 			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory!\n"
 			+ "This game is over: No further score will be entered.\n\n";
 
-		var options = new List<ButtonAction>();
+		var continueAction = controller.defeated ? "see how it plays out for" : "play";
 
-		var retireBtn = new ButtonAction() {
-			message = "Good! I’m Done!",
-			action = () => OnRetire()
+		var options = new List<ButtonAction> {
+			new ButtonAction() {
+				message = "Good! I’m Done!",
+				action = () => OnRetire()
+			},
+			new ButtonAction() {
+				message = $"Wait, lemme just {continueAction} a couple of more turns..."
+			}
 		};
-		var continueBtn = new ButtonAction() {
-			message = "Wait, lemme just play a couple of more turns..."
-		};
-
-		options.Add(retireBtn);
-		options.Add(continueBtn);
 
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new OptionsPopUp(
 				controller.id,
-				"You Win!",
+				msg.winner.id == controller.id ? "You Win!" : "Game Over",
 				endMsg,
 				options,
 				Advisor.None,
@@ -660,7 +705,7 @@ public partial class Game {
 
 		bool gridVisible = mapView != null ? mapView.gridLayer.visible : PreferencesSettings.GetShowGrid();
 		var showGridBtn = new ButtonAction() {
-			message = $"Show Grid (Ctrl+G): {(gridVisible ? "On" : "Off")}",
+			message = $"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
 			action = () => {
 				if (mapView != null) {
 					bool newValue = !mapView.gridLayer.visible;

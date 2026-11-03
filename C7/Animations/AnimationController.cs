@@ -15,9 +15,7 @@ public partial class AnimationController : Node {
 	Game game;
 
 	public override void _Ready() {
-		var animSoundPlayer = new AudioStreamPlayer();
-		AddChild(animSoundPlayer);
-		civ3AnimData = new AnimationManager(animSoundPlayer);
+		civ3AnimData = new AnimationManager();
 		animTracker = new AnimationTracker(civ3AnimData);
 	}
 

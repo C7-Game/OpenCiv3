@@ -212,8 +212,6 @@ horizontal_alignment = 1
 vertical_alignment = 2
 autowrap_mode = 3
 
-[node name="SoundEffectPlayer" type="AudioStreamPlayer" parent="."]
-
 [node name="SetCiv3HomeDialog" type="FileDialog" parent="."]
 mode = 3
 title = "Open a Directory"

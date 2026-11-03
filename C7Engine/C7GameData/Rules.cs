@@ -11,6 +11,7 @@ namespace C7GameData {
 		public int FoodNeededToGrowForLevel1Cities = 20;
 		public int FoodNeededToGrowForLevel2Cities = 40;
 		public int FoodNeededToGrowForLevel3Cities = 60;
+		public int CapitalNeighborDistance = 8; // for capital relocation calculations
 		public float BuildingDiscountForCivTraits = .5f;
 		public string StartUnitType1;
 		public string StartUnitType2;

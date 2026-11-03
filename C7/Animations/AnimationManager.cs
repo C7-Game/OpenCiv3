@@ -51,15 +51,12 @@ public partial class AnimationManager {
 	private const TileDirection thumbnailDirection = TileDirection.SOUTHEAST;
 	private const MapUnit.AnimatedAction thumbnailAction = MapUnit.AnimatedAction.DEFAULT;
 
-	private AudioStreamPlayer audioPlayer;
-
 	public SpriteFrames spriteFrames;
 	public SpriteFrames tintFrames;
 
 	private Dictionary<string, IniData> iniDatas = new Dictionary<string, IniData>();
 
-	public AnimationManager(AudioStreamPlayer audioPlayer) {
-		this.audioPlayer = audioPlayer;
+	public AnimationManager() {
 		this.spriteFrames = new SpriteFrames();
 		this.tintFrames = new SpriteFrames();
 	}
@@ -226,21 +223,11 @@ public partial class AnimationManager {
 		return tr;
 	}
 
-	private Dictionary<string, AudioStreamWav> wavs = new Dictionary<string, AudioStreamWav>();
-
 	public void playSound(string rootPath, IniData iniData, MapUnit.AnimatedAction action) {
 		string fileName = iniData["Sound Effects"][action.ToString()];
 		if (fileName.EndsWith(".WAV", StringComparison.CurrentCultureIgnoreCase)) {
-			AudioStreamWav wav;
 			string pathKey = rootPath + "/" + fileName;
-			if (!wavs.TryGetValue(pathKey, out wav)) {
-				wav = Util.LoadCiv3WAVFromDisk(pathKey);
-				wavs.Add(pathKey, wav);
-			}
-			if (wav != null) {
-				audioPlayer.Stream = wav;
-				audioPlayer.Play();
-			}
+			GlobalAudio.manager.PlaySfxAudioByPath(pathKey);
 		}
 	}
 
