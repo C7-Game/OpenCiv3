@@ -79,6 +79,7 @@ namespace C7GameData {
 
 		public bool isInCivilDisorder = false;
 		public bool hasFreshwaterAccess => location.BordersRiver() || location.NeighborsFreshWater();
+		public bool isCoastal => location.NeighborsOcean();
 
 		public static City NONE = new City(Tile.NONE, null, "Dummy City", ID.None("city"));
 

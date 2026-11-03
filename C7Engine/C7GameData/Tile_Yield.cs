@@ -155,14 +155,20 @@ public partial class Tile {
 		}
 
 		// See https://wiki.civforum.de/wiki/Stadtfeldertrag_(Civ3)
+		// TODO: Consider making these values moddable via Lua
 		if (HasCity()) {
 			int regularCityYield;
+			bool isCommercial = player.civilization?.traits.Contains(Civilization.Trait.Commercial) == true;
 			if (cityAtTile.residents.Count <= EngineStorage.gameData.rules.MaximumLevel1CitySize) {
 				regularCityYield = 1;
 			} else if (cityAtTile.residents.Count <= EngineStorage.gameData.rules.MaximumLevel2CitySize) {
 				regularCityYield = 2;
+				if (isCommercial)
+					regularCityYield += 2;
 			} else {
 				regularCityYield = 3;
+				if (isCommercial)
+					regularCityYield += 3;
 			}
 			if (borderRiver) {
 				regularCityYield += 1;
@@ -177,6 +183,12 @@ public partial class Tile {
 			}
 
 			yield = Math.Max(regularCityYield, capitalCityYield);
+
+			// Handle coastal cities + seafaring trait, applies AFTER 4 commerce floor for capitals
+			if (player.civilization?.traits.Contains(Civilization.Trait.Seafaring) == true
+			&& cityAtTile.isCoastal) {
+				yield += 1;
+			}
 		}
 
 		yield += this.overlays.GetBaseYieldBonus(YieldType.Commerce);
@@ -186,8 +198,6 @@ public partial class Tile {
 	public Yield CommerceYield(Player player) {
 		int yield = BaseCommerceYield(player);
 
-		// TODO: handle the commerce bonus for costal cities+seafaring
-		// TODO: handle the commerce bonus for commerial civs
 		return Yield.CalculateForPlayer(this, yield, YieldType.Commerce, player);
 	}
 	public Yield CommerceYield(City city) {
