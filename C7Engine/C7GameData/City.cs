@@ -799,7 +799,7 @@ namespace C7GameData {
 			CityBuilding cb = new CityBuilding {
 				building = building,
 				builtByPlayer = owner,
-				year = gameData.timeOptions.GetAbsoluteYear(gameData.turn),
+				year = gameData.timeOptions?.GetAbsoluteYear(gameData.turn) ?? 0,
 				turnBuilt = gameData.turn,
 				baseCulturePerTurn = building.culturePerTurn,
 				currentCulturePerTurn = building.culturePerTurn,

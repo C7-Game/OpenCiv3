@@ -84,7 +84,7 @@ namespace C7Engine {
 			gameData.InvalidateCachedTradeNetwork();
 
 			// If that was the capital, the palace moves to another city.
-			RelocateCapitalIfLost(owner, gameData.Buildings.Find(x => x.isCenterOfEmpire));
+			RelocateCapitalIfLost(owner, gameData.Buildings.Find(x => x.isCenterOfEmpire), gameData);
 
 			// Redo corruption calculations after a city is destroyed, since it
 			// may change rank corruption values.
@@ -134,14 +134,14 @@ namespace C7Engine {
 		// owner no longer has one (e.g. it was destroyed or abandoned). Any
 		// Forbidden Palace in the new capital stays: its effects stack with the
 		// capital's. Returns the new capital, or null if there was nothing to do.
-		public static City RelocateCapitalIfLost(Player owner, Building palace) {
+		public static City RelocateCapitalIfLost(Player owner, Building palace, GameData gameData) {
 			if (owner.cities.Count == 0 || owner.cities.Any(c => c.IsCapital())) {
 				return null;
 			}
 			City newCapital = ChooseNewCapital(owner);
 			newCapital.capital = true;
 			if (palace != null && !newCapital.constructed_buildings.Any(b => b.building == palace)) {
-				newCapital.AddBuilding(palace);
+				newCapital.AddBuilding(palace, gameData);
 			}
 			log.Information($"{owner.civilization?.name} lost its capital; the palace moves to {newCapital.name}");
 			return newCapital;

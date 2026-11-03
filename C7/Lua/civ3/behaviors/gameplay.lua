@@ -144,7 +144,13 @@ gameplay = {
       if building.noAgeBonus then
         return cityBuilding.baseCulturePerTurn
       end
-      local ageBonusRules = gameData.rules and gameData.rules.ageBonus
+      local ageBonusRules = nil
+      if gameData.rules ~= nil then
+        local ok, value = pcall(function() return gameData.rules.ageBonus end)
+        if ok then
+          ageBonusRules = value
+        end
+      end
       if ageBonusRules ~= nil and ageBonusRules.enabled == false then
         return cityBuilding.baseCulturePerTurn
       end
