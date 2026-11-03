@@ -71,12 +71,10 @@ public partial class Tile {
 		if (this.HasCity()) {
 			// All city centers have a food yield of 2, regardless of bonus
 			// food. See https://wiki.civforum.de/wiki/Stadtfeldertrag_(Civ3).
-			yield = 2;
-
-			// TODO: For agricultural civilizations, the city field produces
-			// a food yield of three food, but this is reduced to two by the
-			// despotism penalty, unless the city is located on a fresh
-			// water source or has already reached city size (≥ 7)
+			// Agricultural civilizations get 3 food in city center.
+			// The third food is lost to despotism penalty unless city is placed on fresh water source.
+			// Made player.civilization nullable since some tests instantiate a player with no assigned civ
+			yield = player.civilization?.traits.Contains(Civilization.Trait.Agricultural) == true ? 3 : 2;
 		}
 
 		yield += this.overlays.GetBaseYieldBonus(YieldType.Food);
