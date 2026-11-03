@@ -81,11 +81,18 @@ public partial class Advisors : CenterContainer {
 
 	public void OnHide() {
 		if (scienceAdvisor.Visible) {
+			// Abandoning research in progress needs the player's OK; OnHide runs again once they give it.
+			if (scienceAdvisor.AskToConfirmSwitch(OnHide)) {
+				return;
+			}
+			// The engine hasn't processed what we just sent, so a fresh pick counts as research chosen.
+			bool researchChosen = scienceAdvisor.CommitPendingResearch();
+
 			Player controller = null;
 			EngineStorage.ReadGameData(data => {
 				controller = data.players.First(p => p.id == EngineStorage.uiControllerID);
 			});
-			if (controller.currentlyResearchedTech == null) {
+			if (!researchChosen && controller.currentlyResearchedTech == null) {
 				new MsgScienceGuidance().send();
 				return;
 			}

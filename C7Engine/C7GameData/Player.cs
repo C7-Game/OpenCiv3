@@ -539,8 +539,17 @@ namespace C7GameData {
 			IEnumerable<Tech> techQueue = GetResearchQueueFor(tech, ResearchQueue).Reverse();
 			ResearchQueue = new Queue<Tech>(techQueue);
 
-			if (ResearchQueue.Count > 0)
+			// Re-picking the tech already in progress keeps its beakers.
+			if (ResearchQueue.Count > 0 && ResearchQueue.Peek().id != currentlyResearchedTech)
 				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
+		}
+
+		/// <summary>
+		/// The queue (in research order) that picking this tech would produce, without
+		/// changing the player. Lets the UI preview a choice before committing to it.
+		/// </summary>
+		public List<Tech> PreviewResearchQueueFor(Tech tech) {
+			return GetResearchQueueFor(tech, new Queue<Tech>()).Reverse().ToList();
 		}
 
 		// Append a new queue at the tail end of the current queue

@@ -326,6 +326,7 @@ public partial class Game : Node {
 
 			// Allow the domestic advisor to trigger popups.
 			advisor.domesticAdvisor.SetPopupOverlay(popupOverlay);
+			advisor.scienceAdvisor.SetPopupOverlay(popupOverlay);
 		});
 	}
 
@@ -510,6 +511,19 @@ public partial class Game : Node {
 		} else {
 			log.Information("It's not your turn!");
 		}
+	}
+
+	// Switching away from the science advisor commits the research chosen in it, which may
+	// need the player's OK first. If so, navigate runs only once they give it.
+	private void LeaveScienceAdvisorThen(System.Action navigate) {
+		ScienceAdvisor science = advisor.scienceAdvisor;
+		if (science.Visible) {
+			if (popupOverlay.ShowingPopup || science.AskToConfirmSwitch(navigate)) {
+				return;
+			}
+			science.CommitPendingResearch();
+		}
+		navigate();
 	}
 
 	// Runs any action a popup deferred until an advisor screen was closed.
@@ -908,38 +922,38 @@ public partial class Game : Node {
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.F1) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F2) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowTradeAdvisor);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowTradeAdvisor));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F3) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowMilitaryAdvisor);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowMilitaryAdvisor));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F4) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowForeignAdvisor);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowForeignAdvisor));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F5) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowCulturalAdvisor);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowCulturalAdvisor));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F6) {
 			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.F7) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowWondersView);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowWondersView));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F8) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowVictoryStatusView);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowVictoryStatusView));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F9) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowPalaceView);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowPalaceView));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F10) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowSpaceRaceView);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowSpaceRaceView));
 		}
 		if (eventKeyDown.Keycode == Godot.Key.F11) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowDemographicsView);
+			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowDemographicsView));
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.C && HasCurrentlySelectedUnit()) {
