@@ -133,7 +133,7 @@ namespace C7GameData.Save {
 			data.gameModeConfig = GameModeConfig;
 
 			if (behaviors != null) {
-				behaviors.TryImportFunc<Func<AgeBonusContext, int>>(data.rules?.ageBonus?.luaFunctionPath, out data.ageBonusMultiplierFunc);
+				behaviors.TryImportFunc<Func<CityBuilding, GameData, City, Player, int>>("gameplay.culture.age_bonus", out data.ageBonusFunc);
 			}
 
 			ConvertTerrainImprovements(data);

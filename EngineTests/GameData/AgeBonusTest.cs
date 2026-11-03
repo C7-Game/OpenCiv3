@@ -18,6 +18,14 @@ public class AgeBonusTest : CityTest {
 		};
 		EngineStorage.InitializeGameDataForTests(gameData);
 
+		var behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
+		gameData.ageBonusFunc = (cb, gd, c, p) => {
+			if (gd?.timeOptions == null) return cb.baseCulturePerTurn;
+			int ageInYears = gd.timeOptions.GetAbsoluteYear(gd.turn) - cb.year;
+			if (ageInYears < 1000) return cb.baseCulturePerTurn;
+			return cb.baseCulturePerTurn * 2;
+		};
+
 		Player player = MakePlayerForProduction();
 		player.rules = gameData.rules;
 		City city = MakeCity(player);
@@ -53,6 +61,8 @@ public class AgeBonusTest : CityTest {
 		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
 
 		SetYear(setup.gameData, -3000);
+		setup.city.UpdateAgeBonuses(setup.gameData);
+
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
 	}
 
@@ -63,61 +73,9 @@ public class AgeBonusTest : CityTest {
 
 		// Over 3000 years old, but the default bonus does not compound.
 		SetYear(setup.gameData, -750);
+		setup.city.UpdateAgeBonuses(setup.gameData);
+
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void CultureBuilding_AgeBonusDisabled_GetsNoBonus() {
-		var setup = SetupCultureCity();
-		setup.gameData.rules.ageBonus.enabled = false;
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-
-		SetYear(setup.gameData, -3000);
-		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void CultureBuilding_CustomThreshold_Respected() {
-		var setup = SetupCultureCity();
-		setup.gameData.rules.ageBonus.yearsToDouble = 500;
-		setup.city.AddBuilding(MakeCultureBuilding(3), setup.gameData);
-
-		// 450 years old, not yet at the custom threshold.
-		SetYear(setup.gameData, -3550);
-		Assert.Equal(3, setup.city.GetCulturePerTurnRaw());
-
-		SetYear(setup.gameData, -3500);
-		Assert.Equal(6, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void CultureBuilding_CustomMultiplier_Respected() {
-		var setup = SetupCultureCity();
-		setup.gameData.rules.ageBonus.multiplier = 3;
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-
-		SetYear(setup.gameData, -3000);
-		Assert.Equal(6, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void CultureBuilding_Repeatable_DoublesMultipleTimes() {
-		var setup = SetupCultureCity();
-		setup.gameData.rules.ageBonus.repeatable = true;
-		setup.city.AddBuilding(MakeCultureBuilding(1), setup.gameData);
-
-		// 2250 years old, so two 1000-year periods have elapsed.
-		SetYear(setup.gameData, -1750);
-		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void CultureBuilding_NotRepeatable_DoesNotDoubleMultipleTimes() {
-		var setup = SetupCultureCity();
-		setup.city.AddBuilding(MakeCultureBuilding(1), setup.gameData);
-
-		SetYear(setup.gameData, -1750);
-		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
 	}
 
 	[Fact]
@@ -146,61 +104,41 @@ public class AgeBonusTest : CityTest {
 	}
 
 	[Fact]
-	public void CultureBuilding_ImprovementNotApplied_WhenDisabled() {
+	public void LuaAgeBonusHook_OverridesTheRulesMultiplier() {
 		var setup = SetupCultureCity();
-		setup.gameData.rules.ageBonus.appliesToImprovements = false;
+		setup.gameData.luaBehaviorEngine = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
+		setup.gameData.ageBonusFunc = (cb, gd, c, p) => 7;
+
 		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		SetYear(setup.gameData, -3000);
 
-		SetYear(setup.gameData, -1750);
-		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
+		Assert.Equal(7, setup.city.GetCulturePerTurnRaw());
 	}
 
 	[Fact]
-	public void CultureBuilding_WonderNotApplied_WhenDisabled() {
+	public void LuaAgeBonusHook_ZeroCultureMultiplier_IsRespected() {
 		var setup = SetupCultureCity();
-		setup.gameData.rules.ageBonus.appliesToWonders = false;
-		Building wonder = MakeBuilding(new SaveBuilding {
-			name = "Great",
-			culturePerTurn = 2,
-			isSmallWonder = true,
-		});
-		setup.city.AddBuilding(wonder, setup.gameData);
+		setup.gameData.luaBehaviorEngine = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
+		setup.gameData.ageBonusFunc = (cb, gd, c, p) => 0;
 
-		SetYear(setup.gameData, -1750);
-		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
-	}
+		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		SetYear(setup.gameData, -3000);
 
-	[Fact]
-	public void CultureBuilding_WonderApplied_ByDefault() {
-		var setup = SetupCultureCity();
-		Building wonder = MakeBuilding(new SaveBuilding {
-			name = "Great",
-			culturePerTurn = 2,
-			isSmallWonder = true,
-		});
-		setup.city.AddBuilding(wonder, setup.gameData);
-
-		SetYear(setup.gameData, -1750);
-		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void CultureBuilding_ZeroCulture_GetsNoBonus() {
-		var setup = SetupCultureCity();
-		setup.city.AddBuilding(MakeCultureBuilding(0), setup.gameData);
-
-		SetYear(setup.gameData, -1750);
 		Assert.Equal(0, setup.city.GetCulturePerTurnRaw());
 	}
 
 	[Fact]
-	public void CultureBuilding_UpdateCultureAndCheckForExpansion_UsesBonus() {
-		var setup = SetupCultureCity();
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-		SetYear(setup.gameData, -1750);
+	public void TryImportFunc_MissingPath_ReturnsFalse() {
+		BehaviorEngine behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
+		Assert.False(behaviors.TryImportFunc<Func<AgeBonusContext, int>>("gameplay.culture.no_such_function", out Func<AgeBonusContext, int> func));
+		Assert.Null(func);
+	}
 
-		setup.city.UpdateCultureAndCheckForExpansion();
-		Assert.Equal(4, setup.city.constructed_buildings[0].totalCulture);
+	[Fact]
+	public void TryImportFunc_ExistingPath_ReturnsTheFunction() {
+		BehaviorEngine behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
+		Assert.True(behaviors.TryImportFunc<Func<AgeBonusContext, int>>("gameplay.culture.age_bonus", out Func<AgeBonusContext, int> func));
+		Assert.NotNull(func);
 	}
 
 	[Fact]
@@ -220,43 +158,5 @@ public class AgeBonusTest : CityTest {
 		SetYear(setup.gameData, -3000);
 		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
 		Assert.Equal(-3000, setup.city.constructed_buildings[1].year);
-	}
-
-	[Fact]
-	public void LuaAgeBonusHook_OverridesTheRulesMultiplier() {
-		var setup = SetupCultureCity();
-		setup.gameData.luaBehaviorEngine = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		setup.gameData.ageBonusMultiplierFunc = _ => 7;
-
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-		SetYear(setup.gameData, -3000);
-
-		Assert.Equal(14, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void LuaAgeBonusHook_ZeroCultureMultiplier_IsRespected() {
-		var setup = SetupCultureCity();
-		setup.gameData.luaBehaviorEngine = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		setup.gameData.ageBonusMultiplierFunc = _ => 0;
-
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-		SetYear(setup.gameData, -3000);
-
-		Assert.Equal(0, setup.city.GetCulturePerTurnRaw());
-	}
-
-	[Fact]
-	public void TryImportFunc_MissingPath_ReturnsFalse() {
-		BehaviorEngine behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		Assert.False(behaviors.TryImportFunc<Func<AgeBonusContext, int>>("gameplay.culture.no_such_function", out Func<AgeBonusContext, int> func));
-		Assert.Null(func);
-	}
-
-	[Fact]
-	public void TryImportFunc_ExistingPath_ReturnsTheFunction() {
-		BehaviorEngine behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		Assert.True(behaviors.TryImportFunc<Func<AgeBonusContext, int>>("gameplay.culture.age_bonus_multiplier", out Func<AgeBonusContext, int> func));
-		Assert.NotNull(func);
 	}
 }

@@ -79,6 +79,9 @@ namespace C7GameData {
 		internal BehaviorEngine luaBehaviorEngine;
 		internal GameMode.Config gameModeConfig;
 
+		// Optional Lua hook for age-based culture bonuses. Null when the game mode does not define one.
+		internal Func<CityBuilding, GameData, City, Player, int> ageBonusFunc;
+
 		// The cached trade network for all players. This is invalidated whenever
 		// a road is built or a city is created/destroyed.
 		private TradeNetwork tradeNetwork;

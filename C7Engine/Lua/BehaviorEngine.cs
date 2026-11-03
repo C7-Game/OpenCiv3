@@ -52,9 +52,11 @@ public class BehaviorEngine {
 		return (T)(object)del;
 	}
 
-	/// Loads a Lua function the same way as ImportFunc, but returns false
-	/// instead of throwing when the path does not resolve to a function, so
-	/// callers can make a function optional.
+	/// <summary>
+	/// Loads a Lua function from a rules table by a given path, if the path
+	/// resolves to a function. Returns false and leaves func null when the
+	/// path does not exist, so callers can make a function optional.
+	/// </summary>
 	public bool TryImportFunc<T>(string functionPath, out T func) where T : Delegate {
 		if (string.IsNullOrEmpty(functionPath)) {
 			func = null;

@@ -95,6 +95,24 @@ public sealed class TimeOptions {
 	}
 
 	/// <summary>
+	/// The calendar year of the given turn, no matter which base time unit the
+	/// game uses. For a game based on years this is the same as GetRawNumber.
+	/// </summary>
+	/// <param name="turn"></param>
+	/// <returns></returns>
+	public int GetAbsoluteYear(int turn) {
+		int raw = GetRawNumber(turn);
+		return baseUnit switch {
+			TimeUnit.Years => raw,
+			TimeUnit.Months => startYear + (raw - startMonth) / 12,
+			TimeUnit.Weeks => startYear + (raw - startWeek) / 52,
+			TimeUnit.Days => startYear + (raw - startDay) / 365,
+			TimeUnit.Hours => startYear + (raw - startHour) / 8760,
+			_ => throw new InvalidEnumArgumentException($"{baseUnit} is not a valid TimeUnit")
+		};
+	}
+
+	/// <summary>
 	/// Get the turn number from the current unit time.<br/>
 	/// So, assuming a std game<br/>
 	/// -3950 will return 1, etc<br/>
@@ -156,18 +174,6 @@ public sealed class TimeOptions {
 	/// The calendar year of the given turn, no matter which base time unit the
 	/// game uses. For a game based on years this is the same as GetRawNumber.
 	/// </summary>
-	public int GetAbsoluteYear(int turn) {
-		int raw = GetRawNumber(turn);
-		return baseUnit switch {
-			TimeUnit.Years => raw,
-			TimeUnit.Months => startYear + (raw - startMonth) / 12,
-			TimeUnit.Weeks => startYear + (raw - startWeek) / 52,
-			TimeUnit.Days => startYear + (raw - startDay) / 365,
-			TimeUnit.Hours => startYear + (raw - startHour) / 8760,
-			_ => throw new InvalidEnumArgumentException($"{baseUnit} is not a valid TimeUnit")
-		};
-	}
-
 	private int GetStartingPoint() {
 		return baseUnit switch {
 			TimeUnit.Years => currentYear = startYear,

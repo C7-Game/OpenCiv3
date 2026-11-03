@@ -12,6 +12,9 @@ namespace C7GameData.Save {
 		public string building;
 		public ID builtByPlayer;
 		public int year;
+		public int turnBuilt;
+		public int baseCulturePerTurn;
+		public int currentCulturePerTurn;
 		public int totalCulture;
 
 		public SaveCityBuilding() { }
@@ -20,6 +23,9 @@ namespace C7GameData.Save {
 			building = cityBuilding.building.name;
 			builtByPlayer = cityBuilding.builtByPlayer.id;
 			year = cityBuilding.year;
+			turnBuilt = cityBuilding.turnBuilt;
+			baseCulturePerTurn = cityBuilding.baseCulturePerTurn;
+			currentCulturePerTurn = cityBuilding.currentCulturePerTurn;
 			totalCulture = cityBuilding.totalCulture;
 		}
 
