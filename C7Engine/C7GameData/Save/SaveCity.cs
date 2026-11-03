@@ -116,7 +116,8 @@ namespace C7GameData.Save {
 			city.residents = residents.ConvertAll(resident => {
 				return new CityResident {
 					citizenType = citizenTypes.Find(x => x.Id == resident.citizenType),
-					nationality = civilizations.Find(civ => civ.name == resident.nationality),
+					// Cities founded before founding citizens got a nationality saved none.
+					nationality = civilizations.Find(civ => civ.name == resident.nationality) ?? city.owner.civilization,
 					tileWorked = gameMap.tileAt(resident.tileWorked.X, resident.tileWorked.Y),
 					city = city,
 				};

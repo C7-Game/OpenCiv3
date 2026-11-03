@@ -207,6 +207,14 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgPlayerDefeated : MessageToUI {
+		public ID playerId;
+
+		public MsgPlayerDefeated(ID playerId) {
+			this.playerId = playerId;
+		}
+	}
+
 	public class MsgCityCreated : MessageToUI {
 		public City city;
 

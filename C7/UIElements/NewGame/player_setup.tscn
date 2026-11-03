@@ -99,10 +99,11 @@ layout_mode = 0
 offset_left = 630.0
 offset_top = 120.0
 offset_right = 951.0
-offset_bottom = 458.0
+offset_bottom = 434.0
 
 [node name="OpponentListContainer" type="GridContainer" parent="Background/OpponentListScroller"]
 layout_mode = 2
+theme_override_constants/v_separation = 0
 
 [node name="CenterContainer" type="CenterContainer" parent="Background"]
 layout_mode = 0

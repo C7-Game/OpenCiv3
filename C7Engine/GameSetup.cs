@@ -8,7 +8,11 @@ using Serilog;
 namespace C7Engine;
 
 public struct SelectedOpponent {
+	public const string NONE = "NONE";
+	public const string RANDOM = "Random";
+
 	public bool isRandom;
+	public bool isNone;
 	public string Name;
 }
 
@@ -41,6 +45,70 @@ public class GameSetup {
 		}
 	}
 
+	// Read the opponent selections of the last game from the settings,
+	// padded or truncated to the requested count.
+	public static List<SelectedOpponent> OpponentsFromSettings(List<Civilization> availableCivilizations, int expectedCount) {
+		string raw = C7Settings.GetSettingsValueOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Opponents, "");
+		List<SelectedOpponent> opponents = [];
+
+		if (!string.IsNullOrEmpty(raw)) {
+			opponents.AddRange(raw.Split('|')
+				.Select(n => n.Trim())
+				.Where(n => !string.IsNullOrEmpty(n))
+				.Select(name => ToSelectedOpponent(name, availableCivilizations)));
+		}
+
+		while (opponents.Count < expectedCount) {
+			opponents.Add(new SelectedOpponent { isRandom = true });
+		}
+
+		return opponents.Take(expectedCount).ToList();
+	}
+
+	private static SelectedOpponent ToSelectedOpponent(string name, List<Civilization> availableCivs) {
+		if (name == SelectedOpponent.NONE) {
+			return new SelectedOpponent { isNone = true };
+		}
+
+		if (name == SelectedOpponent.RANDOM || availableCivs.All(c => c.name != name)) {
+			return new SelectedOpponent { isRandom = true };
+		}
+
+		return new SelectedOpponent { isRandom = false, Name = name };
+	}
+
+	public static BarbarianActivity BarbarianActivityFromSettings() {
+		return C7Settings.GetTypedSettingOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.BarbarianActivity, BarbarianActivity.Roaming);
+	}
+
+	public static WorldCharacteristics.Landform LandformFromSettings() {
+		return C7Settings.GetTypedSettingOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Landform, WorldCharacteristics.Landform.Pangaea);
+	}
+
+	public static WorldCharacteristics.OceanCoverage OceanCoverageFromSettings() {
+		return C7Settings.GetTypedSettingOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.OceanCoverage, WorldCharacteristics.OceanCoverage.Percent_70);
+	}
+
+	public static WorldCharacteristics.Age AgeFromSettings() {
+		return C7Settings.GetTypedSettingOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Age, WorldCharacteristics.Age.Billion_4);
+	}
+
+	public static WorldCharacteristics.Climate ClimateFromSettings() {
+		return C7Settings.GetTypedSettingOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Climate, WorldCharacteristics.Climate.Normal);
+	}
+
+	public static WorldCharacteristics.Temperature TemperatureFromSettings() {
+		return C7Settings.GetTypedSettingOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Temperature, WorldCharacteristics.Temperature.Temperate);
+	}
+
+	public static WorldSize WorldSizeFromSettings(List<WorldSize> availableSizes) {
+		string lastWorldSize = C7Settings.GetSettingsValueOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.WorldSize, "");
+		return availableSizes.FirstOrDefault(ws =>
+				   string.Equals(ws.name, lastWorldSize, StringComparison.OrdinalIgnoreCase))
+			   ?? availableSizes.FirstOrDefault(ws => ws.isDefault)
+			   ?? WorldSize.Generic();
+	}
+
 	private void PopulatePlayers(SaveGame save) {
 		Random rand = new(worldCharacteristics.mapSeed + 0x531);
 
@@ -59,6 +127,10 @@ public class GameSetup {
 		taken.Add(this.playerCivilization.name);
 
 		foreach (SelectedOpponent opponent in opponents) {
+			if (opponent.isNone) {
+				continue;
+			}
+
 			bool isRandom = opponent.isRandom;
 			string selectedName = opponent.Name;
 

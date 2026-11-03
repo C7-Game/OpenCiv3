@@ -46,7 +46,9 @@ public partial class PlayerSetup : Control {
 
 		// Set up buttons for the civs the player can play as.
 		playerListContainer.Columns = (int)Math.Ceiling(save.Civilizations.Count / 12.0);
-		string initiallySelectedCiv = save.Civilizations.Any(x => x.name == "Netherlands") ? "Netherlands" : save.Civilizations[1].name;
+		string fallbackCiv = save.Civilizations.Any(x => x.name == "Netherlands") ? "Netherlands" : save.Civilizations[1].name;
+		string lastCiv = C7Settings.GetSettingsValueOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Civilization, fallbackCiv);
+		string initiallySelectedCiv = save.Civilizations.Any(x => x.name == lastCiv) ? lastCiv : fallbackCiv;
 		foreach (Civilization civ in save.Civilizations) {
 			if (civ.isBarbarian) {
 				continue;
@@ -82,7 +84,9 @@ public partial class PlayerSetup : Control {
 
 		// Set up the difficulty buttons
 		difficultyContainer.Columns = save.Difficulties.Count;
-		string initiallySelectedDifficulty = save.Difficulties.Any(x => x.Name == "Regent") ? "Regent" : save.Difficulties[0].Name;
+		string fallbackDifficulty = save.Difficulties.Any(x => x.Name == "Regent") ? "Regent" : save.Difficulties[0].Name;
+		string lastDifficulty = C7Settings.GetSettingsValueOrDefault(C7Settings.LastGame.SectionName, C7Settings.LastGame.Difficulty, fallbackDifficulty);
+		string initiallySelectedDifficulty = save.Difficulties.Any(x => x.Name == lastDifficulty) ? lastDifficulty : fallbackDifficulty;
 		foreach (Difficulty difficulty in save.Difficulties) {
 			CenterContainer container = new();
 			difficultyContainer.AddChild(container);
@@ -130,6 +134,12 @@ public partial class PlayerSetup : Control {
 
 	private void AddOpponentSelectors(int numberOfCivs) {
 		int numOpponents = numberOfCivs - 1;
+		// Two columns on larger maps, like the original game; Standard's
+		// 7 rivals and fewer stay in a single column.
+		int columns = numOpponents > 7 ? 2 : 1;
+		opponentListContainer.Columns = columns;
+		int rows = (numOpponents + columns - 1) / columns;
+		List<SelectedOpponent> lastOpponents = GameSetup.OpponentsFromSettings(save.Civilizations, numOpponents);
 
 		for (int i = 0; i < numOpponents; ++i) {
 			OptionButton optionButton = new();
@@ -159,9 +169,11 @@ public partial class PlayerSetup : Control {
 			opponentListContainer.AddChild(container);
 			container.AddChild(optionButton);
 
-			container.CustomMinimumSize = new Vector2(312.0f / opponentListContainer.Columns, 315.0f / numOpponents);
-			optionButton.CustomMinimumSize = new Vector2(290.0f / opponentListContainer.Columns, optionButton.CustomMinimumSize.Y);
+			container.CustomMinimumSize = new Vector2(312.0f / columns, 312.0f / rows);
+			optionButton.CustomMinimumSize = new Vector2(290.0f / columns, optionButton.CustomMinimumSize.Y);
 
+			optionButton.AddItem(SelectedOpponent.NONE);
+			optionButton.AddItem(SelectedOpponent.RANDOM);
 			foreach (Civilization civ in save.Civilizations) {
 				if (civ.isBarbarian) {
 					continue;
@@ -169,9 +181,15 @@ public partial class PlayerSetup : Control {
 				optionButton.AddItem(civ.name);
 			}
 
-			// Add (and default to) random for each opponent.
-			optionButton.AddItem("Random");
-			optionButton.Select(popup.ItemCount - 1);
+			// Restore the selection of the last game, defaulting to Random.
+			SelectedOpponent opponent = lastOpponents[i];
+			string itemName = opponent switch {
+				{ isNone: true } => SelectedOpponent.NONE,
+				{ isRandom: true } => SelectedOpponent.RANDOM,
+				_ => opponent.Name
+			};
+			int itemIndex = ItemIndexOf(optionButton, itemName);
+			optionButton.Select(itemIndex >= 0 ? itemIndex : ItemIndexOf(optionButton, SelectedOpponent.RANDOM));
 
 			for (int k = 0; k < popup.ItemCount; ++k) {
 				popup.SetItemAsRadioCheckable(k, false);
@@ -181,7 +199,41 @@ public partial class PlayerSetup : Control {
 			optionButton.ItemSelected += (long i) => { UpdateOpponentSelectors(); };
 		}
 
+		AddOpponentQuickButtons();
 		UpdateOpponentSelectors();
+	}
+
+	private void AddOpponentQuickButtons() {
+		HBoxContainer container = new() {
+			Position = new Vector2(630, 437),
+			Size = new Vector2(321, 24),
+			Alignment = BoxContainer.AlignmentMode.Center,
+		};
+		background.AddChild(container);
+
+		Civ3MenuButton allNone = new() { Text = "All NONE" };
+		allNone.Pressed += () => SetAllOpponents(SelectedOpponent.NONE);
+		container.AddChild(allNone);
+
+		Civ3MenuButton allRandom = new() { Text = "All Random" };
+		allRandom.Pressed += () => SetAllOpponents(SelectedOpponent.RANDOM);
+		container.AddChild(allRandom);
+	}
+
+	private void SetAllOpponents(string name) {
+		foreach (OptionButton ob in opponentSelectors) {
+			ob.Select(ItemIndexOf(ob, name));
+		}
+		UpdateOpponentSelectors();
+	}
+
+	private static int ItemIndexOf(OptionButton ob, string text) {
+		for (int i = 0; i < ob.ItemCount; ++i) {
+			if (ob.GetItemText(i) == text) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	private void UpdateOpponentSelectors() {
@@ -195,8 +247,8 @@ public partial class PlayerSetup : Control {
 			// selectors has X selected, change it to random. Similarly if one
 			// of the previous option buttons has selected this civ.
 			if (civsTaken.Contains(selection)) {
-				ob.Select(ob.GetPopup().ItemCount - 1);
-			} else if (selection != "Random") {
+				ob.Select(ItemIndexOf(ob, SelectedOpponent.RANDOM));
+			} else if (selection != SelectedOpponent.RANDOM && selection != SelectedOpponent.NONE) {
 				civsTaken.Add(selection);
 			}
 
@@ -223,17 +275,20 @@ public partial class PlayerSetup : Control {
 		foreach (OptionButton ob in opponentSelectors) {
 			string selectedName = ob.GetItemText(ob.Selected);
 
-			if (selectedName == "Random") {
-				opponents.Add(new SelectedOpponent { isRandom = true });
-			} else {
-				opponents.Add(new SelectedOpponent { isRandom = false, Name = selectedName });
-			}
+			opponents.Add(selectedName switch {
+				SelectedOpponent.NONE => new SelectedOpponent { isNone = true },
+				SelectedOpponent.RANDOM => new SelectedOpponent { isRandom = true },
+				_ => new SelectedOpponent { Name = selectedName },
+			});
 		}
 
 		return opponents;
 	}
 
 	private void CreateGame() {
+		List<SelectedOpponent> opponents = CollectSelectedOpponents();
+
+		loadingLabel.Text = "Loading...";
 		loadingLabel.Visible = true;
 
 		GlobalSingleton global = GetNode<GlobalSingleton>("/root/GlobalSingleton");
@@ -242,7 +297,7 @@ public partial class PlayerSetup : Control {
 			playerCivilization = selectedCivilization,
 			difficulty = selectedDifficulty,
 			worldCharacteristics = global.WorldCharacteristics,
-			opponents = CollectSelectedOpponents(),
+			opponents = opponents,
 			victoryConditions = victoryConditions
 		};
 
@@ -272,7 +327,11 @@ public partial class PlayerSetup : Control {
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Difficulty, gameSetup.difficulty.Name);
 
 			List<SelectedOpponent> ops = gameSetup.opponents;
-			string opponentsValue = string.Join("|", ops.Select(o => o.isRandom ? "Random" : o.Name));
+			string opponentsValue = string.Join("|", ops.Select(o => o switch {
+				{ isNone: true } => SelectedOpponent.NONE,
+				{ isRandom: true } => SelectedOpponent.RANDOM,
+				_ => o.Name
+			}));
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Opponents, opponentsValue);
 
 			PersistVictoryConditions(gameSetup.victoryConditions);

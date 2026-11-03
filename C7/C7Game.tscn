@@ -360,8 +360,6 @@ alignment = 2
 script = ExtResource("9")
 control = NodePath("../Control")
 
-[node name="PopupSound" type="AudioStreamPlayer" parent="CanvasLayer/PopupOverlay"]
-
 [node name="InteractablePopUpController" parent="CanvasLayer" instance=ExtResource("29_v3pw1")]
 
 [node name="LoadDialog" parent="." instance=ExtResource("12_yjlfl")]

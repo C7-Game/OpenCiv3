@@ -378,6 +378,10 @@ public partial class Game : Node {
 				if (mBCD.controllerId == controller.id)
 					this.EmitBarbarianCampDispersedSignal(mBCD);
 				break;
+			case MsgPlayerDefeated mPD:
+				this.EmitDefeatSignal(mPD.playerId);
+				InterestingEvent();
+				break;
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
 				break;
@@ -647,6 +651,10 @@ public partial class Game : Node {
 	}
 
 	public override void _Input(InputEvent @event) {
+		if ((HasVisibleModal() && !IsModalSwitchEvent(@event)) || CurrentState == GameState.ComputerTurn) {
+			return;
+		}
+
 		if (@event is InputEventKey e && e.Pressed && !e.IsAction(C7Action.UnitGoto)) {
 			this.SetGotoMode(false);
 		}
@@ -657,6 +665,14 @@ public partial class Game : Node {
 		if ((HasVisibleModal() && !IsModalSwitchEvent(@event)) || CurrentState == GameState.ComputerTurn) {
 			IsMovingCamera = false;
 			return;
+		}
+
+		// If a text input has focus, don't send keys/mouse actions to the game
+		if (@event is InputEventKey || @event is InputEventMouseButton) {
+			Control focusOwner = GetViewport().GuiGetFocusOwner();
+			if (focusOwner is LineEdit || focusOwner is TextEdit) {
+				return;
+			}
 		}
 
 		// Control node must not be in the way and/or have mouse pass enabled
@@ -932,9 +948,6 @@ public partial class Game : Node {
 				mapView.centerCameraOnTile(capital.location);
 			}
 		}
-		if (eventKeyDown.Keycode == Godot.Key.M && eventKeyDown.IsCommandOrControlPressed()) {
-			ProcessAction(C7Action.OpenGameMenu);
-		}
 		// For inputs that have the same keys mapped to multiple actions like G
 		// we need to manually handle what is triggered by adding extra conditions.
 		// Otherwise when pressing CTRL + G for example, both the go-to
@@ -1011,7 +1024,7 @@ public partial class Game : Node {
 		Godot.Collections.Array<StringName> actions = InputMap.GetActions();
 
 		foreach (StringName action in actions) {
-			if (Input.IsActionJustPressed(action)) {
+			if (Input.IsActionJustPressed(action, exactMatch: true)) {
 				ProcessAction(action.ToString());
 			} else if (Input.IsActionJustReleased(action)) {
 				ProcessOnReleaseAction(action.ToString());
@@ -1030,6 +1043,12 @@ public partial class Game : Node {
 			return true;
 
 		if (advisor.Visible || gameViews.Visible || preferences.Visible)
+			return true;
+
+		if (FileDialog != null && FileDialog.Visible)
+			return true;
+
+		if (interactablePopUpController != null && interactablePopUpController.Visible)
 			return true;
 
 		return false;
@@ -1051,10 +1070,6 @@ public partial class Game : Node {
 
 		if (interactablePopUpController.Visible) {
 			return;
-		}
-
-		if (currentAction == C7Action.OpenGameMenu) {
-			EmitGameMainMenuSignal();
 		}
 
 		if (currentAction == C7Action.Escape && tileInfo != null) {
@@ -1108,6 +1123,26 @@ public partial class Game : Node {
 
 		// never poll for actions if UI elements are visible
 		if (HasVisibleModal()) {
+			return;
+		}
+
+		if (currentAction == C7Action.OpenGameMenu) {
+			EmitGameMainMenuSignal();
+			return;
+		}
+
+		if (currentAction == C7Action.SaveGame) {
+			OnSaveGame();
+			return;
+		}
+
+		if (currentAction == C7Action.LoadGame) {
+			OnLoadGame();
+			return;
+		}
+
+		if (currentAction == C7Action.Retire) {
+			EmitRetireConfirmationSignal();
 			return;
 		}
 
