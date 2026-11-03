@@ -535,9 +535,7 @@ namespace C7GameData {
 		// This queue is being reversed in the end, to provide the actual queue
 		// that the player would go through
 		public void CalculateFreshTechQueueAndAssignNewCurrent(Tech tech) {
-			ResearchQueue.Clear();
-			IEnumerable<Tech> techQueue = GetResearchQueueFor(tech, ResearchQueue).Reverse();
-			ResearchQueue = new Queue<Tech>(techQueue);
+			ResearchQueue = GetResearchQueueFor(tech, new Queue<Tech>());
 
 			// Re-picking the tech already in progress keeps its beakers.
 			if (ResearchQueue.Count > 0 && ResearchQueue.Peek().id != currentlyResearchedTech)
@@ -554,8 +552,7 @@ namespace C7GameData {
 
 		// Append a new queue at the tail end of the current queue
 		public void CalculateTechQueueAndAppendToCurrentQueue(Tech tech) {
-			IEnumerable<Tech> techQueue = GetResearchQueueFor(tech, new Queue<Tech>()).Reverse();
-			foreach (Tech t in techQueue) {
+			foreach (Tech t in GetResearchQueueFor(tech, new Queue<Tech>())) {
 				if (!ResearchQueue.Contains(t)) {
 					AddTechItemToResearchQueue(t);
 				}
@@ -568,43 +565,21 @@ namespace C7GameData {
 		}
 
 		/// <summary>
-		/// This produces a queue, but in reverse order, going from the last tech to the first.
-		/// We can't reverse when returning from this method, because of its recursive nature,
-		/// so this must be done from the caller method.
+		/// This produces the queue in research order: every unknown prerequisite is
+		/// enqueued (depth first) before the tech that needs it.
 		/// </summary>
-		/// <param name="gameData"></param>
 		/// <param name="tech"></param>
+		/// <param name="tempQueue">Queue to add to; techs already in it are not repeated.</param>
 		/// <returns></returns>
 		private Queue<Tech> GetResearchQueueFor(Tech tech, Queue<Tech> tempQueue) {
-
-			if (tech == null) {
-				return new Queue<Tech>();
+			if (tech == null || knownTechs.Contains(tech.id) || tempQueue.Contains(tech)) {
+				return tempQueue;
 			}
 
-			List<Tech> requiredTechs = OrderTechs(tech.Prerequisites);
-
-			// first, add the tech the user clicked
-			if (!knownTechs.Contains(tech.id) && !tempQueue.Contains(tech)) {
-				tempQueue.Enqueue(tech);
+			foreach (Tech prereq in OrderTechs(tech.Prerequisites)) {
+				GetResearchQueueFor(prereq, tempQueue);
 			}
-
-			// second, get the direct required techs
-			foreach (Tech t in requiredTechs) {
-				if (!knownTechs.Contains(t.id)) {
-					if (!tempQueue.Contains(t)) {
-						tempQueue.Enqueue(t);
-					}
-				}
-			}
-
-			// last, recursively get the required techs of these required techs
-			foreach (Tech t in requiredTechs) {
-				if (!knownTechs.Contains(t.id)) {
-					if (t.Prerequisites.Count > 0) {
-						GetResearchQueueFor(t, tempQueue);
-					}
-				}
-			}
+			tempQueue.Enqueue(tech);
 			return tempQueue;
 		}
 
