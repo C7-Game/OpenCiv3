@@ -598,8 +598,15 @@ namespace C7GameData {
 			double taxMultiplier = 1 + activeBuildings.Sum(b => b.commerceBonus);
 
 			// Split the commerce first, then apply the building bonuses to each part.
-			int baseBeakers = (int)Math.Floor(commerce.useful * owner.scienceRate / 10.0);
-			int baseHappiness = (int)Math.Floor(commerce.useful * owner.luxuryRate / 10.0);
+			int baseBeakers = (commerce.useful * owner.scienceRate + 5) / 10;
+			int baseHappiness = (commerce.useful * owner.luxuryRate + 5) / 10;
+
+			// if baseBeakers + baseHappiness > total useful commerce, truncate luxury spending
+			// confirmed this matched base Civ 3 logic via Ghidra dump
+			if (baseBeakers + baseHappiness > commerce.useful) {
+				baseHappiness = commerce.useful - baseBeakers;
+			}
+
 			int baseTaxes = commerce.useful - baseBeakers - baseHappiness;
 
 			// TODO: Science/Luxury commerce doesn't seem to be tabulating correctly, can be negative in some cases with specialists, might be ImportCiv3 issue?
