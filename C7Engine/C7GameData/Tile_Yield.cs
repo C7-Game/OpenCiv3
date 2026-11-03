@@ -186,7 +186,7 @@ public partial class Tile {
 
 			// Handle coastal cities + seafaring trait, applies AFTER 4 commerce floor for capitals
 			if (player.civilization?.traits.Contains(Civilization.Trait.Seafaring) == true
-			&& cityAtTile.isCoastal) {
+			&& NeighborsOcean()) {
 				yield += 1;
 			}
 		}
