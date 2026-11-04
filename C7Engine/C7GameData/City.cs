@@ -1104,7 +1104,9 @@ namespace C7GameData {
 
 			int happyCount = 0;
 			int unhappyCount = 0;
-			foreach (CityResident cr in residents) {
+			// Only loop through default citizens
+			// Specialists retain their mood in CityResident data which we don't want to count here
+			foreach (CityResident cr in residents.Where(c => c.citizenType.IsDefaultCitizen)) {
 				if (cr.mood == CityResident.Mood.Happy) { ++happyCount; }
 				if (cr.mood == CityResident.Mood.Unhappy) { ++unhappyCount; }
 			}
