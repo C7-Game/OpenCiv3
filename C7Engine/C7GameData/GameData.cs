@@ -89,9 +89,6 @@ namespace C7GameData {
 		// An action called after initialization of EngineStorage
 		internal Action onGameCreation;
 
-		// Optional Lua hook. Null when the game mode does not define one.
-		internal Func<AgeBonusContext, int> ageBonusMultiplierFunc;
-
 		public GameData(int customSeed = -1) {
 			map = new GameMap();
 			seed = customSeed;
@@ -462,6 +459,25 @@ namespace C7GameData {
 
 			// should never happen, if it does some part of the algorithm has gone wrong
 			throw new Exception($"Failed to resolve ownership of {t} between {a.name} and {b.name}, something went wrong");
+		}
+
+		// Loads the configured age bonus function, falling back to the default
+		// implementation when the save or scenario does not define a usable one.
+		internal void LoadAgeBonusFunction(BehaviorEngine behaviors) {
+			ageBonusFunc = null;
+			if (behaviors == null) {
+				return;
+			}
+
+			string configuredPath = rules?.ageBonus?.luaFunctionPath;
+			if (behaviors.TryImportFunc<Func<CityBuilding, GameData, City, Player, int>>(configuredPath, out ageBonusFunc)) {
+				return;
+			}
+
+			if (configuredPath != AgeBonusRules.DefaultLuaFunctionPath) {
+				behaviors.TryImportFunc<Func<CityBuilding, GameData, City, Player, int>>(
+					AgeBonusRules.DefaultLuaFunctionPath, out ageBonusFunc);
+			}
 		}
 	}
 

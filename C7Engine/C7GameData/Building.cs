@@ -266,11 +266,6 @@ namespace C7GameData {
 			return this.greatWonderProperties != null;
 		}
 
-		[LuaMethod]
-		public bool IsWonder() {
-			return this.greatWonderProperties != null || this.isSmallWonder;
-		}
-
 		public bool HasWonderFlag(SaveBuilding.WonderFlag flag) {
 			return wonderFlags.Contains(flag);
 		}

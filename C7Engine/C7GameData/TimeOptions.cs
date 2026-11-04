@@ -170,10 +170,6 @@ public sealed class TimeOptions {
 		return label;
 	}
 
-	/// <summary>
-	/// The calendar year of the given turn, no matter which base time unit the
-	/// game uses. For a game based on years this is the same as GetRawNumber.
-	/// </summary>
 	private int GetStartingPoint() {
 		return baseUnit switch {
 			TimeUnit.Years => currentYear = startYear,

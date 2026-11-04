@@ -11,7 +11,6 @@ namespace C7GameData {
 		public Building building;
 		public Player builtByPlayer;
 		public int year;
-		public int turnBuilt;
 		public int baseCulturePerTurn;
 		public int currentCulturePerTurn;
 		public int totalCulture; // This represents the total culture produced by the building.
@@ -145,22 +144,12 @@ namespace C7GameData {
 
 				if (b.greatWonderProperties.buildingGainedInEveryCity != null
 					&& !buildingsSeen.Contains(b.greatWonderProperties.buildingGainedInEveryCity)) {
-					result.Add(new CityBuilding() {
-						building = b.greatWonderProperties.buildingGainedInEveryCity,
-						builtByPlayer = cb.builtByPlayer,
-						year = cb.year,
-						totalCulture = 0, // TODO: calculate this
-					});
+					result.Add(CreateBuilding(b.greatWonderProperties.buildingGainedInEveryCity, cb.builtByPlayer, cb.year, EngineStorage.gameData));
 				}
 				if (b.greatWonderProperties.buildingGainedInEveryCityOnContinent != null
 					&& c.IsOnSameContinentAs(this)
 					&& !buildingsSeen.Contains(b.greatWonderProperties.buildingGainedInEveryCityOnContinent)) {
-					result.Add(new CityBuilding() {
-						building = b.greatWonderProperties.buildingGainedInEveryCityOnContinent,
-						builtByPlayer = cb.builtByPlayer,
-						year = cb.year,
-						totalCulture = 0, // TODO: calculate this
-					});
+					result.Add(CreateBuilding(b.greatWonderProperties.buildingGainedInEveryCityOnContinent, cb.builtByPlayer, cb.year, EngineStorage.gameData));
 				}
 			}
 
@@ -742,28 +731,6 @@ namespace C7GameData {
 			return result;
 		}
 
-		// Returns the age bonus for a building. Uses the Lua ageBonus function if available; otherwise returns 0 (no bonus).
-		public int GetAgeBonus(CityBuilding cb) {
-			Building building = cb.building;
-			if (building.culturePerTurn <= 0 || building.noAgeBonus) {
-				return 0;
-			}
-
-			GameData gameData = EngineStorage.gameData;
-			if (gameData?.timeOptions == null) {
-				return 0;
-			}
-
-			// Use the Lua ageBonus function if available
-			Func<CityBuilding, GameData, City, Player, int> ageBonus = gameData?.ageBonusFunc;
-			if (ageBonus != null) {
-				return ageBonus(cb, gameData, this, owner);
-			}
-
-			// Default: no age bonus applied
-			return 0;
-		}
-
 		// Uses the Lua ageBonus function if available; otherwise keeps base culture per turn unchanged.
 		public void UpdateAgeBonuses(GameData gameData) {
 			foreach (CityBuilding cb in constructed_buildings) {
@@ -796,17 +763,21 @@ namespace C7GameData {
 		}
 
 		public void AddBuilding(Building building, GameData gameData) {
+			int year = gameData.timeOptions?.GetAbsoluteYear(gameData.turn) ?? 0;
+			constructed_buildings.Add(CreateBuilding(building, owner, year, gameData));
+		}
+
+		private CityBuilding CreateBuilding(Building building, Player builtByPlayer, int year, GameData gameData) {
 			CityBuilding cb = new CityBuilding {
 				building = building,
-				builtByPlayer = owner,
-				year = gameData.timeOptions?.GetAbsoluteYear(gameData.turn) ?? 0,
-				turnBuilt = gameData.turn,
+				builtByPlayer = builtByPlayer,
+				year = year,
 				baseCulturePerTurn = building.culturePerTurn,
 				currentCulturePerTurn = building.culturePerTurn,
-				totalCulture = 0
+				totalCulture = 0,
 			};
 			UpdateAgeBonus(gameData, cb);
-			constructed_buildings.Add(cb);
+			return cb;
 		}
 
 		// Uses the Lua ageBonus function if available; otherwise keeps base culture per turn unchanged.
@@ -817,13 +788,9 @@ namespace C7GameData {
 			}
 
 			Func<CityBuilding, GameData, City, Player, int> ageBonus = gameData?.ageBonusFunc;
-			if (ageBonus != null) {
-				cb.currentCulturePerTurn = ageBonus(cb, gameData, this, owner);
-				return;
-			}
-
-			// Default: keep the base culture per turn (no age bonus applied)
-			cb.currentCulturePerTurn = cb.baseCulturePerTurn;
+			cb.currentCulturePerTurn = ageBonus != null
+				? ageBonus(cb, gameData, this, owner)
+				: cb.baseCulturePerTurn;
 		}
 
 		public void RemoveBuilding(CityBuilding building) {

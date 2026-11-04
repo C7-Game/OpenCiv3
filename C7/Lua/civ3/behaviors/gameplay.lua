@@ -134,54 +134,21 @@ gameplay = {
   culture = {
     -- Context = CityBuilding building, GameData gameData, City city, Player player
     age_bonus = function(cityBuilding, gameData, city, player)
-      if cityBuilding.building == nil or cityBuilding.baseCulturePerTurn <= 0 or cityBuilding.building.noAgeBonus then
+      local building = cityBuilding.building
+      if building == nil or cityBuilding.baseCulturePerTurn <= 0 then
         return 0
       end
-      if gameData == nil or gameData.timeOptions == nil then
-        return cityBuilding.baseCulturePerTurn
-      end
-      local building = cityBuilding.building
-      if building.noAgeBonus then
-        return cityBuilding.baseCulturePerTurn
-      end
-      local ageBonusRules = nil
-      if gameData.rules ~= nil then
-        local ok, value = pcall(function() return gameData.rules.ageBonus end)
-        if ok then
-          ageBonusRules = value
-        end
-      end
-      if ageBonusRules ~= nil and ageBonusRules.enabled == false then
+      if building.noAgeBonus or gameData == nil or gameData.timeOptions == nil then
         return cityBuilding.baseCulturePerTurn
       end
       local currentYear = gameData.timeOptions.GetAbsoluteYear(gameData.turn)
       local ageInYears = currentYear - cityBuilding.year
-      local yearsToDouble = 1000
-      local multiplier = 2
-      local repeatable = false
-      if ageBonusRules ~= nil then
-        if ageBonusRules.yearsToDouble and ageBonusRules.yearsToDouble > 0 then
-          yearsToDouble = ageBonusRules.yearsToDouble
-        end
-        if ageBonusRules.multiplier and ageBonusRules.multiplier > 0 then
-          multiplier = ageBonusRules.multiplier
-        end
-        if ageBonusRules.repeatable ~= nil then
-          repeatable = ageBonusRules.repeatable
-        end
-      end
-      if ageInYears < yearsToDouble then
+      -- Civ 3 doubles the culture of a building once it is a millennium old.
+      -- The bonus never compounds, no matter how old the building gets.
+      if ageInYears < 1000 then
         return cityBuilding.baseCulturePerTurn
       end
-      if not repeatable then
-        return cityBuilding.baseCulturePerTurn * multiplier
-      end
-      local doublings = 1 + math.floor((ageInYears - yearsToDouble) / yearsToDouble)
-      local result = cityBuilding.baseCulturePerTurn
-      for i = 1, doublings do
-        result = result * multiplier
-      end
-      return result
+      return cityBuilding.baseCulturePerTurn * 2
     end,
   }
 }

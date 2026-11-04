@@ -9,6 +9,10 @@ using Xunit;
 namespace EngineTests.GameData;
 
 public class AgeBonusTest : CityTest {
+	private static BehaviorEngine LoadBehaviors() {
+		return GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
+	}
+
 	// The game starts in the given year and the tests advance it by changing
 	// the turn, so the build years come from the same place the engine reads.
 	private (City city, Player player, C7GameData.GameData gameData) SetupCultureCity(int startYear = -4000) {
@@ -18,13 +22,9 @@ public class AgeBonusTest : CityTest {
 		};
 		EngineStorage.InitializeGameDataForTests(gameData);
 
-		var behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		gameData.ageBonusFunc = (cb, gd, c, p) => {
-			if (gd?.timeOptions == null) return cb.baseCulturePerTurn;
-			int ageInYears = gd.timeOptions.GetAbsoluteYear(gd.turn) - cb.year;
-			if (ageInYears < 1000) return cb.baseCulturePerTurn;
-			return cb.baseCulturePerTurn * 2;
-		};
+		BehaviorEngine behaviors = LoadBehaviors();
+		gameData.luaBehaviorEngine = behaviors;
+		gameData.LoadAgeBonusFunction(behaviors);
 
 		Player player = MakePlayerForProduction();
 		player.rules = gameData.rules;
@@ -104,9 +104,8 @@ public class AgeBonusTest : CityTest {
 	}
 
 	[Fact]
-	public void LuaAgeBonusHook_OverridesTheRulesMultiplier() {
+	public void CustomAgeBonusHook_OverridesTheDefaultFunction() {
 		var setup = SetupCultureCity();
-		setup.gameData.luaBehaviorEngine = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
 		setup.gameData.ageBonusFunc = (cb, gd, c, p) => 7;
 
 		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
@@ -116,9 +115,8 @@ public class AgeBonusTest : CityTest {
 	}
 
 	[Fact]
-	public void LuaAgeBonusHook_ZeroCultureMultiplier_IsRespected() {
+	public void CustomAgeBonusHook_ZeroCultureMultiplier_IsRespected() {
 		var setup = SetupCultureCity();
-		setup.gameData.luaBehaviorEngine = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
 		setup.gameData.ageBonusFunc = (cb, gd, c, p) => 0;
 
 		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
@@ -128,16 +126,40 @@ public class AgeBonusTest : CityTest {
 	}
 
 	[Fact]
+	public void LoadAgeBonusFunction_UsesTheDefaultWhenTheSaveHasNoPath() {
+		BehaviorEngine behaviors = LoadBehaviors();
+		C7GameData.GameData gameData = new() {
+			rules = new Rules { ageBonus = new AgeBonusRules { luaFunctionPath = null } },
+		};
+
+		gameData.LoadAgeBonusFunction(behaviors);
+
+		Assert.NotNull(gameData.ageBonusFunc);
+	}
+
+	[Fact]
+	public void LoadAgeBonusFunction_FallsBackWhenTheConfiguredPathIsMissing() {
+		BehaviorEngine behaviors = LoadBehaviors();
+		C7GameData.GameData gameData = new() {
+			rules = new Rules { ageBonus = new AgeBonusRules { luaFunctionPath = "gameplay.culture.no_such_function" } },
+		};
+
+		gameData.LoadAgeBonusFunction(behaviors);
+
+		Assert.NotNull(gameData.ageBonusFunc);
+	}
+
+	[Fact]
 	public void TryImportFunc_MissingPath_ReturnsFalse() {
-		BehaviorEngine behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		Assert.False(behaviors.TryImportFunc<Func<AgeBonusContext, int>>("gameplay.culture.no_such_function", out Func<AgeBonusContext, int> func));
+		BehaviorEngine behaviors = LoadBehaviors();
+		Assert.False(behaviors.TryImportFunc<Func<CityBuilding, C7GameData.GameData, City, Player, int>>("gameplay.culture.no_such_function", out Func<CityBuilding, C7GameData.GameData, City, Player, int> func));
 		Assert.Null(func);
 	}
 
 	[Fact]
 	public void TryImportFunc_ExistingPath_ReturnsTheFunction() {
-		BehaviorEngine behaviors = GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3")).behaviors;
-		Assert.True(behaviors.TryImportFunc<Func<AgeBonusContext, int>>("gameplay.culture.age_bonus", out Func<AgeBonusContext, int> func));
+		BehaviorEngine behaviors = LoadBehaviors();
+		Assert.True(behaviors.TryImportFunc<Func<CityBuilding, C7GameData.GameData, City, Player, int>>(AgeBonusRules.DefaultLuaFunctionPath, out Func<CityBuilding, C7GameData.GameData, City, Player, int> func));
 		Assert.NotNull(func);
 	}
 
@@ -158,5 +180,35 @@ public class AgeBonusTest : CityTest {
 		SetYear(setup.gameData, -3000);
 		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
 		Assert.Equal(-3000, setup.city.constructed_buildings[1].year);
+	}
+
+	[Fact]
+	public void LoadedBuildingWithoutCultureData_UsesTheBuildingCulture() {
+		Building building = MakeCultureBuilding(2);
+		Player player = MakePlayerForProduction();
+
+		CityBuilding cb = new SaveCityBuilding {
+			building = building.name,
+			year = -4000,
+		}.ToCityBuilding([building], [player]);
+
+		Assert.Equal(2, cb.baseCulturePerTurn);
+		Assert.Equal(2, cb.currentCulturePerTurn);
+	}
+
+	[Fact]
+	public void LoadedBuildingKeepsSavedCulture() {
+		Building building = MakeCultureBuilding(2);
+		Player player = MakePlayerForProduction();
+
+		CityBuilding cb = new SaveCityBuilding {
+			building = building.name,
+			year = -4000,
+			baseCulturePerTurn = 1,
+			currentCulturePerTurn = 2,
+		}.ToCityBuilding([building], [player]);
+
+		Assert.Equal(1, cb.baseCulturePerTurn);
+		Assert.Equal(2, cb.currentCulturePerTurn);
 	}
 }
