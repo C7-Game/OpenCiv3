@@ -16,6 +16,7 @@
 # Other
 *.md text eol=lf
 *.ps1 text eol=lf
+*.yml text eol=lf
 
 .gitignore text eol=lf
 .gitattributes text eol=lf
