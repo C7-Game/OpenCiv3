@@ -374,16 +374,13 @@ public partial class Game : Node {
 				this.EmitCivilizationDestroyedSignal(mCivD);
 				InterestingEvent();
 				break;
+			case MsgBarbarianCampDispersed mBCD:
+				if (mBCD.controllerId == controller.id)
+					this.EmitBarbarianCampDispersedSignal(mBCD);
+				break;
 			case MsgPlayerDefeated mPD:
 				this.EmitDefeatSignal(mPD.playerId);
 				InterestingEvent();
-				break;
-			case MsgShowMilitaryAdvisorPopup mSMAP:
-				if (!popupOverlay.Visible) {
-					var mood = mSMAP.happy ? Mood.Happy : Mood.Angry;
-					var pop = new InformationalPopup(mSMAP.message, Advisor.Military, mood);
-					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Info);
-				}
 				break;
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
