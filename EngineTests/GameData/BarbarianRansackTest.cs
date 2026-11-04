@@ -33,13 +33,17 @@ public class BarbarianRansackTest : IClassFixture<SaveGameFixture> {
 	private static BehaviorEngine BehaviorsWithRansackFormula(string luaExpression) {
 		string addonDir = Path.Combine(Path.GetTempPath(), "openciv3-ransack-test-addon");
 		Directory.CreateDirectory(addonDir);
-		File.WriteAllText(Path.Combine(addonDir, "behaviors.lua"),
-			"return function(behaviors)\n" +
-			"  behaviors.gameplay.barbarians.ransack_gold = function(barbarian, city)\n" +
-			$"    return {luaExpression}\n" +
-			"  end\n" +
-			"  return behaviors\n" +
-			"end\n");
+
+		var addonContent = $@"
+			return function(behaviors)
+				behaviors.gameplay.barbarians.ransack_gold = function(barbarian, city)
+					return {luaExpression}
+				end
+				return behaviors
+			end
+		";
+		File.WriteAllText(Path.Combine(addonDir, "behaviors.lua"), addonContent);
+
 		try {
 			return GameMode.Load(PathUtils.GameModesDir, new GameMode.Config("civ3", [addonDir])).behaviors;
 		} finally {
@@ -97,9 +101,7 @@ public class BarbarianRansackTest : IClassFixture<SaveGameFixture> {
 	}
 
 	[Theory]
-	// The formula gets both the barbarian and the city: 10 per citizen (1) + the warrior's attack (1).
 	[InlineData("10 * #city.residents + barbarian.unitType.attack", 100, 11)]
-	// Results are kept between 0 and the owner's gold.
 	[InlineData("1000", 100, 100)]
 	[InlineData("-5", 100, 0)]
 	public async Task GameModesCanReplaceTheFormula(string luaExpression, int ownerGold, int expectedTaken) {

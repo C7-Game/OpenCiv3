@@ -75,8 +75,6 @@ public partial class MapUnit {
 	}
 
 	// How much gold this barbarian unit carries away from the city it ransacks.
-	// The formula is the Lua behavior gameplay.barbarians.ransack_gold, so game
-	// modes can change it; the result is kept between 0 and the owner's gold.
 	private int RansackGold(City city) {
 		Func<MapUnit, City, int> ransackGold = EngineStorage.gameData.luaBehaviorEngine.ImportFunc<Func<MapUnit, City, int>>("gameplay.barbarians.ransack_gold");
 		return Math.Clamp(ransackGold.Invoke(this, city), 0, Math.Max(city.owner.gold, 0));
