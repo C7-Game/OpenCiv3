@@ -43,6 +43,18 @@ public partial class Tile {
 		return (Math.Abs(map.CalculateXDelta(other.XCoordinate, this.XCoordinate)) + Math.Abs(map.CalculateYDelta(other.YCoordinate, this.YCoordinate))) / 2;
 	}
 
+	// Manhattan distance on the map's grid of tiles, i.e. the number of
+	// steps to another tile when only moving across tile edges (NE, SE, SW,
+	// NW). An edge neighbor is 1 away; a corner neighbor (N, E, S, W) is 2.
+	public int ManhattanDistanceTo(Tile other) {
+		if (this == NONE || other == NONE) {
+			return int.MaxValue;
+		}
+		int dx = Math.Abs(map.CalculateXDelta(other.XCoordinate, this.XCoordinate));
+		int dy = Math.Abs(map.CalculateYDelta(other.YCoordinate, this.YCoordinate));
+		return Math.Max(dx, dy);
+	}
+
 	// Returns the number of "ranks" to another tile, where each rank is a
 	// border expansion due to culture. So rank 1 is immediate neighbors,
 	// rank 2 is the "big fat cross", etc.

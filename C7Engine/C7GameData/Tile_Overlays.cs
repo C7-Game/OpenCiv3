@@ -47,6 +47,7 @@ public partial class Tile {
 		public const string FORTRESS = "fortress";
 		public const string BARRICADE = "barricade";
 		public const string BARBARIAN_CAMP = "barbarianCamp";
+		public const string GOODY_HUT = "goodyHut";
 		public const string RUINS = "ruins";
 		public const string POLLUTION = "pollution";
 		public const string CRATERS = "craters";

@@ -194,6 +194,10 @@ return function(civ3_textures)
   -- TODO: Add proper replacement for the asset
   c7_textures.terrain.river_delta = "Art/Terrain/mtnRivers.png"
 
+  -- TODO: There is no standalone goody hut art yet. terrain.goody_hut still
+  -- points at the Civ3 goodyhuts.pcx, so drawing a hut in standalone mode
+  -- throws and crashes the game.
+
   c7_textures.civ_colors = {}
   for i, hex_color in ipairs(civ_colors) do
     c7_textures.civ_colors["color_" .. (i-1)] = { path = "", hex_color = hex_color }

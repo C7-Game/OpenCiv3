@@ -44,6 +44,11 @@ public partial class MapUnit {
 			}
 		}
 
+		// Pop a goody hut. Barbarians never pop huts.
+		if (tile.hasGoodyHut && !owner.isBarbarians) {
+			GoodyHutInteractions.PopHut(EngineStorage.gameData, this, tile);
+		}
+
 		// Destroy the enemy city on the tile unless we're the barbarians,
 		// in which case we'll just take some gold.
 		if (tile.HasCity() && !owner.IsAtPeaceWith(tile.cityAtTile.owner)) {

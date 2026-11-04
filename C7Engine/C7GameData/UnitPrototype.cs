@@ -128,6 +128,22 @@ namespace C7GameData {
 			}
 		}
 
+		// Civ3's "Treat all squares as road" ability (the Explorer in the base
+		// game). Units with it never release barbarians from goody huts.
+		//
+		// TODO: Wire this into the movement cost calculation, so these units
+		// pay road movement cost on every tile.
+		public bool allTerrainAsRoads {
+			get => flags.Contains(SaveUnitPrototype.Flag.AllTerrainAsRoads);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.AllTerrainAsRoads);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.AllTerrainAsRoads);
+				}
+			}
+		}
+
 		public HashSet<string> categories = new HashSet<string>();
 
 		public HashSet<UnitAction> actions = [];
