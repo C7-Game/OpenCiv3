@@ -414,9 +414,7 @@ namespace C7GameData {
 				c.SetStoredShields(shieldsAwarded, true);
 				c.SetStoredShields(Math.Min(c.shieldsStored, c.owner.ShieldCost(c.itemBeingProduced)));
 
-				if (c.owner.isHuman) {
-					new MsgShowTemporaryPopup($"{shieldsAwarded} shields awarded for clearing forests", other).send();
-				}
+				new MsgShowTemporaryPopup(c.owner.id, $"{shieldsAwarded} shields awarded for clearing forests", other).send();
 
 				return;
 			}

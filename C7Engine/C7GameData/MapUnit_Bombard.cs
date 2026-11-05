@@ -282,12 +282,10 @@ namespace C7GameData {
 		}
 
 		private void TriggerPopUp(int hitCount, Tile tile, string successMessage) {
-			if (owner.isHuman) {
-				if (hitCount > 0)
-					new MsgShowTemporaryPopup(successMessage, tile).send();
-				else
-					new MsgShowTemporaryPopup($"Artillery bombardment failed.", tile).send();
-			}
+			if (hitCount > 0)
+				new MsgShowTemporaryPopup(owner.id, successMessage, tile).send();
+			else
+				new MsgShowTemporaryPopup(owner.id, $"Artillery bombardment failed.", tile).send();
 		}
 
 	}

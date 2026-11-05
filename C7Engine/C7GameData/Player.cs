@@ -801,6 +801,8 @@ namespace C7GameData {
 				if (c.UpdateCultureAndCheckForExpansion()) {
 					gameData.UpdateTileOwners();
 
+					new MsgShowTemporaryPopup(c.owner.id, "Our cultural influence is expanding!", c.location).send();
+
 					// Update the trade network if borders expanded, as a new
 					// resource may be part of the network.
 					EngineStorage.gameData.InvalidateCachedTradeNetwork();
