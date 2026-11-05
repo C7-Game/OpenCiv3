@@ -375,6 +375,10 @@ goody_huts.outcomes.barbarians = {
     if context.isExpansionist or context.ownCityCount < 1 then
       return false
     end
+    -- A player with no unit that can attack or defend is spared.
+    if not context.hasCombatUnit then
+      return false
+    end
     if context:DistanceToNearestOwnCity() < config.min_own_city_distance then
       return false
     end

@@ -46,6 +46,9 @@ public class GoodyHutContext {
 
 	public int ownCityCount => player.cities.Count;
 
+	/// Whether the player has any unit with an attack or defense value.
+	public bool hasCombatUnit => player.units.Any(u => u.IsCombatUnit());
+
 	public bool HasTrait(Civilization.Trait trait)
 		=> player.civilization.traits.Contains(trait);
 

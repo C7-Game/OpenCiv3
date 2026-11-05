@@ -42,6 +42,11 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 		return CityInteractions.BuildCity(site, human, human.GetNextCityName());
 	}
 
+	// The starting units (settler and worker) can't attack or defend.
+	private MapUnit GiveCombatUnit() {
+		return gameData.SpawnUnit(human, gameData.barbarianInfo.basicBarbarian, unit.location);
+	}
+
 	private void SetExpansionist(bool expansionist) {
 		if (expansionist) {
 			human.civilization.traits.Add(Civilization.Trait.Expansionist);
@@ -169,6 +174,7 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 	[Fact]
 	public void BarbariansNeedACityThatIsNotTooClose() {
 		SetExpansionist(false);
+		GiveCombatUnit();
 		Tile hut = gameData.map.tiles.First(t => t.IsLand() && t.unitsOnTile.Count == 0 && t.neighbors.Values.All(n => n.IsLand()));
 
 		// No cities at all.
@@ -186,6 +192,7 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 
 	[Fact]
 	public void NoBarbariansForExpansionistsOrExplorers() {
+		GiveCombatUnit();
 		Tile hut = gameData.map.tiles.First(t => t.IsLand() && t.unitsOnTile.Count == 0 && t.neighbors.Values.All(n => n.IsLand()));
 		FoundCityNextTo(hut, 5);
 
@@ -196,6 +203,20 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 		MapUnit explorer = gameData.SpawnUnit(human, gameData.unitPrototypes.First(p => p.name == "Explorer"), hut);
 		Assert.True(explorer.unitType.allTerrainAsRoads);
 		Assert.False(CanApply("barbarians", Context(hut, explorer)));
+	}
+
+	[Fact]
+	public void NoBarbariansForPlayersWithoutCombatUnits() {
+		SetExpansionist(false);
+		Tile hut = gameData.map.tiles.First(t => t.IsLand() && t.unitsOnTile.Count == 0 && t.neighbors.Values.All(n => n.IsLand()));
+		FoundCityNextTo(hut, 5);
+
+		// Only the starting settler and worker.
+		Assert.DoesNotContain(human.units, u => u.IsCombatUnit());
+		Assert.False(CanApply("barbarians", Context(hut)));
+
+		GiveCombatUnit();
+		Assert.True(CanApply("barbarians", Context(hut)));
 	}
 
 	[Fact]
