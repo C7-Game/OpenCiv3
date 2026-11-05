@@ -906,18 +906,9 @@ public partial class Game : Node {
 		[Godot.Key.F11] = (SignalName.ShowGameView, C7Action.ShowDemographicsView),
 	};
 
-	// Switching away from the science advisor commits the research chosen in it, which may
-	// need the player's OK first. If so, the switch happens only once they give it.
+	// Leaves whatever advisor is open the same way X and Escape do, then opens the target.
 	private void NavigateTo(StringName signal, string target) {
-		ScienceAdvisor science = advisor.scienceAdvisor;
-		// Staying on the science advisor keeps its pending picks, so only leaving needs the check.
-		if (science.Visible && target != C7Action.ShowScienceAdvisor) {
-			if (popupOverlay.ShowingPopup || science.AskToConfirmSwitch(() => EmitSignal(signal, target))) {
-				return;
-			}
-			science.CommitPendingResearch();
-		}
-		EmitSignal(signal, target);
+		advisor.RequestClose(() => EmitSignal(signal, target), target);
 	}
 
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {

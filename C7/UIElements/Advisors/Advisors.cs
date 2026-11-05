@@ -70,34 +70,31 @@ public partial class Advisors : CenterContainer {
 		Show();
 	}
 
+	private Control[] AllAdvisors() {
+		return new Control[] { domesticAdvisor, tradeAdvisor, militaryAdvisor, foreignAdvisor, culturalAdvisor, scienceAdvisor };
+	}
+
 	private void HideAdvisors() {
-		domesticAdvisor.Hide();
-		tradeAdvisor.Hide();
-		militaryAdvisor.Hide();
-		foreignAdvisor.Hide();
-		culturalAdvisor.Hide();
-		scienceAdvisor.Hide();
+		foreach (Control advisor in AllAdvisors()) {
+			advisor.Hide();
+		}
+	}
+
+	/// <summary>
+	/// The one way out of an advisor: every route that leaves the open advisor (X, Escape, a function
+	/// key) goes through here. The advisor decides whether it may close; onClosed runs once it does.
+	/// </summary>
+	/// <param name="opening">The advisor about to be shown, if any. Reopening the one already showing isn't leaving it.</param>
+	public void RequestClose(System.Action onClosed, string opening = null) {
+		Control visible = AllAdvisors().FirstOrDefault(a => a.Visible);
+		if (opening == latest || visible is not IGuardedView guarded) {
+			onClosed();
+			return;
+		}
+		guarded.RequestClose(onClosed);
 	}
 
 	public void OnHide() {
-		if (scienceAdvisor.Visible) {
-			// Abandoning research in progress needs the player's OK; OnHide runs again once they give it.
-			if (scienceAdvisor.AskToConfirmSwitch(OnHide)) {
-				return;
-			}
-			// The engine hasn't processed what we just sent, so a fresh pick counts as research chosen.
-			bool researchChosen = scienceAdvisor.CommitPendingResearch();
-
-			Player controller = null;
-			EngineStorage.ReadGameData(data => {
-				controller = data.players.First(p => p.id == EngineStorage.uiControllerID);
-			});
-			if (!researchChosen && controller.currentlyResearchedTech == null) {
-				new MsgScienceGuidance().send();
-				return;
-			}
-		}
-
-		OnShowGameView();
+		RequestClose(OnShowGameView);
 	}
 }

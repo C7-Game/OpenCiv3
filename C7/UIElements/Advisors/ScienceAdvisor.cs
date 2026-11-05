@@ -8,7 +8,7 @@ using static C7GameData.EraUtils;
 
 [GlobalClass]
 [Tool]
-public partial class ScienceAdvisor : Control {
+public partial class ScienceAdvisor : Control, IGuardedView {
 
 	[Export] public TextureRect background;
 
@@ -226,11 +226,35 @@ public partial class ScienceAdvisor : Control {
 	}
 
 	/// <summary>
+	/// Commits what was picked here, but only once the player has an acceptable research plan:
+	/// they confirm abandoning research in progress, and aren't left with nothing to research.
+	/// Otherwise the advisor stays open.
+	/// </summary>
+	public void RequestClose(System.Action onClosed) {
+		if (AskToConfirmSwitch(onClosed)) {
+			return;
+		}
+		// The engine hasn't processed what we just sent, so a fresh pick counts as research chosen.
+		bool researchChosen = CommitPendingResearch();
+
+		Player controller = null;
+		EngineStorage.ReadGameData(data => {
+			controller = data.players.First(p => p.id == EngineStorage.uiControllerID);
+		});
+		if (!researchChosen && controller.currentlyResearchedTech == null) {
+			new MsgScienceGuidance().send();
+			return;
+		}
+
+		onClosed();
+	}
+
+	/// <summary>
 	/// If closing would switch away from research in progress, asks the player to
 	/// confirm. Returns true if the confirmation popup was shown, in which case the
 	/// advisor must stay open; onConfirmed runs after the selections are committed.
 	/// </summary>
-	public bool AskToConfirmSwitch(System.Action onConfirmed) {
+	private bool AskToConfirmSwitch(System.Action onConfirmed) {
 		if (pendingPicks.Count == 0 || showSwitchConfirmation == null) {
 			return false;
 		}
@@ -266,7 +290,7 @@ public partial class ScienceAdvisor : Control {
 	/// Sends the selections made in the advisor to the engine, in click order.
 	/// Returns whether anything was sent.
 	/// </summary>
-	public bool CommitPendingResearch() {
+	private bool CommitPendingResearch() {
 		if (pendingPicks.Count == 0) {
 			return false;
 		}

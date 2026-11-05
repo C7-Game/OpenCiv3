@@ -547,7 +547,7 @@ namespace C7GameData {
 		/// changing the player. Lets the UI preview a choice before committing to it.
 		/// </summary>
 		public List<Tech> PreviewResearchQueueFor(Tech tech) {
-			return GetResearchQueueFor(tech, new Queue<Tech>()).Reverse().ToList();
+			return GetResearchQueueFor(tech, new Queue<Tech>()).ToList();
 		}
 
 		// Append a new queue at the tail end of the current queue
