@@ -4,308 +4,299 @@ using System.Linq;
 using C7GameData;
 using Godot;
 using static C7GameData.Tile.TileOverlays;
+using static C7GameData.TileRandom;
 
-namespace C7.Map {
-	public partial class TileOverlayLayer : LooseLayer {
-		private readonly ImageTexture roadTexture;
-		private readonly ImageTexture railroadTexture;
-		private readonly ImageTexture grassIrrigationTexture;
-		private readonly ImageTexture desertIrrigationTexture;
-		private readonly ImageTexture plainsIrrigationTexture;
-		private readonly ImageTexture tundraIrrigationTexture;
-		private readonly ImageTexture ruinsTexture;
-		private readonly ImageTexture pollutionTexture;
-		private readonly ImageTexture cratersTexture;
+namespace C7.Map;
 
-		private readonly Vector2 tileSize;
+public class TileOverlayLayer : LooseLayer {
+	private readonly ImageTexture roadTexture;
+	private readonly ImageTexture railroadTexture;
+	private readonly ImageTexture grassIrrigationTexture;
+	private readonly ImageTexture desertIrrigationTexture;
+	private readonly ImageTexture plainsIrrigationTexture;
+	private readonly ImageTexture tundraIrrigationTexture;
+	private readonly ImageTexture ruinsTexture;
+	private readonly ImageTexture pollutionTexture;
+	private readonly ImageTexture cratersTexture;
 
-		private int rng = 0;
-		private Dictionary<string, int> rngs = new();
+	private readonly Vector2 tileSize;
 
-		FontFile debugFont = new();
+	public TileOverlayLayer() {
+		roadTexture = TextureLoader.Load("terrain_improvements.road");
+		railroadTexture = TextureLoader.Load("terrain_improvements.railroad");
+		tileSize = roadTexture.GetSize() / 16;
+		// grid 16x16 tiles
+		// assume that roads and railroads textures have the same size
 
-		public TileOverlayLayer() {
-			roadTexture = TextureLoader.Load("terrain_improvements.road");
-			railroadTexture = TextureLoader.Load("terrain_improvements.railroad");
-			tileSize = roadTexture.GetSize() / 16;
-			// grid 16x16 tiles
-			// assume that roads and railroads textures have the same size
+		// Each irrigation.pcx has a 4x4 grid of irrigation tiles, with
+		// each tile being 128x64 pixels.
+		grassIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.grass");
+		desertIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.desert");
+		plainsIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.plains");
+		tundraIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.tundra");
 
-			// Each irrigation.pcx has a 4x4 grid of irrigation tiles, with
-			// each tile being 128x64 pixels.
-			grassIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.grass");
-			desertIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.desert");
-			plainsIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.plains");
-			tundraIrrigationTexture = TextureLoader.Load("terrain_improvements.irrigation.tundra");
+		ruinsTexture = TextureLoader.Load("terrain_improvements.ruins");
+		pollutionTexture = TextureLoader.Load("terrain_improvements.pollution");
+		cratersTexture = TextureLoader.Load("terrain_improvements.craters");
+	}
 
-			ruinsTexture = TextureLoader.Load("terrain_improvements.ruins");
-			pollutionTexture = TextureLoader.Load("terrain_improvements.pollution");
-			cratersTexture = TextureLoader.Load("terrain_improvements.craters");
+	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
+		Rect2 screenTarget = new Rect2(tileCenter - tileSize / 2, tileSize);
 
-			rng = GameData.rng.Next(0, 5000) * 2 + 1;
+		var improvements = tile.overlays.GetImprovements();
 
-			debugFont = ResourceLoader.Load<FontFile>("res://Fonts/NotoSans-Regular.ttf", null, ResourceLoader.CacheMode.Ignore);
-			debugFont.FixedSize = 12;
+		foreach (TerrainImprovement ti in improvements.OrderBy(ti => ti.zIndex)) {
+			switch (ti.key) {
+				case IRRIGATION:
+					DrawIrrigation(looseView, tile, screenTarget);
+					break;
+				case ROAD:
+					DrawRoad(looseView, tile, screenTarget);
+					break;
+				case RAILROAD:
+					DrawRailRoad(looseView, tile, screenTarget);
+					break;
+				case RUINS:
+					DrawRuins(looseView, tile, tileCenter);
+					break;
+				case POLLUTION:
+					DrawPollution(looseView, tile, screenTarget);
+					break;
+				case CRATERS:
+					DrawCraters(looseView, tile, screenTarget);
+					break;
+				default:
+					looseView.DrawTexture(TextureLoader.Load($"terrain_improvements.{ti.key}"), screenTarget.Position);
+					break;
+			}
 		}
+	}
 
-		public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
-			Rect2 screenTarget = new Rect2(tileCenter - tileSize / 2, tileSize);
-
-			var improvements = tile.overlays.GetImprovements();
-
-			foreach (TerrainImprovement ti in improvements.OrderBy(ti => ti.zIndex)) {
-				switch (ti.key) {
-					case IRRIGATION:
-						DrawIrrigation(looseView, tile, screenTarget);
-						break;
-					case ROAD:
-						DrawRoad(looseView, tile, screenTarget);
-						break;
-					case RAILROAD:
-						DrawRailRoad(looseView, tile, screenTarget);
-						break;
-					case RUINS:
-						DrawRuins(looseView, tile, tileCenter);
-						break;
-					case POLLUTION:
-						DrawPollution(looseView, tile, screenTarget);
-						break;
-					case CRATERS:
-						DrawCraters(looseView, tile, screenTarget);
-						break;
-					default:
-						looseView.DrawTexture(TextureLoader.Load($"terrain_improvements.{ti.key}"), screenTarget.Position);
-						break;
-				}
+	private void DrawIrrigation(LooseView looseView, Tile tile, Rect2 screenTarget) {
+		// Figure out which index into the irrigation texture to use for
+		// this tile.
+		int irrigationIndex = 0;
+		foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
+			var neighbour = dirToTile.Value;
+			if (neighbour.HasIrrigation()) {
+				irrigationIndex |= GetIrrigationFlag(dirToTile.Key);
 			}
 		}
 
-		private void DrawIrrigation(LooseView looseView, Tile tile, Rect2 screenTarget) {
-			// Figure out which index into the irrigation texture to use for
-			// this tile.
-			int irrigationIndex = 0;
-			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
-				var neighbour = dirToTile.Value;
-				if (neighbour.HasIrrigation()) {
-					irrigationIndex |= GetIrrigationFlag(dirToTile.Key);
-				}
+		// Deserts, plains, and tundra (??) have specific textures for
+		// irrigation. Everything else uses the grassland texture.
+		ImageTexture texture = tile.baseTerrainType.Key switch {
+			"plains" => plainsIrrigationTexture,
+			"desert" => desertIrrigationTexture,
+			"tundra" => tundraIrrigationTexture,
+			_ => grassIrrigationTexture
+		};
+
+		// Draw the subtexture of the irrigation texture for this tile.
+		looseView.DrawTextureRectRegion(texture, screenTarget, GetIrrigationRect(irrigationIndex));
+	}
+
+	private void DrawRoad(LooseView looseView, Tile tile, Rect2 screenTarget) {
+		int roadIndex = 0;
+		foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
+			var neighbour = dirToTile.Value;
+			if (neighbour.HasRoad() || neighbour.HasRailroad()) {
+				roadIndex |= GetRoadFlag(dirToTile.Key);
 			}
-
-			// Deserts, plains, and tundra (??) have specific textures for
-			// irrigation. Everything else uses the grassland texture.
-			ImageTexture texture = tile.baseTerrainType.Key switch {
-				"plains" => plainsIrrigationTexture,
-				"desert" => desertIrrigationTexture,
-				"tundra" => tundraIrrigationTexture,
-				_ => grassIrrigationTexture
-			};
-
-			// Draw the subtexture of the irrigation texture for this tile.
-			looseView.DrawTextureRectRegion(texture, screenTarget, GetIrrigationRect(irrigationIndex));
 		}
+		looseView.DrawTextureRectRegion(roadTexture, screenTarget, GetRoadRect(roadIndex));
+	}
 
-		private void DrawRoad(LooseView looseView, Tile tile, Rect2 screenTarget) {
-			int roadIndex = 0;
-			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
-				var neighbour = dirToTile.Value;
-				if (neighbour.HasRoad() || neighbour.HasRailroad()) {
-					roadIndex |= GetRoadFlag(dirToTile.Key);
-				}
+	private void DrawRailRoad(LooseView looseView, Tile tile, Rect2 screenTarget) {
+		int roadIndex = 0;
+		int railroadIndex = 0;
+		foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
+			var neighbour = dirToTile.Value;
+			if (neighbour.HasRailroad()) {
+				railroadIndex |= GetRoadFlag(dirToTile.Key);
+			} else if (dirToTile.Value.HasRoad()) {
+				roadIndex |= GetRoadFlag(dirToTile.Key);
 			}
+		}
+		if (roadIndex != 0) {
 			looseView.DrawTextureRectRegion(roadTexture, screenTarget, GetRoadRect(roadIndex));
 		}
+		looseView.DrawTextureRectRegion(railroadTexture, screenTarget, GetRailRoadRect(tile, railroadIndex));
+	}
 
-		private void DrawRailRoad(LooseView looseView, Tile tile, Rect2 screenTarget) {
-			int roadIndex = 0;
-			int railroadIndex = 0;
-			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
-				var neighbour = dirToTile.Value;
-				if (neighbour.HasRailroad()) {
-					railroadIndex |= GetRoadFlag(dirToTile.Key);
-				} else if (dirToTile.Value.HasRoad()) {
-					roadIndex |= GetRoadFlag(dirToTile.Key);
-				}
-			}
-			if (roadIndex != 0) {
-				looseView.DrawTextureRectRegion(roadTexture, screenTarget, GetRoadRect(roadIndex));
-			}
-			looseView.DrawTextureRectRegion(railroadTexture, screenTarget, GetRoadRect(railroadIndex));
-		}
+	private void DrawRuins(LooseView looseView, Tile tile, Vector2 tileCenter) {
+		int ruinsIndex = GetRandomInt(tile.Id, gameSeed, 3, 0x054F);
 
-		private void DrawRuins(LooseView looseView, Tile tile, Vector2 tileCenter) {
-			int ruinsIndex = GetRadomTextureIndex(tile.Id, 3, RUINS, 0x054F);
+		var ruinsSingleTextureSize = new Vector2(167, 95);
+		Rect2 screenRect = new(tileCenter - 0.5f * ruinsSingleTextureSize, ruinsSingleTextureSize);
 
-			var ruinsSingleTextureSize = new Vector2(167, 95);
-			Rect2 screenRect = new(tileCenter - 0.5f * ruinsSingleTextureSize, ruinsSingleTextureSize);
+		looseView.DrawTextureRectRegion(ruinsTexture, screenRect, new Rect2(167 * ruinsIndex, 0, ruinsSingleTextureSize));
+	}
 
-			looseView.DrawTextureRectRegion(ruinsTexture, screenRect, new Rect2(167 * ruinsIndex, 0, ruinsSingleTextureSize));
-		}
-
-		private void DrawPollution(LooseView looseView, Tile tile, Rect2 screenTarget) {
-			int pollutionIndex = 0;
-			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
-				var neighbour = dirToTile.Value;
-				if (neighbour.HasPollution()) {
-					pollutionIndex |= GetPollutionIndex(dirToTile.Key);
-				}
-			}
-
-			// single tile pollution
-			if (pollutionIndex == 0) {
-				pollutionIndex = GetRadomTextureIndex(tile.Id, 10, POLLUTION, 0x11C8);
-
-				looseView.DrawTextureRectRegion(pollutionTexture, screenTarget, GetPollutionRect(pollutionIndex));
-			} else {
-				looseView.DrawTextureRectRegion(pollutionTexture, screenTarget, GetPollutionRect(pollutionIndex - 1, 2));
-			}
-
-			// debug mask
-			// looseView.DrawString(debugFont, tileCenter, $"{pollutionIndex}", modulate: Colors.Black);
-		}
-
-		private void DrawCraters(LooseView looseView, Tile tile, Rect2 screenTarget) {
-			int cratersIndex = 0;
-			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
-				var neighbour = dirToTile.Value;
-				if (neighbour.HasCraters()) {
-					cratersIndex |= GetCraterIndex(dirToTile.Key);
-				}
-			}
-
-			// single tile crater
-			if (cratersIndex == 0) {
-				cratersIndex = GetRadomTextureIndex(tile.Id, 10, CRATERS, 0x24A5);
-
-				looseView.DrawTextureRectRegion(cratersTexture, screenTarget, GetCratersRect(cratersIndex));
-			} else {
-				looseView.DrawTextureRectRegion(cratersTexture, screenTarget, GetCratersRect(cratersIndex - 1, 2));
+	private void DrawPollution(LooseView looseView, Tile tile, Rect2 screenTarget) {
+		int pollutionIndex = 0;
+		foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
+			var neighbour = dirToTile.Value;
+			if (neighbour.HasPollution()) {
+				pollutionIndex |= GetPollutionIndex(dirToTile.Key);
 			}
 		}
 
-		private int GetRadomTextureIndex(ID id, int variations, string layer, int offset) {
-			int randomTextureIndex = 0;
-			var identifier = $"{id}_{layer}";
+		// single tile pollution
+		if (pollutionIndex == 0) {
+			pollutionIndex = GetRandomInt(tile.Id, gameSeed, 10, 0x11C8);
 
-			if (rngs.TryGetValue(identifier, out var index)) {
-				randomTextureIndex = index;
-			} else {
-				var rand = new Random(Math.Clamp(int.Parse(id.ToString().Replace("tile-", "")) + offset, int.MinValue, int.MaxValue));
-				var customRng = rng + rand.Next() + rand.Next(0, variations);
+			looseView.DrawTextureRectRegion(pollutionTexture, screenTarget, GetPollutionRect(pollutionIndex));
+		} else {
+			looseView.DrawTextureRectRegion(pollutionTexture, screenTarget, GetPollutionRect(pollutionIndex - 1, 2));
+		}
+	}
 
-				randomTextureIndex = rngs[identifier] = customRng % variations;
+	private void DrawCraters(LooseView looseView, Tile tile, Rect2 screenTarget) {
+		int cratersIndex = 0;
+		foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
+			var neighbour = dirToTile.Value;
+			if (neighbour.HasCraters()) {
+				cratersIndex |= GetCraterIndex(dirToTile.Key);
 			}
-
-			return randomTextureIndex;
 		}
 
-		// Returns the rectangle within the road texture for a given index,
-		// where the index has been constructed by OR'ing together the direction
-		// flags for adjacent roads.
-		private Rect2 GetRoadRect(int index) {
-			int row = index >> 4;
-			int column = index & 0xF;
-			return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
-		}
+		// single tile crater
+		if (cratersIndex == 0) {
+			cratersIndex = GetRandomInt(tile.Id, gameSeed, 10, 0x24A5);
 
-		// Like above, but for irrigation.
-		private Rect2 GetIrrigationRect(int index) {
-			// The index is set up so that the layout looks like
-			//
-			//  0  1  2  3
-			//  4  5  6  7
-			//  ...
-			int row = index / 4;
-			int column = index % 4;
-			return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+			looseView.DrawTextureRectRegion(cratersTexture, screenTarget, GetCratersRect(cratersIndex));
+		} else {
+			looseView.DrawTextureRectRegion(cratersTexture, screenTarget, GetCratersRect(cratersIndex - 1, 2));
 		}
+	}
 
-		// Like above, but for pollution
-		private Rect2 GetPollutionRect(int index, int offset = 0) {
-			// The index is set up so that the layout looks like
-			//
-			//  0  1  2  3  4
-			//  5  6  7  8  9  
-			//  ...
-			int row = index / 5 + offset;
-			int column = index % 5;
-			return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	// Returns the rectangle within the road texture for a given index,
+	// where the index has been constructed by OR'ing together the direction
+	// flags for adjacent roads.
+	private Rect2 GetRoadRect(int index) {
+		int row = index >> 4;
+		int column = index & 0xF;
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
+
+	// Railroad textures have an extra row compared to road textures
+	// which it's used for 8x8 connections, so we choose one randomly to add variation
+	// private Rect2 GetRailRoadRect(ID id, int index) {
+	private Rect2 GetRailRoadRect(Tile tile, int index) {
+		int row = index >> 4;
+		int column = index & 0xF;
+		// Row 7 & Column 3 has the wrong graphic in the base game too, where it has a connection to SE that shouldn't be there
+		if (index == 0xFF) { // 255 => 16th row - 16th column => connected to all other tiles
+			var railroadIndex = GetRandomInt(tile.Id, gameSeed, 17, 0x31c);
+			// 16 in 17 to render from the 17th(16th in 0-16) row
+			if (railroadIndex > 0) {
+				// need to decrement railroadIndex by one, because it's range at this point is 1-16, we want 0-15
+				return new Rect2((railroadIndex - 1) * tileSize.X, (row + 1) * tileSize.Y, tileSize);
+			}
 		}
+		// 1 in 17 to render from the 16th(15th in 0-16) row
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
 
-		// Like above, but for craters.
-		private Rect2 GetCratersRect(int index, int offset = 0) {
-			// The index is set up so that the layout looks like
-			//
-			//  0  1  2  3  4
-			//  5  6  7  8  9  
-			//  ...
-			int row = index / 5 + offset;
-			int column = index % 5;
-			return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
-		}
-
-		// The per-neighbor index values that can be OR'd together to get the
-		// proper rectangle within the road/railroad texture.
-		private static int GetRoadFlag(TileDirection direction) {
-			return direction switch {
-				TileDirection.NORTHEAST => 0x1,
-				TileDirection.EAST => 0x2,
-				TileDirection.SOUTHEAST => 0x4,
-				TileDirection.SOUTH => 0x8,
-				TileDirection.SOUTHWEST => 0x10,
-				TileDirection.WEST => 0x20,
-				TileDirection.NORTHWEST => 0x40,
-				TileDirection.NORTH => 0x80,
-				_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
-			};
-		}
-
-		// Like getRoadFlag, but for irrigation, which only depends on the
-		// diagonal neighbors.
+	// Like above, but for irrigation.
+	private Rect2 GetIrrigationRect(int index) {
+		// The index is set up so that the layout looks like
 		//
-		// Index values taken from ClassicRenderer.java in
-		// https://hg.sr.ht/~adj/civ3_cross_platform_editor.
+		//  0  1  2  3
+		//  4  5  6  7
+		//  ...
+		int row = index / 4;
+		int column = index % 4;
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
+
+	// Like above, but for pollution
+	private Rect2 GetPollutionRect(int index, int offset = 0) {
+		// The index is set up so that the layout looks like
 		//
-		// Some of these values are probably wrong, but I couldn't figure out the correct pattern.
-		// Also, there might not be a perfect pattern, as I can also see inconsistencies
-		// in the original editor/game as well.
-		private static int GetIrrigationFlag(TileDirection direction) {
-			return direction switch {
-				TileDirection.NORTHWEST => 0x1,
-				TileDirection.NORTHEAST => 0x2,
-				TileDirection.SOUTHWEST => 0x4,
-				TileDirection.SOUTHEAST => 0x8,
-				TileDirection.EAST => 0,
-				TileDirection.SOUTH => 0,
-				TileDirection.WEST => 0,
-				TileDirection.NORTH => 0,
-				_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
-			};
-		}
-		private static int GetPollutionIndex(TileDirection direction) {
-			return direction switch {
-				TileDirection.NORTHWEST => 0x1,
-				TileDirection.NORTHEAST => 0x2,
-				TileDirection.SOUTHEAST => 0x4,
-				TileDirection.SOUTHWEST => 0x8,
-				TileDirection.EAST => 0,
-				TileDirection.SOUTH => 0,
-				TileDirection.WEST => 0,
-				TileDirection.NORTH => 0,
-				_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
-			};
-		}
-		private static int GetCraterIndex(TileDirection direction) {
-			return direction switch {
-				TileDirection.NORTHWEST => 0x1,
-				TileDirection.NORTHEAST => 0x2,
-				TileDirection.SOUTHEAST => 0x4,
-				TileDirection.SOUTHWEST => 0x8,
-				TileDirection.EAST => 0,
-				TileDirection.SOUTH => 0,
-				TileDirection.WEST => 0,
-				TileDirection.NORTH => 0,
-				_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
-			};
-		}
+		//  0  1  2  3  4
+		//  5  6  7  8  9  
+		//  ...
+		int row = index / 5 + offset;
+		int column = index % 5;
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
+
+	// Like above, but for craters.
+	private Rect2 GetCratersRect(int index, int offset = 0) {
+		// The index is set up so that the layout looks like
+		//
+		//  0  1  2  3  4
+		//  5  6  7  8  9  
+		//  ...
+		int row = index / 5 + offset;
+		int column = index % 5;
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
+
+	// The per-neighbor index values that can be OR'd together to get the
+	// proper rectangle within the road/railroad texture.
+	private static int GetRoadFlag(TileDirection direction) {
+		return direction switch {
+			TileDirection.NORTHEAST => 0x1,
+			TileDirection.EAST => 0x2,
+			TileDirection.SOUTHEAST => 0x4,
+			TileDirection.SOUTH => 0x8,
+			TileDirection.SOUTHWEST => 0x10,
+			TileDirection.WEST => 0x20,
+			TileDirection.NORTHWEST => 0x40,
+			TileDirection.NORTH => 0x80,
+			_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
+		};
+	}
+
+	// Like getRoadFlag, but for irrigation, which only depends on the
+	// diagonal neighbors.
+	//
+	// Index values taken from ClassicRenderer.java in
+	// https://hg.sr.ht/~adj/civ3_cross_platform_editor.
+	//
+	// Some of these values are probably wrong, but I couldn't figure out the correct pattern.
+	// Also, there might not be a perfect pattern, as I can also see inconsistencies
+	// in the original editor/game as well.
+	private static int GetIrrigationFlag(TileDirection direction) {
+		return direction switch {
+			TileDirection.NORTHWEST => 0x1,
+			TileDirection.NORTHEAST => 0x2,
+			TileDirection.SOUTHWEST => 0x4,
+			TileDirection.SOUTHEAST => 0x8,
+			TileDirection.EAST => 0,
+			TileDirection.SOUTH => 0,
+			TileDirection.WEST => 0,
+			TileDirection.NORTH => 0,
+			_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
+		};
+	}
+	private static int GetPollutionIndex(TileDirection direction) {
+		return direction switch {
+			TileDirection.NORTHWEST => 0x1,
+			TileDirection.NORTHEAST => 0x2,
+			TileDirection.SOUTHEAST => 0x4,
+			TileDirection.SOUTHWEST => 0x8,
+			TileDirection.EAST => 0,
+			TileDirection.SOUTH => 0,
+			TileDirection.WEST => 0,
+			TileDirection.NORTH => 0,
+			_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
+		};
+	}
+	private static int GetCraterIndex(TileDirection direction) {
+		return direction switch {
+			TileDirection.NORTHWEST => 0x1,
+			TileDirection.NORTHEAST => 0x2,
+			TileDirection.SOUTHEAST => 0x4,
+			TileDirection.SOUTHWEST => 0x8,
+			TileDirection.EAST => 0,
+			TileDirection.SOUTH => 0,
+			TileDirection.WEST => 0,
+			TileDirection.NORTH => 0,
+			_ => throw new ArgumentOutOfRangeException("Invalid TileDirection")
+		};
 	}
 }

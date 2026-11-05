@@ -3,8 +3,9 @@ using System.Linq;
 using C7GameData;
 using Godot;
 
+namespace C7.Map;
 // The layer responsible for drawing the cursor and tile effects relating to bombardment.
-public partial class BombardLayer : LooseLayer {
+public class BombardLayer : LooseLayer {
 	private readonly ImageTexture bombardCursorTexture;
 	private readonly ImageTexture bombardDenyCursorTexture;
 
