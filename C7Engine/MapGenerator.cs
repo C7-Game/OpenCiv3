@@ -136,8 +136,8 @@ namespace C7Engine {
 			// Tried placing barbs then players, but caused all players to spawn together
 			DetermineStartingLocations(wc, gameMap);
 
-			// TODO: Remove with the barbarian camp overhaul. Civ3 never places
-			// camps during map generation; they only appear at runtime.
+			// TODO: Consider removal with the barbarian camp overhaul. Civ3 never
+			// places camps during map generation; they only appear at runtime.
 			AddBarbarianCamps(wc, gameMap);
 
 			// Step 11: Add goody huts. Civ3 does this as the last real step of

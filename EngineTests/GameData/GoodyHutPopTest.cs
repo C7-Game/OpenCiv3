@@ -134,32 +134,16 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
-	public void ThreeMercenariesAppearOnSeparateTilesAroundTheHut() {
+	public void OneMercenaryAppearsOnTheHut() {
 		Tile hut = gameData.map.tiles.First(t => t.IsLand() && t.unitsOnTile.Count == 0
-			&& t.neighbors.Values.All(n => n.IsLand() && n.unitsOnTile.Count == 0));
-		List<Tile> area = [hut, .. hut.neighbors.Values];
+			&& t.neighbors.Values.All(n => n.unitsOnTile.Count == 0));
 
 		Apply("mercenaries", Context(hut));
 
-		List<Tile> withMercenaries = area.Where(t => t.unitsOnTile.Any(u => u.owner == human && u.unitType.name == "Warrior")).ToList();
-		Assert.Equal(3, withMercenaries.Count);
-		Assert.All(withMercenaries, t => Assert.Single(t.unitsOnTile));
-	}
-
-	[Fact]
-	public void MercenariesAvoidWaterAndOtherPlayersUnits() {
-		Player barbarians = gameData.players.First(p => p.isBarbarians);
-		Tile hut = gameData.map.tiles.First(t => t.IsLand() && t.unitsOnTile.Count == 0
-			&& t.neighbors.Values.All(n => n.IsLand() && n.unitsOnTile.Count == 0));
-
-		// Occupy every neighbor with someone else's unit: only the hut is left.
-		foreach (Tile neighbor in hut.neighbors.Values) {
-			gameData.SpawnUnit(barbarians, gameData.barbarianInfo.basicBarbarian, neighbor);
-		}
-
-		Apply("mercenaries", Context(hut));
-
-		Assert.Single(hut.unitsOnTile, u => u.owner == human && u.unitType.name == "Warrior");
+		MapUnit mercenary = Assert.Single(hut.unitsOnTile);
+		Assert.Equal(human, mercenary.owner);
+		Assert.Equal(gameData.barbarianInfo.basicBarbarian, mercenary.unitType);
+		Assert.All(hut.neighbors.Values, n => Assert.Empty(n.unitsOnTile));
 	}
 
 	[Fact]

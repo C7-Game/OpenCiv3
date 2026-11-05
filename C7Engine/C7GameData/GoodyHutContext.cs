@@ -32,31 +32,22 @@ public class GoodyHutContext {
 
 	/// The 0-based position of the game's difficulty in the difficulty list
 	/// (0 = the easiest level).
-	public int DifficultyIndex() {
-		return gameData.difficulties.FindIndex(d => d.Name == gameData.gameDifficulty.Name);
-	}
+	public int difficultyIndex
+		=> gameData.difficulties.FindIndex(d => d.Name == gameData.gameDifficulty.Name);
 
-	public bool HasTrait(Civilization.Trait trait) {
-		return player.civilization.traits.Contains(trait);
-	}
+	public bool isExpansionist => HasTrait(Civilization.Trait.Expansionist);
 
-	public bool IsExpansionist() {
-		return HasTrait(Civilization.Trait.Expansionist);
-	}
 
 	/// The number of non-barbarian civs still in the game.
-	public int LivingCivCount() {
-		return gameData.players.Count(p => !p.isBarbarians && !p.defeated);
-	}
+	public int livingCivCount => gameData.players.Count(p => !p.isBarbarians && !p.defeated);
 
 	/// The number of cities in the whole world.
-	public int WorldCityCount() {
-		return gameData.cities.Count;
-	}
+	public int worldCityCount => gameData.cities.Count;
 
-	public int OwnCityCount() {
-		return player.cities.Count;
-	}
+	public int ownCityCount => player.cities.Count;
+
+	public bool HasTrait(Civilization.Trait trait)
+		=> player.civilization.traits.Contains(trait);
 
 	/// The Manhattan distance from the hut to the nearest city of the player
 	/// who popped it, or int.MaxValue if they have no cities.
@@ -77,19 +68,23 @@ public class GoodyHutContext {
 		return tile.neighbors.Values.All(t => !t.HasCity());
 	}
 
-	public bool KnowsTech(Tech tech) {
-		return player.knownTechs.Contains(tech.id);
-	}
+	public bool KnowsTech(Tech tech)
+		=> player.knownTechs.Contains(tech.id);
 
 	/// The 0-based era the player is in (0 = ancient times).
-	public int PlayerEraIndex() {
-		return player.EraIndex();
+	public int playerEraIndex => player.EraIndex();
+
+	/// The player's full beaker cost for a tech, from the normal research
+	/// formula. TechCostFor subtracts beakers already put into the current
+	/// research, so they are added back here.
+	public int TechCost(Tech tech) {
+		int cost = gameData.TechCostFor(tech, player);
+		return player.currentlyResearchedTech == tech.id ? cost + player.beakers : cost;
 	}
 
 	/// The 0-based era of a tech (0 = ancient times).
-	public int TechEraIndex(Tech tech) {
-		return Player.EraIndex(tech.EraCivilopediaName);
-	}
+	public int TechEraIndex(Tech tech)
+		=> Player.EraIndex(tech.EraCivilopediaName);
 
 	/// The hut tile's neighbor in direction index % 8, going clockwise from
 	/// north (0 = N, 1 = NE, ..., 7 = NW), or null (nil in Lua) when that
@@ -102,19 +97,15 @@ public class GoodyHutContext {
 		return null;
 	}
 
-	public UnitPrototype FindUnitPrototype(string name) {
-		return gameData.unitPrototypes.Find(p => p.name == name);
-	}
+	public UnitPrototype FindUnitPrototype(string name)
+		=> gameData.unitPrototypes.Find(p => p.name == name);
 
-	public Player BarbarianPlayer() {
-		return gameData.players.Find(p => p.isBarbarians);
-	}
+	public Player barbarianPlayer => gameData.players.Find(p => p.isBarbarians);
 
 	// ---- Actions ----
 
-	public void GiveGold(int amount) {
-		player.gold += amount;
-	}
+	public void GiveGold(int amount)
+		=> player.gold += amount;
 
 	/// Adds a tile to the player's map, without revealing its surroundings.
 	public void RevealTile(Tile target) {
@@ -124,12 +115,11 @@ public class GoodyHutContext {
 	}
 
 	/// Founds a city for the player on the hut's tile.
-	public City FoundCity() {
-		return CityInteractions.BuildCity(tile, player, player.GetNextCityName());
-	}
+	public City FoundCity()
+		=> CityInteractions.BuildCity(tile, player, player.GetNextCityName());
 
 	public void AddCitizens(City city, int count) {
-		for (int i = 0; i < count; ++i) {
+		for (int _ = 0; _ < count; ++_) {
 			city.AddDefaultCitizen(gameData);
 		}
 	}
@@ -142,13 +132,11 @@ public class GoodyHutContext {
 		return gameData.SpawnUnit(owner, proto, target);
 	}
 
-	public MapUnit SpawnUnitOfType(Player owner, UnitPrototype proto, Tile target) {
-		return gameData.SpawnUnit(owner, proto, target);
-	}
+	public MapUnit SpawnUnitOfType(Player owner, UnitPrototype proto, Tile target)
+		=> gameData.SpawnUnit(owner, proto, target);
 
-	public void GrantTech(Tech tech) {
-		player.AcquireTechs(gameData, new List<Tech> { tech });
-	}
+	public void GrantTech(Tech tech)
+		=> player.AcquireTechs(gameData, new List<Tech> { tech });
 
 	/// Shows a message to the player who popped the hut, if they are human.
 	public void Notify(string message) {

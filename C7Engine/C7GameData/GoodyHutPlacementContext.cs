@@ -26,16 +26,13 @@ public class GoodyHutPlacementContext {
 	///
 	/// Use this instead of map.tiles from Lua: Moonsharp copies a C# list
 	/// into a new Lua table every time it is read.
-	public Tile TileAtIndex(int index) {
-		return map.tiles[index];
-	}
+	public Tile TileAtIndex(int index)
+		=> map.tiles[index];
 
 	/// Returns an integer in [0, maxExclusive) from the placement RNG.
-	public int Random(int maxExclusive) {
-		return random.Next(maxExclusive);
-	}
+	public int Random(int maxExclusive)
+		=> random.Next(maxExclusive);
 
-	public bool IsStartingLocation(Tile tile) {
-		return map.startingLocations.Contains(tile);
-	}
+	public bool IsStartingLocation(Tile tile)
+		=> map.startingLocations.Contains(tile);
 }

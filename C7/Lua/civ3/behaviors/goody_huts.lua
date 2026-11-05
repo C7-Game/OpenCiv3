@@ -89,12 +89,12 @@ goody_huts.config = {
     },
 
     mercenaries = {
+      -- The ruleset's basic barbarian unit (barbarianInfo.basicBarbarianUnit
+      -- in ruleset.json). Set this to a unit name to override it.
       -- TODO: Civ3 picks a unit that both the barbarians and the player can
       -- use, and that some player in the game can build (or has built).
-      unit = "Warrior",
-      -- Up to this many mercenaries appear, each on a different tile: the
-      -- hut tile or one of its neighbors.
-      max_units = 3,
+      -- Right now, just uses the basic barbarian unit (warrior)
+      unit = nil,
     },
 
     tech = {
@@ -102,7 +102,8 @@ goody_huts.config = {
       max_player_era = 0,
       -- Only techs from this era or earlier can be given.
       max_tech_era = 1,
-      -- Civ3 gives the candidate with the lowest cost + RNG(cost_jitter).
+      -- Civ3 gives the candidate with the lowest beaker cost +
+      -- RNG(cost_jitter).
       cost_jitter = 100,
     },
 
@@ -200,17 +201,17 @@ end
 -------------------------------------------------------------------------------
 
 local function average_cities_per_civ(context)
-  local civs = context:LivingCivCount()
+  local civs = context.livingCivCount
   if civs <= 0 then
     return 0
   end
-  return math.floor(context:WorldCityCount() / civs)
+  return math.floor(context.worldCityCount / civs)
 end
 
 -- Civ3 withholds cities and settlers from players who already have more
 -- cities than the world average.
 local function not_ahead_in_cities(context)
-  return average_cities_per_civ(context) >= context:OwnCityCount()
+  return average_cities_per_civ(context) >= context.ownCityCount
 end
 
 -- Techs the player could be given: unknown, early enough, and with every
@@ -283,10 +284,10 @@ goody_huts.outcomes.city = {
   can_apply = function(context)
     local config = goody_huts.config.pop.city
 
-    if config.requires_expansionist and not context:IsExpansionist() then
+    if config.requires_expansionist and not context.isExpansionist then
       return false
     end
-    if context:OwnCityCount() < 1 or not not_ahead_in_cities(context) then
+    if context.ownCityCount < 1 or not not_ahead_in_cities(context) then
       return false
     end
     if context:DistanceToNearestOwnCity() < config.min_own_city_distance then
@@ -326,57 +327,27 @@ goody_huts.outcomes.settlers = {
   end,
 }
 
--- Whether a land unit of the given type could stand on the tile alongside
--- the player's own units: passable land with no other player's units or
--- city on it.
-local function can_hold_land_unit(context, tile, unit_type)
-  if tile == nil or not tile:IsLand() or tile:IsImpassableTo(unit_type) then
-    return false
+local function mercenary_type(context)
+  local name = goody_huts.config.pop.mercenaries.unit
+  if name then
+    return context:FindUnitPrototype(name)
   end
-  if tile:HasCity() and tile.cityAtTile.owner ~= context.player then
-    return false
-  end
-  for _, unit in ipairs(tile.unitsOnTile) do
-    if unit.owner ~= context.player then
-      return false
-    end
-  end
-  return true
+  return context.gameData.barbarianInfo.basicBarbarian
 end
 
 goody_huts.outcomes.mercenaries = {
   can_apply = function(context)
-    return context:FindUnitPrototype(goody_huts.config.pop.mercenaries.unit) ~= nil
+    return mercenary_type(context) ~= nil
   end,
   apply = function(context)
-    local config = goody_huts.config.pop.mercenaries
-    local unit_type = context:FindUnitPrototype(config.unit)
-
-    -- The hut tile and its 8 neighbors, in a fixed order.
-    local candidates = {}
-    local tiles = { context.tile }
-    for i = 0, 7 do
-      table.insert(tiles, context:NeighborAt(i))
-    end
-    for i = 1, 9 do
-      if can_hold_land_unit(context, tiles[i], unit_type) then
-        table.insert(candidates, tiles[i])
-      end
-    end
-
-    -- Pick up to max_units different tiles at random.
-    for _ = 1, math.min(config.max_units, #candidates) do
-      local tile = table.remove(candidates, RNG(#candidates) + 1)
-      context:SpawnUnitOfType(context.player, unit_type, tile)
-    end
-
+    context:SpawnUnitOfType(context.player, mercenary_type(context), context.tile)
     context:Notify(goody_huts.config.messages.mercenaries)
   end,
 }
 
 goody_huts.outcomes.tech = {
   can_apply = function(context)
-    if context:PlayerEraIndex() > goody_huts.config.pop.tech.max_player_era then
+    if context.playerEraIndex > goody_huts.config.pop.tech.max_player_era then
       return false
     end
     return #hut_tech_candidates(context) > 0
@@ -386,7 +357,7 @@ goody_huts.outcomes.tech = {
     local best, best_score = nil, nil
 
     for _, tech in ipairs(hut_tech_candidates(context)) do
-      local score = tech.Cost + RNG(config.cost_jitter)
+      local score = context:TechCost(tech) + RNG(config.cost_jitter)
       if best == nil or score < best_score then
         best, best_score = tech, score
       end
@@ -401,7 +372,7 @@ goody_huts.outcomes.barbarians = {
   can_apply = function(context)
     local config = goody_huts.config.pop.barbarians
 
-    if context:IsExpansionist() or context:OwnCityCount() < 1 then
+    if context.isExpansionist or context.ownCityCount < 1 then
       return false
     end
     if context:DistanceToNearestOwnCity() < config.min_own_city_distance then
@@ -411,11 +382,11 @@ goody_huts.outcomes.barbarians = {
     if context.unit.unitType.allTerrainAsRoads then
       return false
     end
-    return context:BarbarianPlayer() ~= nil
+    return context.barbarianPlayer ~= nil
   end,
   apply = function(context)
     local config = goody_huts.config.pop.barbarians
-    local barbarians = context:BarbarianPlayer()
+    local barbarians = context.barbarianPlayer
     local unit_type = context.gameData.barbarianInfo.basicBarbarian
 
     -- Walk the 8 neighbors, starting at a direction that depends on the
@@ -446,8 +417,8 @@ local outcome_order = { "city", "tech", "gold", "settlers", "maps", "mercenaries
 function goody_huts.weights(context)
   local config = goody_huts.config.pop
 
-  local row_index = context:DifficultyIndex()
-  if not context:IsExpansionist() then
+  local row_index = context.difficultyIndex
+  if not context.isExpansionist then
     row_index = row_index + 1
   end
 
