@@ -335,7 +335,7 @@ namespace C7GameData {
 			return riverNorth || riverNortheast || riverEast || riverSoutheast || riverSouth || riverSouthwest || riverWest || riverNorthwest;
 		}
 
-		// TODO: This method doesn't handle the electicity tech which allows
+		// TODO: This method doesn't handle the electricity tech which allows
 		// irrigating without fresh water access.
 		public bool CanBeIrrigated(TerrainImprovement irrigation, Player player) {
 			// Irrigation can't be done if there is no irrigation bonus for the
