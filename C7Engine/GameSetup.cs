@@ -36,6 +36,17 @@ public class GameSetup {
 			log.Information("Starting map generation");
 			save.Map = new SaveMap(MapGenerator.GenerateMap(worldCharacteristics));
 			save.Seed = worldCharacteristics.mapSeed;
+			WorldSize worldSize = worldCharacteristics.worldSize;
+			save.WorldSettings = new WorldSettings {
+				worldSize = worldSize?.name,
+				customWorldSize = worldSize != null
+					&& (worldSize.width != save.Map.tilesWide || worldSize.height != save.Map.tilesTall),
+				landform = worldCharacteristics.landform,
+				oceanCoverage = worldCharacteristics.oceanCoverage,
+				climate = worldCharacteristics.climate,
+				temperature = worldCharacteristics.temperature,
+				age = worldCharacteristics.age,
+			};
 			log.Information("Done with map generation");
 		}
 
