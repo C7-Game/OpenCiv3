@@ -131,6 +131,7 @@ namespace C7GameData.Save {
 
 			data.luaBehaviorEngine = behaviors;
 			data.gameModeConfig = GameModeConfig;
+			data.LoadAgeBonusFunction(behaviors);
 
 			ConvertTerrainImprovements(data);
 			ConvertTerraforms(data);

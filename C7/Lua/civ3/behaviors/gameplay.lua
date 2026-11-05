@@ -142,6 +142,26 @@ gameplay = {
     display_text = function(context)
       return get_display_time_text(context)
     end,
+  },
+  culture = {
+    -- Context = CityBuilding building, GameData gameData, City city, Player player
+    age_bonus = function(cityBuilding, gameData, city, player)
+      local building = cityBuilding.building
+      if building == nil or cityBuilding.baseCulturePerTurn <= 0 then
+        return 0
+      end
+      if building.noAgeBonus or gameData == nil or gameData.timeOptions == nil then
+        return cityBuilding.baseCulturePerTurn
+      end
+      local currentYear = gameData.timeOptions.GetAbsoluteYear(gameData.turn)
+      local ageInYears = currentYear - cityBuilding.year
+      -- Civ 3 doubles the culture of a building once it is a millennium old.
+      -- The bonus never compounds, no matter how old the building gets.
+      if ageInYears < 1000 then
+        return cityBuilding.baseCulturePerTurn
+      end
+      return cityBuilding.baseCulturePerTurn * 2
+    end,
   }
 }
 

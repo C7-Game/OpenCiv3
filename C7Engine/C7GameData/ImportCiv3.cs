@@ -1291,8 +1291,11 @@ namespace C7GameData {
 
 		List<SaveCityBuilding> ImportCityBuildingsFromBiq(int cityIndex, ID player) {
 			BiqData theBiq = biq.City is null ? defaultBiq : biq;
+			BiqData gameBiq = biq.Game is null ? defaultBiq : biq;
 			List<SaveCityBuilding> res = [];
 			int[] cityBuildings = theBiq.CityBuilding[cityIndex];
+
+			int startYear = gameBiq.Game.Length > 0 ? gameBiq.Game[0].StartYear : 0;
 
 			for (int buildingIndex = 0; buildingIndex < cityBuildings.Length; ++buildingIndex) {
 				BLDG building = theBiq.Bldg[cityBuildings[buildingIndex]];
@@ -1300,7 +1303,7 @@ namespace C7GameData {
 				res.Add(new SaveCityBuilding {
 					building = building.Name,
 					builtByPlayer = player,
-					year = 0,
+					year = startYear,
 					totalCulture = 0,
 				});
 

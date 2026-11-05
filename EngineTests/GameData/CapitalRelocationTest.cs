@@ -147,7 +147,7 @@ public class CapitalRelocationTest {
 		City small = AddCity("Small", 0, citizens: 2);
 		City big = AddCity("Big", 20, citizens: 5);
 
-		City newCapital = CityInteractions.RelocateCapitalIfLost(player, palace);
+		City newCapital = CityInteractions.RelocateCapitalIfLost(player, palace, EngineStorage.gameData);
 
 		Assert.Same(big, newCapital);
 		Assert.True(big.IsCapital());
@@ -160,9 +160,9 @@ public class CapitalRelocationTest {
 		Building palace = MakeBuilding("Palace", isCenterOfEmpire: true);
 		Building forbiddenPalace = MakeBuilding("Forbidden Palace", isCenterOfEmpire: false);
 		City city = AddCity("Second city", 0, citizens: 5);
-		city.AddBuilding(forbiddenPalace);
+		city.AddBuilding(forbiddenPalace, EngineStorage.gameData);
 
-		CityInteractions.RelocateCapitalIfLost(player, palace);
+		CityInteractions.RelocateCapitalIfLost(player, palace, EngineStorage.gameData);
 
 		Assert.True(city.IsCapital());
 		Assert.Contains(city.constructed_buildings, b => b.building == forbiddenPalace);
@@ -176,7 +176,7 @@ public class CapitalRelocationTest {
 		capital.capital = true;
 		City bigger = AddCity("Bigger", 20, citizens: 10);
 
-		Assert.Null(CityInteractions.RelocateCapitalIfLost(player, palace));
+		Assert.Null(CityInteractions.RelocateCapitalIfLost(player, palace, EngineStorage.gameData));
 		Assert.True(capital.IsCapital());
 		Assert.False(bigger.IsCapital());
 		Assert.Empty(bigger.constructed_buildings);
@@ -184,13 +184,13 @@ public class CapitalRelocationTest {
 
 	[Fact]
 	public void NothingHappensWithNoCitiesLeft() {
-		Assert.Null(CityInteractions.RelocateCapitalIfLost(player, MakeBuilding("Palace", isCenterOfEmpire: true)));
+		Assert.Null(CityInteractions.RelocateCapitalIfLost(player, MakeBuilding("Palace", isCenterOfEmpire: true), EngineStorage.gameData));
 	}
 
 	[Fact]
 	public void CapitalStillMovesWhenTheRulesetHasNoPalace() {
 		City city = AddCity("Only city", 0, citizens: 1);
-		Assert.Same(city, CityInteractions.RelocateCapitalIfLost(player, null));
+		Assert.Same(city, CityInteractions.RelocateCapitalIfLost(player, null, EngineStorage.gameData));
 		Assert.True(city.IsCapital());
 		Assert.Empty(city.constructed_buildings);
 	}

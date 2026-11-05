@@ -94,7 +94,7 @@ public class CityTest : MapBase {
 		Assert.Equal(1, city.residents.Count);
 	}
 
-	private static Building MakeBuilding(SaveBuilding save, params Resource[] requiredResources) {
+	protected static Building MakeBuilding(SaveBuilding save, params Resource[] requiredResources) {
 		Building building = new(save, new C7GameData.GameData());
 		building.requiredResources = requiredResources.ToHashSet();
 		return building;
@@ -125,14 +125,14 @@ public class CityTest : MapBase {
 		});
 	}
 
-	private static Player MakePlayerForProduction() {
+	protected static Player MakePlayerForProduction() {
 		return new Player {
 			government = new Government(),
 			rules = new Rules { MaxRankOfWorkableTiles = 1 },
 		};
 	}
 
-	private static City MakeCity(Player player, string name = "Testville") {
+	protected static City MakeCity(Player player, string name = "Testville") {
 		Tile tile = new Tile(ID.None("tile"));
 		City city = new City(tile, player, name, ID.None("city"));
 		tile.cityAtTile = city;

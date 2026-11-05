@@ -12,6 +12,8 @@ namespace C7GameData.Save {
 		public string building;
 		public ID builtByPlayer;
 		public int year;
+		public int baseCulturePerTurn;
+		public int currentCulturePerTurn;
 		public int totalCulture;
 
 		public SaveCityBuilding() { }
@@ -20,14 +22,21 @@ namespace C7GameData.Save {
 			building = cityBuilding.building.name;
 			builtByPlayer = cityBuilding.builtByPlayer.id;
 			year = cityBuilding.year;
+			baseCulturePerTurn = cityBuilding.baseCulturePerTurn;
+			currentCulturePerTurn = cityBuilding.currentCulturePerTurn;
 			totalCulture = cityBuilding.totalCulture;
 		}
 
 		public CityBuilding ToCityBuilding(List<Building> buildings, List<Player> players) {
+			Building resolvedBuilding = buildings.Find(buildingType => buildingType.name == building);
+			bool hasCultureData = baseCulturePerTurn > 0 || currentCulturePerTurn > 0;
+			int baseCulture = baseCulturePerTurn > 0 ? baseCulturePerTurn : resolvedBuilding?.culturePerTurn ?? 0;
 			return new CityBuilding {
-				building = buildings.Find(buildingType => buildingType.name == building),
+				building = resolvedBuilding,
 				builtByPlayer = players.Find(player => player.id == builtByPlayer),
 				year = year,
+				baseCulturePerTurn = baseCulture,
+				currentCulturePerTurn = hasCultureData ? currentCulturePerTurn : baseCulture,
 				totalCulture = totalCulture,
 			};
 		}
