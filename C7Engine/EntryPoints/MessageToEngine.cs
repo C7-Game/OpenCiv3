@@ -111,10 +111,9 @@ namespace C7Engine {
 
 		public override void process() {
 			MapUnit unit = EngineStorage.gameData.GetUnit(unitID);
-			MapUnit transportUnit;
 			if (this.transportUnitId != null) {
-				transportUnit = EngineStorage.gameData.GetUnit(transportUnitId);
-				unit.BoardTransport(transportUnit);
+				// Only board a transport that can still take the unit, the choice may be out of date
+				unit.BoardTransport(unit.GetTransportsToBoard(unit.location).Find(t => t.id == transportUnitId));
 			} else
 				unit.TryBoardingTransportOnTile(unit.location);
 		}
