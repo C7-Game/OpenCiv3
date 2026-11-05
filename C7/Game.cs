@@ -513,19 +513,6 @@ public partial class Game : Node {
 		}
 	}
 
-	// Switching away from the science advisor commits the research chosen in it, which may
-	// need the player's OK first. If so, navigate runs only once they give it.
-	private void LeaveScienceAdvisorThen(System.Action navigate) {
-		ScienceAdvisor science = advisor.scienceAdvisor;
-		if (science.Visible) {
-			if (popupOverlay.ShowingPopup || science.AskToConfirmSwitch(navigate)) {
-				return;
-			}
-			science.CommitPendingResearch();
-		}
-		navigate();
-	}
-
 	// Runs any action a popup deferred until an advisor screen was closed.
 	private void OnAdvisorVisibilityChanged() {
 		if (!advisor.Visible) {
@@ -904,6 +891,35 @@ public partial class Game : Node {
 		}
 	}
 
+	// The advisor or game view each function key opens.
+	private static readonly Dictionary<Godot.Key, (StringName signal, string target)> NavigationKeys = new() {
+		[Godot.Key.F1] = (SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor),
+		[Godot.Key.F2] = (SignalName.ShowSpecificAdvisor, C7Action.ShowTradeAdvisor),
+		[Godot.Key.F3] = (SignalName.ShowSpecificAdvisor, C7Action.ShowMilitaryAdvisor),
+		[Godot.Key.F4] = (SignalName.ShowSpecificAdvisor, C7Action.ShowForeignAdvisor),
+		[Godot.Key.F5] = (SignalName.ShowSpecificAdvisor, C7Action.ShowCulturalAdvisor),
+		[Godot.Key.F6] = (SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor),
+		[Godot.Key.F7] = (SignalName.ShowGameView, C7Action.ShowWondersView),
+		[Godot.Key.F8] = (SignalName.ShowGameView, C7Action.ShowVictoryStatusView),
+		[Godot.Key.F9] = (SignalName.ShowGameView, C7Action.ShowPalaceView),
+		[Godot.Key.F10] = (SignalName.ShowGameView, C7Action.ShowSpaceRaceView),
+		[Godot.Key.F11] = (SignalName.ShowGameView, C7Action.ShowDemographicsView),
+	};
+
+	// Switching away from the science advisor commits the research chosen in it, which may
+	// need the player's OK first. If so, the switch happens only once they give it.
+	private void NavigateTo(StringName signal, string target) {
+		ScienceAdvisor science = advisor.scienceAdvisor;
+		// Staying on the science advisor keeps its pending picks, so only leaving needs the check.
+		if (science.Visible && target != C7Action.ShowScienceAdvisor) {
+			if (popupOverlay.ShowingPopup || science.AskToConfirmSwitch(() => EmitSignal(signal, target))) {
+				return;
+			}
+			science.CommitPendingResearch();
+		}
+		EmitSignal(signal, target);
+	}
+
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {
 		if (interactablePopUpController.Visible)
 			return;
@@ -921,39 +937,8 @@ public partial class Game : Node {
 			return;
 		}
 
-		if (eventKeyDown.Keycode == Godot.Key.F1) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F2) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowTradeAdvisor));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F3) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowMilitaryAdvisor));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F4) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowForeignAdvisor));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F5) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowCulturalAdvisor));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F6) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
-		}
-
-		if (eventKeyDown.Keycode == Godot.Key.F7) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowWondersView));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F8) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowVictoryStatusView));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F9) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowPalaceView));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F10) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowSpaceRaceView));
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F11) {
-			LeaveScienceAdvisorThen(() => EmitSignal(SignalName.ShowGameView, C7Action.ShowDemographicsView));
+		if (NavigationKeys.TryGetValue(eventKeyDown.Keycode, out (StringName signal, string target) navigation)) {
+			NavigateTo(navigation.signal, navigation.target);
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.C && HasCurrentlySelectedUnit()) {
