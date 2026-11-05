@@ -42,6 +42,7 @@ local c7_texture_list = {
   "Art/Terrain/xpgc.png",
   "Art/Terrain/xtgc.png",
   "Art/Terrain/craters.png",
+  "Art/Terrain/goodyhuts.png",
   "Art/Terrain/pollution.png",
   "Art/Cities/rMIDEAST.png",
   "Art/Cities/MIDEASTWALL.png",
@@ -193,6 +194,11 @@ return function(civ3_textures)
 
   -- TODO: Add proper replacement for the asset
   c7_textures.terrain.river_delta = "Art/Terrain/mtnRivers.png"
+
+  -- TODO: terrain.goody_hut uses Art/Terrain/goodyhuts.png, which must be a
+  -- 3x3 grid of 128x64 sprites like the Civ3 goodyhuts.pcx. The Assets repo
+  -- has no such file yet, so drawing a hut in standalone mode throws until
+  -- original art is added.
 
   c7_textures.civ_colors = {}
   for i, hex_color in ipairs(civ_colors) do

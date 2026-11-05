@@ -1063,6 +1063,9 @@
       "movement": 2,
       "capacity": 0,
       "hpBonus": 0,
+      "flags": [
+        "allTerrainAsRoads"
+      ],
       "producibleBy": [
         "Rome",
         "Egypt",
@@ -5504,6 +5507,9 @@
       "movement": 2,
       "capacity": 0,
       "hpBonus": 0,
+      "flags": [
+        "allTerrainAsRoads"
+      ],
       "producibleBy": [
         "Spain"
       ],

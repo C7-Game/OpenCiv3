@@ -398,12 +398,7 @@ namespace C7GameData {
 			}
 
 			if (CanGrowPopulationByOne(gameData)) {
-				CityResident newResident = new CityResident();
-				newResident.nationality = owner.civilization;
-				newResident.city = this;
-				newResident.citizenType = gameData.citizenTypes.Find(x => x.IsDefaultCitizen);
-				AddCitizen(newResident);
-				C7Engine.AI.CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident);
+				AddDefaultCitizen(gameData);
 
 				if (hasGranary) {
 					foodStored /= 2;
@@ -699,6 +694,17 @@ namespace C7GameData {
 
 		public void AddCitizen(CityResident cr) {
 			residents.Add(cr);
+		}
+
+		// Adds one citizen of the owner's nationality and the default citizen
+		// type, and puts them to work on a tile.
+		public void AddDefaultCitizen(GameData gameData) {
+			CityResident newResident = new CityResident();
+			newResident.nationality = owner.civilization;
+			newResident.city = this;
+			newResident.citizenType = gameData.citizenTypes.Find(x => x.IsDefaultCitizen);
+			AddCitizen(newResident);
+			C7Engine.AI.CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident);
 		}
 
 		public void RemoveCitizens(int number) {

@@ -49,6 +49,10 @@ namespace C7GameData {
 			return HasCity(out _);
 		}
 
+		public bool HasResource() {
+			return Resource != null && Resource != Resource.NONE;
+		}
+
 		private City _cityAtTile;
 		public City cityAtTile {
 			get => _cityAtTile;
@@ -80,6 +84,9 @@ namespace C7GameData {
 		public CityResident personWorkingTile = null;   //allows us to see if another city is working this tile
 
 		public bool hasBarbarianCamp = false;
+
+		// A goody hut ("tribal village") that a unit can pop by entering the tile.
+		public bool hasGoodyHut = false;
 
 		//See discussion on page 4 of the "Babylon" thread (https://forums.civfanatics.com/threads/0-1-babylon-progress-thread.673959) about sub-terrain type and Civ3 properties.
 		//We may well move these properties somewhere, whether that's Civ3ExtraInfo, a Civ3Tile child class, a Dictionary property, or something else, in the future.

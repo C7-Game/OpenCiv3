@@ -12,6 +12,7 @@ namespace C7GameData.Save {
 			LethalSeaBombardment,
 			Radar,
 			Wheeled,
+			AllTerrainAsRoads,
 		}
 
 		public string name { get; set; }
