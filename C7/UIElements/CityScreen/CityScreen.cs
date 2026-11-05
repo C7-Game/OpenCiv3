@@ -278,7 +278,7 @@ public partial class CityScreen : Control {
 					city = city
 				};
 				city.AddCitizen(newResident);
-				CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident, manageMoods: true);
+				CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident, manageMoods: true, totalResidents: numResidents);
 			}
 		}
 	}

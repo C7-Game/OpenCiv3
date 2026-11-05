@@ -82,7 +82,18 @@ namespace C7GameData {
 		}
 
 		private static void TilePenalty(Tile.Yield yield) {
-			yield.penalty += yield.yield > 2 ? 1 : 0;
+			Tile t = yield.tile;
+
+			// Agricultural civs keep the third food of their city center when the
+			// city has fresh water access. Shields and commerce are still penalized.
+			bool exempt = yield.type == Tile.YieldType.Food
+				&& t.HasCity()
+				&& t.cityAtTile.owner.civilization.traits.Contains(Civilization.Trait.Agricultural)
+				&& t.cityAtTile.hasFreshwaterAccess;
+
+			if (!exempt) {
+				yield.penalty += yield.yield > 2 ? 1 : 0;
+			}
 		}
 	}
 }
