@@ -326,7 +326,7 @@ public partial class Game : Node {
 
 			// Allow the domestic advisor to trigger popups.
 			advisor.domesticAdvisor.SetPopupOverlay(popupOverlay);
-			advisor.scienceAdvisor.SetPopupOverlay(popupOverlay);
+			advisor.scienceAdvisor.SetSwitchConfirmation(EmitConfirmResearchSwitchSignal);
 		});
 	}
 

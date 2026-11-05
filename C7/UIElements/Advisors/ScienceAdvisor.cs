@@ -41,7 +41,8 @@ public partial class ScienceAdvisor : Control {
 	// Clicks made since the advisor opened, replayed to the engine on close.
 	private readonly List<(Tech tech, SelectionMode mode)> pendingPicks = new();
 
-	private PopupOverlay popupOverlay;
+	// Shows the "lose your beakers?" confirmation: old tech, new tech, beakers lost, and what to run on "yes".
+	private System.Action<Tech, Tech, int, System.Action> showSwitchConfirmation;
 
 	// store the last opened era window so next time we open the advisor, it opens at the same era window
 	private static string lastOpenedEra = string.Empty;
@@ -188,8 +189,8 @@ public partial class ScienceAdvisor : Control {
 		}
 	}
 
-	public void SetPopupOverlay(PopupOverlay po) {
-		popupOverlay = po;
+	public void SetSwitchConfirmation(System.Action<Tech, Tech, int, System.Action> show) {
+		showSwitchConfirmation = show;
 	}
 
 	// Records a click locally and redraws; the player is untouched until the advisor closes.
@@ -230,11 +231,13 @@ public partial class ScienceAdvisor : Control {
 	/// advisor must stay open; onConfirmed runs after the selections are committed.
 	/// </summary>
 	public bool AskToConfirmSwitch(System.Action onConfirmed) {
-		if (pendingPicks.Count == 0 || popupOverlay == null) {
+		if (pendingPicks.Count == 0 || showSwitchConfirmation == null) {
 			return false;
 		}
 
-		bool asked = false;
+		Tech oldTech = null;
+		Tech newTech = null;
+		int lostBeakers = 0;
 		EngineStorage.ReadGameData((GameData gameData) => {
 			Player player = gameData.GetFirstHumanPlayer();
 			ID current = player.currentlyResearchedTech;
@@ -243,17 +246,20 @@ public partial class ScienceAdvisor : Control {
 				return;
 			}
 
-			Tech oldTech = gameData.techs.Find(t => t.id == current);
-			Tech newTech = gameData.techs.Find(t => t.id == selectedTech);
-			popupOverlay.ShowPopup(
-				new ResearchSwitchConfirmation(player, oldTech, newTech, player.beakers, () => {
-					CommitPendingResearch();
-					onConfirmed();
-				}),
-				PopupOverlay.PopupCategory.Advisor);
-			asked = true;
+			oldTech = gameData.techs.Find(t => t.id == current);
+			newTech = gameData.techs.Find(t => t.id == selectedTech);
+			lostBeakers = player.beakers;
 		});
-		return asked;
+		if (oldTech == null) {
+			return false;
+		}
+
+		// Shown outside the game data read: building the popup reads game data itself.
+		showSwitchConfirmation(oldTech, newTech, lostBeakers, () => {
+			CommitPendingResearch();
+			onConfirmed();
+		});
+		return true;
 	}
 
 	/// <summary>
