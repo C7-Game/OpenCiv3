@@ -739,6 +739,12 @@ public partial class Game {
 		};
 		options.Add(showGridBtn);
 
+		var zoomBtn = new ButtonAction() {
+			message = "Zoom (Z)",
+			action = () => ToggleCameraZoom(),
+		};
+		options.Add(zoomBtn);
+
 		var backBtn = new ButtonAction() {
 			message = "Back",
 			action = () => EmitGameMainMenuSignal(),
