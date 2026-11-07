@@ -528,7 +528,7 @@ public partial class LooseView : Node2D {
 				log.Warning($"-> End draw: {stopwatch.ElapsedMilliseconds} milliseconds");
 			}
 
-			if (!gD.observerMode) {
+			if (!gD.observerMode && !gD.revealMap) {
 				foreach (FogOfWarLayer layer in layers.Where(layer => layer is FogOfWarLayer).Cast<FogOfWarLayer>()) {
 					for (int Y = visRegion.upperLeftY; Y < visRegion.lowerRightY; Y++) {
 						if (gD.map.isRowAt(Y)) {
@@ -573,7 +573,7 @@ public partial class LooseView : Node2D {
 	}
 
 	private static bool IsTileKnown(Tile tile, GameData gameData) {
-		if (gameData.observerMode) {
+		if (gameData.observerMode || gameData.revealMap) {
 			return true;
 		}
 		TileKnowledge knowledge = gameData.GetFirstHumanPlayer().tileKnowledge;

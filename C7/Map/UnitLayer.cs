@@ -358,7 +358,7 @@ public partial class UnitLayer : LooseLayer {
 	}
 
 	private bool UnitsVisible(GameData gameData, Player player, Tile t) {
-		if (gameData.observerMode) {
+		if (gameData.observerMode || gameData.revealMap) {
 			return true;
 		}
 
