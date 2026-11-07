@@ -35,8 +35,74 @@ public class CodexTest {
 		Assert.Contains("[radar towers](key:GCON_Radar_Towers)", entry.Body);
 		Assert.DoesNotContain("$LINK", entry.Body);
 		Assert.Contains("can build", entry.Body);
-		Assert.Contains("{New Ability}", entry.Body);
+		Assert.Contains("**New Ability**", entry.Body);
 		Assert.Contains("Long paragraph that is wrapped across several lines and should be rejoined as one paragraph.", entry.Body);
+	}
+
+	[Fact]
+	public void TestBracketedTermsBecomeItalics() {
+		const string sample = """
+		#BLDG_University
+		^
+		^
+		^[The University] increases the scientific research in its city by 50%.
+		""";
+
+		Codex codex = Codex.Parse(sample);
+		CodexEntry entry = codex.GetEntry("BLDG_University");
+
+		Assert.NotNull(entry);
+		Assert.Contains("*The University* increases", entry.Body);
+		Assert.DoesNotContain("[The University]", entry.Body);
+	}
+
+	[Fact]
+	public void TestBracketedLinkBecomesLinkedItalics() {
+		const string sample = """
+		#GCON_Resources
+		^A city can work [$LINK<Bonus Resources=GCON_ResourcesB>].
+		""";
+
+		Codex codex = Codex.Parse(sample);
+		CodexEntry entry = codex.GetEntry("GCON_Resources");
+
+		Assert.NotNull(entry);
+		Assert.Contains("*[Bonus Resources](key:GCON_ResourcesB)*", entry.Body);
+	}
+
+	[Fact]
+	public void TestBracedTermsBecomeBold() {
+		const string sample = """
+		#GCON_Resources
+		^When a city {has} a luxury resource, it appears in the city's {Luxuries box}.
+		""";
+
+		Codex codex = Codex.Parse(sample);
+		CodexEntry entry = codex.GetEntry("GCON_Resources");
+
+		Assert.NotNull(entry);
+		Assert.Contains("**has**", entry.Body);
+		Assert.Contains("**Luxuries box**", entry.Body);
+		Assert.DoesNotContain("{", entry.Body);
+	}
+
+	[Fact]
+	public void TestWholeLineBraceBecomesHeading() {
+		const string sample = """
+		#GCON_Test
+		^
+		^{Section Title}
+		^
+		^A city {starves} when it has no food.
+		""";
+
+		Codex codex = Codex.Parse(sample);
+		CodexEntry entry = codex.GetEntry("GCON_Test");
+
+		Assert.NotNull(entry);
+		Assert.Contains("## Section Title", entry.Body);
+		Assert.Contains("**starves**", entry.Body);
+		Assert.DoesNotContain("**Section Title**", entry.Body);
 	}
 
 	[Fact]
@@ -97,9 +163,8 @@ public class CodexTest {
 
 		Assert.NotNull(entry);
 		Assert.Equal("Happy Faces", entry.DisplayName);
-		Assert.Contains("{These\t\t\t\t\t\t\t\tProduce this}", entry.Body);
+		Assert.Contains("**These\t\t\t\t\t\t\t\tProduce this**", entry.Body);
 		Assert.Contains("* City improvements\t\t\t\t\t\tcontent faces", entry.Body);
-		Assert.DoesNotContain("## These", entry.Body);
 	}
 
 	[Fact]
@@ -188,6 +253,56 @@ public class CodexTest {
 		Assert.NotNull(entry);
 		Assert.Null(entry.DisplayName);
 		Assert.Equal("Body text.", entry.Body);
+	}
+
+	[Fact]
+	public void TestKeyLookupIsCaseInsensitive() {
+		const string sample = """
+		#PRTO_Nuke
+		^Body text.
+		""";
+
+		Codex codex = Codex.Parse(sample);
+
+		Assert.NotNull(codex.GetEntry("PRTO_Nuke"));
+		Assert.Equal("Body text.", codex.GetEntry("PRTO_NUKE").Body);
+	}
+
+	[Fact]
+	public void TestBodyAndDescriptionMergeWhenHeaderCaseDiffers() {
+		const string sample = """
+		#BLDG_Marketplace
+		^Body text.
+		#DESC_BLDG_MarketPlace
+		^Description text.
+		""";
+
+		Codex codex = Codex.Parse(sample);
+		CodexEntry entry = codex.GetEntry("BLDG_Marketplace");
+
+		Assert.NotNull(entry);
+		Assert.Equal("Body text.", entry.Body);
+		Assert.Equal("Description text.", entry.Description);
+	}
+
+	[Fact]
+	public void TestParagraphLineWithoutCaretAfterBlankLineIsBody() {
+		const string sample = """
+		#BLDG_Apollo_Project
+		^
+		^
+		Completion of the Apollo Program.
+		#DESC_BLDG_Apollo_Project
+		^The program began in the 1960s.
+		""";
+
+		Codex codex = Codex.Parse(sample);
+		CodexEntry entry = codex.GetEntry("BLDG_Apollo_Project");
+
+		Assert.NotNull(entry);
+		Assert.Null(entry.DisplayName);
+		Assert.Equal("Completion of the Apollo Program.", entry.Body);
+		Assert.Equal("The program began in the 1960s.", entry.Description);
 	}
 
 	[SkippableFact]
@@ -296,9 +411,8 @@ public class CodexTest {
 
 		CodexEntry happyFaces = codex.GetEntry("GCON_Happy_Faces");
 		Assert.NotNull(happyFaces);
-		Assert.Contains("{These", happyFaces.Body);
+		Assert.Contains("**These", happyFaces.Body);
 		Assert.Contains("\t", happyFaces.Body);
-		Assert.DoesNotContain("## These", happyFaces.Body);
 
 		Assert.DoesNotContain(codex.Entries.Keys, key => key != key.Trim());
 		Assert.False(codex.Entries.ContainsKey("GAME_CONCEPTS"));
