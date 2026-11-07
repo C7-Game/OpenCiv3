@@ -393,11 +393,9 @@ namespace C7GameData {
 			float knowledgeFactor = 1.0f - knownCivsThatKnowTheTech / (civsLeft * 1.75f);
 			float researchCost = map.techRate * 10 * tech.Cost  * knowledgeFactor/ (difficultyFactor * 10);
 
-			// Only include the progress factor if this is the tech actively
-			// being researched.
-			if (player.currentlyResearchedTech == tech.id) {
-				researchCost -= player.beakers;
-			}
+			// Progress is kept per tech, so it counts whether or not this is the
+			// tech actively being researched.
+			researchCost -= player.GetBeakers(tech.id);
 
 			return (int)Math.Max(Math.Floor(researchCost), 0);
 		}

@@ -157,12 +157,47 @@ namespace C7GameData {
 				this.gold = amount;
 		}
 
-		// The number of "beakers" (gold) spent on the currently researched
-		// tech.
-		public int beakers = 0;
+		// Progress on a tech that has been researched but not finished. It's kept
+		// when the player switches away, so coming back picks up where they left off.
+		public struct ResearchProgress {
+			public int beakers;  // "Beakers" (gold) spent on the tech.
+			public int turns;    // Turns spent researching it.
+		}
 
-		// The number of turns the player has been researching the current tech.
-		public int turnsResearched = 0;
+		// Progress on every unfinished tech the player has put research into.
+		private Dictionary<ID, ResearchProgress> researchProgress = new();
+
+		private ResearchProgress GetProgress(ID tech) => (tech == null) ? default : researchProgress.GetValueOrDefault(tech);
+
+		public int GetBeakers(ID tech) => GetProgress(tech).beakers;
+
+		public int GetTurnsResearched(ID tech) => GetProgress(tech).turns;
+
+		public void AddBeakers(ID tech, int amount) {
+			if (tech != null) {
+				ResearchProgress progress = GetProgress(tech);
+				progress.beakers += amount;
+				researchProgress[tech] = progress;
+			}
+		}
+
+		private void AddTurnResearched(ID tech) {
+			if (tech != null) {
+				ResearchProgress progress = GetProgress(tech);
+				progress.turns++;
+				researchProgress[tech] = progress;
+			}
+		}
+
+		// Restores progress from a save.
+		public void SetResearchProgress(ID tech, ResearchProgress progress) {
+			if (tech != null) {
+				researchProgress[tech] = progress;
+			}
+		}
+
+		// All unfinished techs with progress, for saving.
+		public IReadOnlyDictionary<ID, ResearchProgress> ResearchProgressByTech => researchProgress;
 
 		// If the government is anarchy (or a govt with the transition bool set
 		// to true), the turn number at which switching governments is allowed.
@@ -216,12 +251,9 @@ namespace C7GameData {
 			this.units.Add(unit);
 		}
 
+		// Any progress on the previous tech stays in researchProgress for later.
 		public void SetCurrentlyResearchedTech(ID id) {
 			currentlyResearchedTech = id;
-
-			// Clear out previous progress.
-			beakers = 0;
-			turnsResearched = 0;
 		}
 
 		public void AddTechItemToResearchQueue(Tech tech) {
@@ -509,6 +541,7 @@ namespace C7GameData {
 			int remainingCost = gameData.TechCostFor(tech, this);
 			int turnsRemaining = (int)Math.Ceiling((double)remainingCost / beakersPerTurn);
 
+			int turnsResearched = GetTurnsResearched(tech.id);
 			int maxTurnsRemaining = rules.MaximumResearchTime - turnsResearched;
 			int minTurnsRemaining = rules.MinimumResearchTime - turnsResearched;
 
@@ -535,9 +568,7 @@ namespace C7GameData {
 		// This queue is being reversed in the end, to provide the actual queue
 		// that the player would go through
 		public void CalculateFreshTechQueueAndAssignNewCurrent(Tech tech) {
-			ResearchQueue.Clear();
-			IEnumerable<Tech> techQueue = GetResearchQueueFor(tech, ResearchQueue).Reverse();
-			ResearchQueue = new Queue<Tech>(techQueue);
+			ResearchQueue = GetResearchQueueFor(tech, new Queue<Tech>());
 
 			if (ResearchQueue.Count > 0)
 				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
@@ -545,8 +576,7 @@ namespace C7GameData {
 
 		// Append a new queue at the tail end of the current queue
 		public void CalculateTechQueueAndAppendToCurrentQueue(Tech tech) {
-			IEnumerable<Tech> techQueue = GetResearchQueueFor(tech, new Queue<Tech>()).Reverse();
-			foreach (Tech t in techQueue) {
+			foreach (Tech t in GetResearchQueueFor(tech, new Queue<Tech>())) {
 				if (!ResearchQueue.Contains(t)) {
 					AddTechItemToResearchQueue(t);
 				}
@@ -559,43 +589,21 @@ namespace C7GameData {
 		}
 
 		/// <summary>
-		/// This produces a queue, but in reverse order, going from the last tech to the first.
-		/// We can't reverse when returning from this method, because of its recursive nature,
-		/// so this must be done from the caller method.
+		/// This produces the queue in research order: every unknown prerequisite is
+		/// enqueued (depth first) before the tech that needs it.
 		/// </summary>
-		/// <param name="gameData"></param>
 		/// <param name="tech"></param>
+		/// <param name="tempQueue">Queue to add to; techs already in it are not repeated.</param>
 		/// <returns></returns>
 		private Queue<Tech> GetResearchQueueFor(Tech tech, Queue<Tech> tempQueue) {
-
-			if (tech == null) {
-				return new Queue<Tech>();
+			if (tech == null || knownTechs.Contains(tech.id) || tempQueue.Contains(tech)) {
+				return tempQueue;
 			}
 
-			List<Tech> requiredTechs = OrderTechs(tech.Prerequisites);
-
-			// first, add the tech the user clicked
-			if (!knownTechs.Contains(tech.id) && !tempQueue.Contains(tech)) {
-				tempQueue.Enqueue(tech);
+			foreach (Tech prereq in OrderTechs(tech.Prerequisites)) {
+				GetResearchQueueFor(prereq, tempQueue);
 			}
-
-			// second, get the direct required techs
-			foreach (Tech t in requiredTechs) {
-				if (!knownTechs.Contains(t.id)) {
-					if (!tempQueue.Contains(t)) {
-						tempQueue.Enqueue(t);
-					}
-				}
-			}
-
-			// last, recursively get the required techs of these required techs
-			foreach (Tech t in requiredTechs) {
-				if (!knownTechs.Contains(t.id)) {
-					if (t.Prerequisites.Count > 0) {
-						GetResearchQueueFor(t, tempQueue);
-					}
-				}
-			}
+			tempQueue.Enqueue(tech);
 			return tempQueue;
 		}
 
@@ -754,9 +762,12 @@ namespace C7GameData {
 			//
 			// TODO: consider making this return a tuple too. Or maybe return all
 			// the gold accounting stuff in a struct, for one pass over the cities.
+			// With nothing being researched, this turn's beakers are lost.
+			int beakersThisTurn = 0;
 			foreach (City city in cities) {
-				beakers += city.CurrentCommerceYield().beakers;
+				beakersThisTurn += city.CurrentCommerceYield().beakers;
 			}
+			AddBeakers(currentlyResearchedTech, beakersThisTurn);
 
 			// Ensure we never go below 0 gold.
 			while (gold + CalculateGoldPerTurn() < 0) {
@@ -819,7 +830,7 @@ namespace C7GameData {
 			// TODO: This isn't quite accurate. This should only be
 			// incremented if the player is actually spending money on
 			// research, or has a science specialist.
-			turnsResearched++;
+			AddTurnResearched(currentlyResearchedTech);
 
 			// Check to see if the player has finished researching their
 			// tech, and if they have, add it to the list of known techs
@@ -921,6 +932,8 @@ namespace C7GameData {
 			}
 
 			knownTechs.Add(tech.id);
+			// However the tech was gained, any progress toward it is no longer needed.
+			researchProgress.Remove(tech.id);
 			// trigger callback for techs that enable improvements to redraw map
 			TechImprovementCallback(this, tech);
 

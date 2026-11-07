@@ -684,8 +684,11 @@ namespace C7GameData {
 				}
 
 				player.gold = leader.Gold;
-				player.beakers = leader.Beakers;
-				player.turnsResearched = leader.TurnsResearched;
+				// Civ3 only tracks progress on the tech being researched.
+				if (player.currentlyResearchedTech != null) {
+					player.researchProgress[player.currentlyResearchedTech] =
+						new Player.ResearchProgress { beakers = leader.Beakers, turns = leader.TurnsResearched };
+				}
 				player.scienceRate = leader.ScienceRate;
 				player.luxuryRate = leader.LuxuryRate;
 				player.taxRate = leader.TaxRate;

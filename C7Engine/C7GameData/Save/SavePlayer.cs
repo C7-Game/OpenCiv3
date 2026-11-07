@@ -53,11 +53,14 @@ namespace C7GameData.Save {
 		// The amount of gold this player has.
 		public int gold = 0;
 
-		// The number of "beakers" (gold) spent on the currently researched
-		// tech.
-		public int beakers = 0;
+		// Beakers and turns spent on each unfinished tech.
+		public Dictionary<ID, Player.ResearchProgress> researchProgress = new();
 
-		// The number of turns the player has been researching the current tech.
+		// Older saves only stored progress on the current tech, in these two
+		// fields. They're read when loading (see ToPlayer) but never written.
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+		public int beakers = 0;
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
 		public int turnsResearched = 0;
 
 		// If the government is anarchy (or a govt with the transition bool set
@@ -110,12 +113,13 @@ namespace C7GameData.Save {
 				player.playerRelationships.Add(ID.FromString(keyValuePair.Key), keyValuePair.Value);
 			}
 
-			// Because of the custom setter we need to set the researched tech
-			// and then set the beakers and turns researched - otherwise they'd
-			// be reset by the setter.
 			player.SetCurrentlyResearchedTech(currentlyResearchedTech);
-			player.beakers = beakers;
-			player.turnsResearched = turnsResearched;
+			foreach (KeyValuePair<ID, Player.ResearchProgress> keyValuePair in researchProgress) {
+				player.SetResearchProgress(keyValuePair.Key, keyValuePair.Value);
+			}
+			if (researchProgress.Count == 0 && (beakers > 0 || turnsResearched > 0)) {
+				player.SetResearchProgress(currentlyResearchedTech, new Player.ResearchProgress { beakers = beakers, turns = turnsResearched });
+			}
 
 			foreach (ID techId in researchQueue) {
 				Tech tech = techs.Find(x => x.id == techId);
@@ -157,8 +161,7 @@ namespace C7GameData.Save {
 			scienceRate = player.scienceRate;
 			taxRate = player.taxRate;
 			gold = player.gold;
-			beakers = player.beakers;
-			turnsResearched = player.turnsResearched;
+			researchProgress = new Dictionary<ID, Player.ResearchProgress>(player.ResearchProgressByTech);
 			inAnarchyUntilTurn = player.inAnarchyUntilTurn;
 			governmentId = player.government.id;
 
