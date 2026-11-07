@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.IO;
 using C7Engine;
 using Serilog;
 
@@ -54,8 +55,7 @@ public partial class MainMenu : Node {
 		Global = GetNode<GlobalSingleton>("/root/GlobalSingleton");
 		Global.ResetLoadGameFields();
 
-		LoadDialog.SetDirectoryForLoading(@"Conquests/Saves");
-		LoadScenarioDialog.SetDirectoryForLoading(@"Conquests/Scenarios");
+		LoadScenarioDialog.SetDirectoryForLoading(Path.Combine(Util.Civ3Root, "Conquests", "Scenarios"));
 		LoadScenarioDialog.GoToScenarioSetupAfterLoading = true;
 
 		if (!C7Settings.UseStandaloneMode() && !ClassicGraphicsAvailable()) {
@@ -134,6 +134,7 @@ public partial class MainMenu : Node {
 	public void LoadGame() {
 		log.Information("load game button pressed");
 		PlayButtonPressedSound();
+		LoadDialog.PrefillLoadWithLatestSave();
 		LoadDialog.Popup();
 	}
 
@@ -167,7 +168,7 @@ public partial class MainMenu : Node {
 
 	private void _on_SetCiv3HomeDialog_dir_selected(string path) {
 		Util.Civ3Root = path;
-		C7Settings.SetValue("locations", "civ3InstallDir", path);
+		C7Settings.SetValue(C7Settings.Locations.SectionName, C7Settings.Locations.Civ3InstallDir, path);
 		C7Settings.SaveSettings();
 		// This function should only be reachable if DisplayTitleScreen failed on previous runs, so should be OK to run here
 		DisplayTitleScreen();

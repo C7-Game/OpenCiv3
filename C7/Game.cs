@@ -236,11 +236,20 @@ public partial class Game : Node {
 		EmitSignal(SignalName.GameInitialized);
 
 		if (Global.LoadGamePath == null) {
+			Autosave.Clear();
+		}
+		PerformAutosave(EngineStorage.gameData);
+
+		if (Global.LoadGamePath == null) {
 			new MsgNewGame(controller.id).send();
 			await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
 		}
 
 		Global.ResetLoadGameFields();
+	}
+
+	private void PerformAutosave(GameData gameData) {
+		Autosave.Perform(gameData, controller, PreferencesSettings.GetAutosaveTurns());
 	}
 
 	private GameParams CreateGameParams() {
@@ -546,6 +555,7 @@ public partial class Game : Node {
 	private void OnPlayerStartTurn() {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			log.Information("Starting player turn");
+			PerformAutosave(gameData);
 
 			// TODO: Before we call this method to automatically end obsolete deals, we could make this more versatile.
 			// For example unless we have a good reason, as a human, receiving luxuries, gpt,
@@ -618,16 +628,16 @@ public partial class Game : Node {
 	}
 
 	public void OnSaveGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForSaving(@"Conquests/Saves");
+		SavePaths.EnsureSaveFolderExists();
+		FileDialog.SetDirectoryForSaving(SavePaths.SaveFolder);
+		FileDialog.PrefillFileName(SaveNameGenerator.GenerateSaveFileName(EngineStorage.gameData, controller));
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
 	}
 
 	public void OnLoadGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForLoading(@"Conquests/Saves");
+		FileDialog.PrefillLoadWithLatestSave();
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();

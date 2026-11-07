@@ -31,6 +31,9 @@ public partial class Preferences : Control {
 	[Export] Control sfxVolumeRow;
 	[Export] Control uiVolumeRow;
 	[Export] Control ambienceVolumeRow;
+	[Export] Civ3Checkbox autosaveToggle;
+	[Export] LineEdit autosaveCount;
+	[Export] Control autosaveRow;
 	[Export] Civ3TextureButton close;
 	[Export] TextureRect background;
 
@@ -49,6 +52,8 @@ public partial class Preferences : Control {
 			PreferencesSettings.SetPromptForResearch(enabled);
 		};
 
+		SetupAutosave();
+
 		ConnectVolumeSlider(masterVolumeRow, masterVolume, masterVolumeLabel, AudioManager.MasterBus,
 			() => { }); // music is always playing (through master)
 
@@ -66,6 +71,42 @@ public partial class Preferences : Control {
 
 		TextureLoader.SetButtonTextures(close, "ui.exit");
 		close.Pressed += HidePreferences;
+	}
+
+	private void SetupAutosave() {
+		if (autosaveRow == null) {
+			return;
+		}
+		if (autosaveToggle == null || autosaveCount == null) {
+			autosaveRow.Visible = false;
+			return;
+		}
+
+		int autosaveTurns = PreferencesSettings.GetAutosaveTurns();
+		autosaveCount.Text = autosaveTurns.ToString();
+		autosaveToggle.SetPressedNoSignal(autosaveTurns > 0);
+		autosaveToggle.Toggled += enabled => {
+			int value = enabled && int.TryParse(autosaveCount.Text, out int parsed) && parsed > 0
+				? parsed
+				: PreferencesSettings.DefaultAutosaveTurns;
+			ApplyAutosaveCount(enabled ? value : 0);
+		};
+		autosaveCount.TextSubmitted += _ => ApplyAutosaveCountFromText();
+		autosaveCount.FocusExited += ApplyAutosaveCountFromText;
+	}
+
+	private void ApplyAutosaveCountFromText() {
+		int value = int.TryParse(autosaveCount.Text, out int parsed)
+			? parsed
+			: PreferencesSettings.DefaultAutosaveTurns;
+		ApplyAutosaveCount(value);
+	}
+
+	private void ApplyAutosaveCount(int value) {
+		int clamped = Math.Clamp(value, PreferencesSettings.MinAutosaveTurns, PreferencesSettings.MaxAutosaveTurns);
+		PreferencesSettings.SetAutosaveTurns(clamped);
+		autosaveCount.Text = clamped.ToString();
+		autosaveToggle.SetPressedNoSignal(clamped > 0);
 	}
 
 	private void ConnectVolumeSlider(Control row, Civ3HSlider slider, Label valueLabel, string bus,
