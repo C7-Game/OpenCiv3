@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using C7GameData;
 
 namespace C7Engine {
@@ -10,47 +9,19 @@ namespace C7Engine {
 				return null;
 			}
 
-			Player human = player;
-			if (human == null && gameData.players != null) {
-				human = gameData.GetFirstHumanPlayer();
-				if (human == null) {
-					human = gameData.players.FirstOrDefault(p => !p.isBarbarians);
-				}
-			}
+			string date = gameData.timeOptions?.GetDisplayTime(gameData.turn) ?? gameData.turn.ToString();
+			return GenerateSaveFileName(player, gameData.turn, date);
+		}
 
-			string leader = human?.civilization?.leader ?? "Leader";
-			string noun = human?.civilization?.noun;
+		public static string GenerateSaveFileName(Player player, int turn, string displayDate) {
+			string leader = player?.civilization?.leader ?? "Leader";
+			string noun = player?.civilization?.noun;
 			if (string.IsNullOrEmpty(noun)) {
-				noun = human?.civilization?.name ?? "People";
+				noun = player?.civilization?.name ?? "People";
 			}
 
-			int turn = TurnHandling.GetTurnNumber();
-			string date = "";
-			if (gameData.timeOptions != null) {
-				try {
-					date = gameData.timeOptions.GetDisplayTime(turn);
-				} catch {
-					date = turn.ToString();
-				}
-			}
-
-			string name = $"{leader} of the {noun}-Turn {turn:000}-{date}.json";
-			name = string.Join("_", name.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
-			return name;
-		}
-
-		public static string GetSaveDirectory() {
-			return C7Settings.GetSaveFolder();
-		}
-
-		public static string GetAutosaveDirectory() {
-			string dir = Path.Combine(GetSaveDirectory(), "Auto");
-			Directory.CreateDirectory(dir);
-			return dir;
-		}
-
-		public static string GetAutosaveFileName(GameData gameData, Player player) {
-			return GenerateSaveFileName(gameData, player);
+			string name = $"{leader} of the {noun}-Turn {turn:000}-{displayDate}.json";
+			return string.Join("_", name.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
 		}
 	}
 }

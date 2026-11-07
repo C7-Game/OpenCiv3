@@ -31,9 +31,8 @@ public partial class Preferences : Control {
 	[Export] Control sfxVolumeRow;
 	[Export] Control uiVolumeRow;
 	[Export] Control ambienceVolumeRow;
-	[Export] CheckBox autosaveToggle;
+	[Export] Civ3Checkbox autosaveToggle;
 	[Export] LineEdit autosaveCount;
-	[Export] Label autosaveLabel;
 	[Export] Control autosaveRow;
 	[Export] Civ3TextureButton close;
 	[Export] TextureRect background;
@@ -53,41 +52,7 @@ public partial class Preferences : Control {
 			PreferencesSettings.SetPromptForResearch(enabled);
 		};
 
-		if (autosaveCount != null) {
-			int autosaveTurns = PreferencesSettings.GetAutosaveTurns();
-			if (autosaveTurns < 0) autosaveTurns = 0;
-			if (autosaveTurns > 99) autosaveTurns = 99;
-			autosaveCount.Text = autosaveTurns.ToString();
-			if (autosaveToggle != null) {
-				autosaveToggle.ButtonPressed = autosaveTurns > 0;
-			}
-			if (autosaveToggle != null) {
-				autosaveToggle.Toggled += enabled => {
-					if (enabled) {
-						if (int.TryParse(autosaveCount.Text, out int t) && t > 0) {
-							PreferencesSettings.SetAutosaveTurns(t);
-						} else {
-							PreferencesSettings.SetAutosaveTurns(5);
-							autosaveCount.Text = "5";
-						}
-					} else {
-						PreferencesSettings.SetAutosaveTurns(0);
-					}
-				};
-			}
-			autosaveCount.TextChanged += text => {
-				if (int.TryParse(text, out int val)) {
-					if (val < 0) val = 0;
-					if (val > 99) val = 99;
-					PreferencesSettings.SetAutosaveTurns(val);
-					if (autosaveToggle != null) {
-						autosaveToggle.ButtonPressed = val > 0;
-					}
-				}
-			};
-		} else if (autosaveRow != null) {
-			autosaveRow.Visible = false;
-		}
+		SetupAutosave();
 
 		ConnectVolumeSlider(masterVolumeRow, masterVolume, masterVolumeLabel, AudioManager.MasterBus,
 			() => { }); // music is always playing (through master)
@@ -106,6 +71,42 @@ public partial class Preferences : Control {
 
 		TextureLoader.SetButtonTextures(close, "ui.exit");
 		close.Pressed += HidePreferences;
+	}
+
+	private void SetupAutosave() {
+		if (autosaveRow == null) {
+			return;
+		}
+		if (autosaveToggle == null || autosaveCount == null) {
+			autosaveRow.Visible = false;
+			return;
+		}
+
+		int autosaveTurns = PreferencesSettings.GetAutosaveTurns();
+		autosaveCount.Text = autosaveTurns.ToString();
+		autosaveToggle.SetPressedNoSignal(autosaveTurns > 0);
+		autosaveToggle.Toggled += enabled => {
+			int value = enabled && int.TryParse(autosaveCount.Text, out int parsed) && parsed > 0
+				? parsed
+				: PreferencesSettings.DefaultAutosaveTurns;
+			ApplyAutosaveCount(enabled ? value : 0);
+		};
+		autosaveCount.TextSubmitted += _ => ApplyAutosaveCountFromText();
+		autosaveCount.FocusExited += ApplyAutosaveCountFromText;
+	}
+
+	private void ApplyAutosaveCountFromText() {
+		int value = int.TryParse(autosaveCount.Text, out int parsed)
+			? parsed
+			: PreferencesSettings.DefaultAutosaveTurns;
+		ApplyAutosaveCount(value);
+	}
+
+	private void ApplyAutosaveCount(int value) {
+		int clamped = Math.Clamp(value, PreferencesSettings.MinAutosaveTurns, PreferencesSettings.MaxAutosaveTurns);
+		PreferencesSettings.SetAutosaveTurns(clamped);
+		autosaveCount.Text = clamped.ToString();
+		autosaveToggle.SetPressedNoSignal(clamped > 0);
 	}
 
 	private void ConnectVolumeSlider(Control row, Civ3HSlider slider, Label valueLabel, string bus,
