@@ -537,17 +537,8 @@ namespace C7GameData {
 		public void CalculateFreshTechQueueAndAssignNewCurrent(Tech tech) {
 			ResearchQueue = GetResearchQueueFor(tech, new Queue<Tech>());
 
-			// Re-picking the tech already in progress keeps its beakers.
-			if (ResearchQueue.Count > 0 && ResearchQueue.Peek().id != currentlyResearchedTech)
+			if (ResearchQueue.Count > 0)
 				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
-		}
-
-		/// <summary>
-		/// The queue (in research order) that picking this tech would produce, without
-		/// changing the player. Lets the UI preview a choice before committing to it.
-		/// </summary>
-		public List<Tech> PreviewResearchQueueFor(Tech tech) {
-			return GetResearchQueueFor(tech, new Queue<Tech>()).ToList();
 		}
 
 		// Append a new queue at the tail end of the current queue

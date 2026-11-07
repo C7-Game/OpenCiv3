@@ -8,7 +8,7 @@ using static C7GameData.EraUtils;
 
 [GlobalClass]
 [Tool]
-public partial class ScienceAdvisor : Control, IGuardedView {
+public partial class ScienceAdvisor : Control {
 
 	[Export] public TextureRect background;
 
@@ -28,21 +28,6 @@ public partial class ScienceAdvisor : Control, IGuardedView {
 
 	// Stored separately so we can modify this without mutating the player.
 	private string eraName;
-
-	// The tech currently selected in the advisor. Starts as the player's
-	// researched tech each time the advisor opens; changing it here must not
-	// touch the player (selecting a different tech resets their beakers).
-	// Selections only reach the engine when the advisor is closed.
-	private ID selectedTech;
-
-	// What the research queue would be if the pending selections were applied.
-	private List<Tech> pendingQueue = new();
-
-	// Clicks made since the advisor opened, replayed to the engine on close.
-	private readonly List<(Tech tech, SelectionMode mode)> pendingPicks = new();
-
-	// Shows the "lose your beakers?" confirmation: old tech, new tech, beakers lost, and what to run on "yes".
-	private System.Action<Tech, Tech, int, System.Action> showSwitchConfirmation;
 
 	// store the last opened era window so next time we open the advisor, it opens at the same era window
 	private static string lastOpenedEra = string.Empty;
@@ -116,13 +101,6 @@ public partial class ScienceAdvisor : Control, IGuardedView {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			List<Tech> allTechs = gameData.techs;
 			Player player = gameData.GetFirstHumanPlayer();
-			// ShowAdvisor runs before Show(), so Visible means we're already open
-			// and shouldn't throw away selections made so far.
-			if (!Visible) {
-				selectedTech = player.currentlyResearchedTech;
-				pendingQueue = player.ResearchQueue.ToList();
-				pendingPicks.Clear();
-			}
 			eraName = string.IsNullOrEmpty(lastOpenedEra) ? player.eraCivilopediaName : lastOpenedEra;
 			this.DrawTechTree(eraName, player, allTechs, player.GetAvailableTechsToResearch(allTechs));
 		});
@@ -142,7 +120,7 @@ public partial class ScienceAdvisor : Control, IGuardedView {
 
 		lastOpenedEra = eraName;
 
-		List<Tech> queue = pendingQueue;
+		Queue<Tech> queue = player.ResearchQueue;
 
 		// Set the tech background based on the player's era.
 		if (eraName == ANCIENT_TIMES_CVLPD) {
@@ -166,7 +144,7 @@ public partial class ScienceAdvisor : Control, IGuardedView {
 			TechBox.TechState techState = TechBox.TechState.kBlocked;
 			if (knownTechs.Contains(tech.id)) {
 				techState = TechBox.TechState.kKnown;
-			} else if (selectedTech == tech.id) {
+			} else if (player.currentlyResearchedTech == tech.id) {
 				techState = TechBox.TechState.kInProgress;
 			} else if (queue.Count > 0 && queue.Contains(tech)) {
 				techState = TechBox.TechState.kQueued;
@@ -176,129 +154,17 @@ public partial class ScienceAdvisor : Control, IGuardedView {
 				techState = TechBox.TechState.kBlocked;
 			}
 
-			int queueNumber = queue.IndexOf(tech) + 1;
+			int queueNumber = queue.ToList().IndexOf(tech) + 1;
 
 			TechBox techButton = new(tech, techState, queueNumber);
 			techButton.SetPosition(new Vector2(tech.X, tech.Y));
 			techButton.Pressed += () => {
 				SelectionMode selection = Input.IsKeyPressed(Key.Shift) ? SelectionMode.Multi : SelectionMode.Single;
-				ChoosePendingTech(tech, selection);
+				new MsgChooseResearch(tech, AdvisorState.Show, selection).send();
 			};
 			background.AddChild(techButton);
 			techBoxes.Add(techButton);
 		}
-	}
-
-	public void SetSwitchConfirmation(System.Action<Tech, Tech, int, System.Action> show) {
-		showSwitchConfirmation = show;
-	}
-
-	// Records a click locally and redraws; the player is untouched until the advisor closes.
-	private void ChoosePendingTech(Tech tech, SelectionMode mode) {
-		EngineStorage.ReadGameData((GameData gameData) => {
-			Player player = gameData.GetFirstHumanPlayer();
-
-			// Mirror the checks MsgChooseResearch will make when we replay this click.
-			bool isTechEraBeyondPlayerEra = GetEraIndex(tech.EraCivilopediaName) > GetEraIndex(player.eraCivilopediaName);
-			if (player.knownTechs.Contains(tech.id) || isTechEraBeyondPlayerEra) {
-				return;
-			}
-			if (selectedTech == tech.id && pendingQueue.Count == 1) {
-				return;
-			}
-
-			List<Tech> required = player.PreviewResearchQueueFor(tech);
-			if (mode == SelectionMode.Single) {
-				// A single pick replaces the whole queue, so earlier picks no longer matter.
-				// Replaying them would reset the beakers of a tech we ended up back on.
-				pendingPicks.Clear();
-				pendingQueue = required;
-			} else {
-				pendingQueue.AddRange(required.Where(t => !pendingQueue.Contains(t)));
-			}
-			pendingPicks.Add((tech, mode));
-			if (pendingQueue.Count > 0) {
-				selectedTech = pendingQueue[0].id;
-			}
-
-			DrawTechTree(eraName, player, gameData.techs, player.GetAvailableTechsToResearch(gameData.techs));
-		});
-	}
-
-	/// <summary>
-	/// Commits what was picked here, but only once the player has an acceptable research plan:
-	/// they confirm abandoning research in progress, and aren't left with nothing to research.
-	/// Otherwise the advisor stays open.
-	/// </summary>
-	public void RequestClose(System.Action onClosed) {
-		if (AskToConfirmSwitch(onClosed)) {
-			return;
-		}
-		// The engine hasn't processed what we just sent, so a fresh pick counts as research chosen.
-		bool researchChosen = CommitPendingResearch();
-
-		Player controller = null;
-		EngineStorage.ReadGameData(data => {
-			controller = data.players.First(p => p.id == EngineStorage.uiControllerID);
-		});
-		if (!researchChosen && controller.currentlyResearchedTech == null) {
-			new MsgScienceGuidance().send();
-			return;
-		}
-
-		onClosed();
-	}
-
-	/// <summary>
-	/// If closing would switch away from research in progress, asks the player to
-	/// confirm. Returns true if the confirmation popup was shown, in which case the
-	/// advisor must stay open; onConfirmed runs after the selections are committed.
-	/// </summary>
-	private bool AskToConfirmSwitch(System.Action onConfirmed) {
-		if (pendingPicks.Count == 0 || showSwitchConfirmation == null) {
-			return false;
-		}
-
-		Tech oldTech = null;
-		Tech newTech = null;
-		int lostBeakers = 0;
-		EngineStorage.ReadGameData((GameData gameData) => {
-			Player player = gameData.GetFirstHumanPlayer();
-			ID current = player.currentlyResearchedTech;
-			// With nothing spent there's nothing to lose, so no need to ask.
-			if (current == null || selectedTech == current || player.beakers == 0) {
-				return;
-			}
-
-			oldTech = gameData.techs.Find(t => t.id == current);
-			newTech = gameData.techs.Find(t => t.id == selectedTech);
-			lostBeakers = player.beakers;
-		});
-		if (oldTech == null) {
-			return false;
-		}
-
-		// Shown outside the game data read: building the popup reads game data itself.
-		showSwitchConfirmation(oldTech, newTech, lostBeakers, () => {
-			CommitPendingResearch();
-			onConfirmed();
-		});
-		return true;
-	}
-
-	/// <summary>
-	/// Sends the selections made in the advisor to the engine, in click order.
-	/// Returns whether anything was sent.
-	/// </summary>
-	private bool CommitPendingResearch() {
-		if (pendingPicks.Count == 0) {
-			return false;
-		}
-		foreach ((Tech tech, SelectionMode mode) in pendingPicks) {
-			new MsgChooseResearch(tech, AdvisorState.DontShow, mode).send();
-		}
-		pendingPicks.Clear();
-		return true;
 	}
 
 	private void ChangeEraAndDrawTree(int delta) {

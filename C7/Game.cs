@@ -326,7 +326,6 @@ public partial class Game : Node {
 
 			// Allow the domestic advisor to trigger popups.
 			advisor.domesticAdvisor.SetPopupOverlay(popupOverlay);
-			advisor.scienceAdvisor.SetSwitchConfirmation(EmitConfirmResearchSwitchSignal);
 		});
 	}
 
@@ -906,11 +905,6 @@ public partial class Game : Node {
 		[Godot.Key.F11] = (SignalName.ShowGameView, C7Action.ShowDemographicsView),
 	};
 
-	// Leaves whatever advisor is open the same way X and Escape do, then opens the target.
-	private void NavigateTo(StringName signal, string target) {
-		advisor.RequestClose(() => EmitSignal(signal, target), target);
-	}
-
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {
 		if (interactablePopUpController.Visible)
 			return;
@@ -929,7 +923,7 @@ public partial class Game : Node {
 		}
 
 		if (NavigationKeys.TryGetValue(eventKeyDown.Keycode, out (StringName signal, string target) navigation)) {
-			NavigateTo(navigation.signal, navigation.target);
+			EmitSignal(navigation.signal, navigation.target);
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.C && HasCurrentlySelectedUnit()) {

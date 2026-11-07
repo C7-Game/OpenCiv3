@@ -192,23 +192,6 @@ public partial class Game {
 		));
 	}
 
-	public void EmitConfirmResearchSwitchSignal(Tech oldTech, Tech newTech, int lostBeakers, Action onConfirmed) {
-		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
-			new ConfirmPopUp(
-				controller.id,
-				"Science Advisor",
-				$"Switching to {newTech.Name} will lose {lostBeakers} gold of research already spent on {oldTech.Name}." +
-				$"\nAre you sure?",
-				Advisor.Science,
-				Mood.Sad,
-				"Yes, change our research.",
-				"No. Let's stay the course.",
-				onConfirmed,
-				hSize: 400
-			)
-		));
-	}
-
 	public void EmitConfirmStopWorkerActionSignal(MsgDisplayStopWorkerActionPopup msg) {
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new ConfirmPopUp(
