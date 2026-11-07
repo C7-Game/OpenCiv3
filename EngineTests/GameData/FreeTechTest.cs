@@ -144,8 +144,7 @@ public class FreeTechTest : IClassFixture<SaveGameFixture> {
 		Tech current = BasicTech();
 		player.SetCurrentlyResearchedTech(current.id);
 		player.freeTechsRemaining = 2;
-		player.beakers = 7;
-		player.turnsResearched = 1;
+		player.SetResearchProgress(current.id, new Player.ResearchProgress { beakers = 7, turns = 1 });
 
 		SavePlayer saved = new(player);
 		Assert.Equal(2, saved.freeTechsRemaining);
@@ -160,8 +159,8 @@ public class FreeTechTest : IClassFixture<SaveGameFixture> {
 		Assert.Equal(2, loaded.freeTechsRemaining);
 		Assert.Equal(current.id, loaded.currentlyResearchedTech);
 		// Loading must not spend the free tech or wipe research progress.
-		Assert.Equal(7, loaded.beakers);
-		Assert.Equal(1, loaded.turnsResearched);
+		Assert.Equal(7, loaded.GetBeakers(current.id));
+		Assert.Equal(1, loaded.GetTurnsResearched(current.id));
 	}
 
 	[Fact]
