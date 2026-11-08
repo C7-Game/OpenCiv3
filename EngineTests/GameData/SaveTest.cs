@@ -81,6 +81,33 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		Assert.True(JToken.DeepEquals(wasGameDataJson, neverGameDataJson));
 	}
 
+	[Theory]
+	[InlineData(SaveType.basic, "basic")]
+	[InlineData(SaveType.standalone, "standalone")]
+	public void SimpleSave2(SaveType saveType, string _) {
+		SaveGame developerSave = GetSave(saveType);
+
+		C7GameData.GameData gameData = ToGameData(developerSave);
+		SaveGame saveWasGameData = SaveGame.FromGameData(gameData);
+
+		Assert.True(DeepEquals(developerSave, saveWasGameData));
+	}
+
+	public static bool DeepEquals(SaveGame a, SaveGame b) {
+		if (ReferenceEquals(a, b)) return true;
+		if ((a == null) || (b == null)) return false;
+		if (a.GetType() != b.GetType()) return false;
+
+		var result = true;
+		foreach (var prop in a.GetType().GetProperties()) {
+			var aPropVal = prop.GetValue(a);
+			var bPropVal = prop.GetValue(b);
+			if (aPropVal == null || bPropVal == null) return false;
+			if (!aPropVal.Equals(bPropVal)) result = false;
+		}
+		return result;
+	}
+
 	private void WaitForStartTurnMessage() {
 		while (true) {
 			EngineStorage.ProcessNextMessageToEngine();
