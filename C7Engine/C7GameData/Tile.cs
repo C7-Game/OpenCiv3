@@ -87,6 +87,17 @@ namespace C7GameData {
 		public bool isSnowCapped;
 		public bool isPineForest;
 
+		// Rivers run along tile edges, and a tile only shares an edge with its
+		// diagonal neighbors, so the four diagonal flags (NE/SE/SW/NW) mean "there
+		// is a river on the edge between this tile and that neighbor". The map
+		// generator sets both tiles' flags for each edge.
+		//
+		// The four cardinal flags (N/E/S/W) are different: they come from imported
+		// Civ3 data and mean a river passes through that corner of the tile. They
+		// are used for rendering (see MapView) and BordersRiver(), and are never set
+		// by the map generator. They do NOT indicate a river crossing: to ask
+		// whether a move crosses a river, use HasRiverCrossing(), which derives the
+		// answer for cardinal moves from the diagonal edge flags.
 		public bool riverNorth;
 		public bool riverNortheast;
 		public bool riverEast;
