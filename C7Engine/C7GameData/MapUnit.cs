@@ -398,7 +398,7 @@ namespace C7GameData {
 			// volcano are impassable to wheeled units, unless the tile is
 			// roaded). A barbarian camp tile stays enterable either way, like a
 			// city, so the camp's garrison can move out and back in.
-			if (tile.IsImpassableTo(this.unitType) && !tile.hasBarbarianCamp)
+			if (tile.IsImpassableTo(this.unitType) && !tile.HasBarbarianCamp())
 				return Intent.Disabled;
 
 			var unitOwner = this.owner;
@@ -446,7 +446,7 @@ namespace C7GameData {
 			var foreignOwner = ForeignOwner(tile);
 			var hasHostileCity = HasHostileCity(tile, unitOwner);
 			var cityOwner = tile.cityAtTile?.owner;
-			var hasBarbCamp = tile.hasBarbarianCamp;
+			var hasBarbCamp = tile.HasBarbarianCamp();
 			var isCombatUnit = this.IsCombatUnit();
 			var distanceToTile = this.location.DistanceTo(tile);
 

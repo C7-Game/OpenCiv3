@@ -463,21 +463,6 @@ public partial class GridLayer : LooseLayer {
 	}
 }
 
-public partial class BuildingLayer : LooseLayer {
-	private ImageTexture barbCamp;
-
-	public BuildingLayer() {
-		barbCamp = TextureLoader.Load("terrain.barbarian_camp");
-	}
-
-	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
-		if (tile.hasBarbarianCamp) {
-			Rect2 screenRect = new(tileCenter - 0.5f * barbCamp.GetSize(), barbCamp.GetSize());
-			looseView.DrawTextureRect(barbCamp, screenRect, tile: false);
-		}
-	}
-}
-
 public partial class LooseView : Node2D {
 	public MapView mapView;
 	public List<LooseLayer> layers = new List<LooseLayer>();
@@ -708,7 +693,6 @@ public partial class MapView : Node2D {
 		terrainView.layers.Add(new ResourceLayer());
 		this.gridLayer = new GridLayer();
 		terrainView.layers.Add(this.gridLayer);
-		terrainView.layers.Add(new BuildingLayer());
 		terrainView.layers.Add(new BorderLayer());
 
 		LooseView cityView = new(this);

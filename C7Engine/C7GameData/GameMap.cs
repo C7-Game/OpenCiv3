@@ -1,5 +1,3 @@
-using Serilog;
-
 namespace C7GameData {
 	using System;
 	using System.Linq;
@@ -18,7 +16,6 @@ namespace C7GameData {
 		public int optimalNumberOfCities;
 
 		public List<Tile> tiles { get; set; }
-		public List<Tile> barbarianCamps = new List<Tile>();
 
 		// The list of continents, with continents[0] being the largest continent.
 		//
@@ -29,6 +26,8 @@ namespace C7GameData {
 		//
 		// TODO: How is this saved in editor generated scenarios?
 		public List<Tile> startingLocations = new();
+
+		public List<Tile> barbarianCamps = new();
 
 		public GameMap() {
 			this.tiles = new List<Tile>();

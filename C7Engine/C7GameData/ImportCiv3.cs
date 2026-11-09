@@ -135,7 +135,7 @@ namespace C7GameData {
 					overlayTerrain = save.TerrainTypes[civ3Tile.OverlayTerrain].Key,
 				};
 				if (civ3Tile.BarbarianCamp) {
-					tile.features.Add(BARBARIAN_CAMP);
+					tile.overlays.Add(BARBARIAN_CAMP);
 				}
 				if (civ3Tile.HasRuins) {
 					tile.overlays.Add(RUINS);
@@ -322,7 +322,7 @@ namespace C7GameData {
 					knownImprovements.Add(IRRIGATION);
 				}
 				if (civ3Tile.BarbarianCamp) {
-					tile.features.Add(BARBARIAN_CAMP);
+					tile.overlays.Add(BARBARIAN_CAMP);
 					knownImprovements.Add(BARBARIAN_CAMP);
 				}
 				if (civ3Tile.Ruin > 0) {

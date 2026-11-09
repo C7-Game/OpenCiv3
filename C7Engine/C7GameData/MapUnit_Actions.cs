@@ -32,15 +32,22 @@ public partial class MapUnit {
 		owner.tileKnowledge.AddTilesToKnown(tile);
 
 		// Disperse barb camp
-		if (tile.hasBarbarianCamp && !owner.isBarbarians) {
-			EngineStorage.gameData.map.barbarianCamps.Remove(tile);
-			tile.hasBarbarianCamp = false;
-			animate(MapUnit.AnimatedAction.VICTORY);
+		EngineStorage.ReadGameData((gameData) => {
+			if (tile.HasBarbarianCamp() && !owner.isBarbarians) {
+				gameData.map.barbarianCamps.Remove(tile);
+				animate(MapUnit.AnimatedAction.VICTORY);
 
 			int gold = owner.rules.BarbarianCampGold;
 			owner.gold += gold;
 			if (owner.isHuman) {
 				new MsgBarbarianCampDispersed(owner.id, gold).send();
+			}
+
+			tile.overlays.Remove(gameData.terrainImprovements.First(t => t.layer == TerrainImprovement.Layer.BarbarianCamp));
+			foreach (var p in gameData.players) {
+				if (p.tileKnowledge.knownTerrainImprovements.TryGetValue(tile.Id, out var improvements)) {
+					p.tileKnowledge.knownTerrainImprovements[tile.Id] = improvements.Where(ti => ti != Tile.TileOverlays.BARBARIAN_CAMP);
+				}
 			}
 		}
 

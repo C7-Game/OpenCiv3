@@ -56,6 +56,7 @@ namespace QueryCiv3.Sav {
 		public int OverlayTerrain { get => (Flags2[5] & 0xf0) >> 4; }
 
 		public bool BonusShield { get => Util.GetFlag(Flags2[10], 0); }
+		public bool PlayerStart { get => Util.GetFlag(Flags2[10], 3); }
 		public bool SnowCapped { get => Util.GetFlag(Flags2[10], 4); }
 		public bool PineForest { get => Util.GetFlag(Flags2[10], 5); }
 

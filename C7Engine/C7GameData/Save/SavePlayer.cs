@@ -103,7 +103,7 @@ namespace C7GameData.Save {
 				player.tileKnowledge.AddTileToKnown(map.tileAt(tile.X, tile.Y));
 			}
 			foreach (var kti in knownTerrainImprovements) {
-				player.tileKnowledge.knownTerrainImprovements.TryAdd(ID.FromString(kti.Key), kti.Value);
+				player.tileKnowledge.knownTerrainImprovements[ID.FromString(kti.Key)] = kti.Value;
 			}
 			foreach (ID techId in player.civilization.startingTechs) {
 				if (!player.knownTechs.Contains(techId)) {
@@ -172,9 +172,8 @@ namespace C7GameData.Save {
 
 			foreach (var tkti in player.tileKnowledge.knownTerrainImprovements) {
 				if (!tkti.Value.Any()) continue;
-				if (knownTerrainImprovements.TryGetValue(tkti.Key.ToString(), out _)) {
-					var lsit = tkti.Value.ToList();
-					knownTerrainImprovements[tkti.Key.ToString()] = lsit;
+				if (knownTerrainImprovements.TryGetValue(tkti.Key.ToString(), out var existing)) {
+					knownTerrainImprovements[tkti.Key.ToString()] = existing.Concat(tkti.Value).ToList();
 				} else {
 					knownTerrainImprovements.TryAdd(tkti.Key.ToString(), tkti.Value.ToList());
 				}

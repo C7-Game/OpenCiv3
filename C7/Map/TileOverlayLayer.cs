@@ -17,6 +17,7 @@ namespace C7.Map {
 		private readonly ImageTexture ruinsTexture;
 		private readonly ImageTexture pollutionTexture;
 		private readonly ImageTexture cratersTexture;
+		private readonly ImageTexture barbarianCampTexture;
 
 		private readonly Vector2 tileSize;
 
@@ -44,6 +45,7 @@ namespace C7.Map {
 			ruinsTexture = TextureLoader.Load("terrain_improvements.ruins");
 			pollutionTexture = TextureLoader.Load("terrain_improvements.pollution");
 			cratersTexture = TextureLoader.Load("terrain_improvements.craters");
+			barbarianCampTexture = TextureLoader.Load("terrain.barbarian_camp");
 
 			rng = GameData.rng.Next(0, 5000) * 2 + 1;
 
@@ -77,6 +79,9 @@ namespace C7.Map {
 						break;
 					case CRATERS:
 						DrawCraters(looseView, tile, screenTarget);
+						break;
+					case BARBARIAN_CAMP:
+						DrawBarbarianCamp(looseView, tile, tileCenter);
 						break;
 					default:
 						looseView.DrawTexture(TextureLoader.Load($"terrain_improvements.{ti.key}"), screenTarget.Position);
@@ -204,6 +209,12 @@ namespace C7.Map {
 			}
 		}
 
+		private void DrawBarbarianCamp(LooseView looseView, Tile tile, Vector2 tileCenter) {
+			if (!tile.HasBarbarianCamp()) return;
+			Rect2 screenRect = new(tileCenter - 0.5f * barbarianCampTexture.GetSize(), barbarianCampTexture.GetSize());
+			looseView.DrawTextureRect(barbarianCampTexture, screenRect, tile: false);
+		}
+
 		private int GetRadomTextureIndex(ID id, int variations, string layer, int offset) {
 			int randomTextureIndex = 0;
 			var identifier = $"{id}_{layer}";
@@ -246,7 +257,7 @@ namespace C7.Map {
 			// The index is set up so that the layout looks like
 			//
 			//  0  1  2  3  4
-			//  5  6  7  8  9  
+			//  5  6  7  8  9
 			//  ...
 			int row = index / 5 + offset;
 			int column = index % 5;
@@ -258,7 +269,7 @@ namespace C7.Map {
 			// The index is set up so that the layout looks like
 			//
 			//  0  1  2  3  4
-			//  5  6  7  8  9  
+			//  5  6  7  8  9
 			//  ...
 			int row = index / 5 + offset;
 			int column = index % 5;

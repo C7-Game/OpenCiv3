@@ -492,6 +492,12 @@
       "layer": "craters",
       "zIndex": 5,
       "movementCost": -1
+    },
+    {
+      "key": "barbarianCamp",
+      "layer": "barbarianCamp",
+      "zIndex": 8,
+      "movementCost": -1
     }
   ],
   "resources": [

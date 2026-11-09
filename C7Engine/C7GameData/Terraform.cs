@@ -98,6 +98,13 @@ public class Terraform {
 				if (this.MeetsRequirements(cityTile.cityAtTile.owner, cityTile))
 					cityTile.overlays.Add(Improvement);
 			}
+
+			// update all the players' knowledge that can actively see this tile
+			EngineStorage.ReadGameData(data => {
+				foreach (Player dataPlayer in data.players.Where(dataPlayer => dataPlayer.tileKnowledge.activeTiles.Contains(tile))) {
+					dataPlayer.tileKnowledge.knownTerrainImprovements[tile.Id] = tile.overlays.GetImprovements().Select(ti => ti.key).ToList();
+				}
+			});
 		}
 	}
 

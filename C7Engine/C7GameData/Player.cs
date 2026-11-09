@@ -1244,6 +1244,10 @@ namespace C7GameData {
 			return producible.ShieldCost(this, costFactor);
 		}
 
+		public bool HasUnitsOnTile(Tile location) {
+			return location.unitsOnTile.Count > 0 && location.unitsOnTile.Any(u => u.owner == this);
+		}
+
 		public void UpdateHistory(GameData gameData) {
 			if (!gameData.history.ContainsKey(id.ToString()))
 				return;

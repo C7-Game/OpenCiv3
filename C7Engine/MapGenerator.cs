@@ -1371,7 +1371,6 @@ namespace C7Engine {
 				Tile t = m.tiles[tileIndicies[i]];
 				if (IsValidForBarbarianCamp(wc, m, t)) {
 					m.barbarianCamps.Add(t);
-					t.hasBarbarianCamp = true;
 					++numCamps;
 				}
 			}
@@ -1422,7 +1421,7 @@ namespace C7Engine {
 
 			// No barbarian camps within the big fat cross of another camp.
 			foreach (Tile n in t.GetTilesWithinRankDistance(wc.maxRankOfBarbarianCampTiles)) {
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					return false;
 				}
 			}
@@ -1451,7 +1450,7 @@ namespace C7Engine {
 			// Find all viable city locations.
 			Dictionary<Tile, int> scoredTiles = new();
 			foreach (Tile t in m.tiles) {
-				int score = ScorePossibleCityLocation(wc, t);
+				int score = ScorePossibleCityLocation(wc, m, t);
 				if (score > 0) {
 					scoredTiles[t] = score;
 				}
@@ -1557,7 +1556,7 @@ namespace C7Engine {
 		}
 
 		// TODO: merge this with the ai logic
-		private static int ScorePossibleCityLocation(WorldCharacteristics wc, Tile t) {
+		private static int ScorePossibleCityLocation(WorldCharacteristics wc, GameMap m, Tile t) {
 			if (!t.IsAllowCities()) {
 				return int.MinValue;
 			}
@@ -1579,7 +1578,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 
@@ -1594,7 +1593,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 			}
