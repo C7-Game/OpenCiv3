@@ -373,7 +373,7 @@ public partial class RiverLayer : LooseLayer {
 		// It is the easternmost point of the current tile.
 		Vector2 thePoint = tileCenter + riverCenterOffset;
 
-		// We draw the texture centered on the point by starting the draw from half of its width away  
+		// We draw the texture centered on the point by starting the draw from half of its width away
 		Vector2 drawOffset = -0.5f * riverSize;
 
 		// The right river texture is calculated by evaluating the tiles around the point
@@ -659,6 +659,10 @@ public partial class MapView : Node2D {
 		Absolute, // means that the camera does not respect the wrapping of the world
 		Relative  // means the camera respects the wrapping of the world, or lack thereof, not allowing to go off limits
 	}
+	public enum CameraSnap {
+		Off, // means that the camera when centered on screen might end up in [654, 987.5]
+		On  // always rounds to the nearest integer position on screen
+	}
 
 	public override void _Ready() {
 		lowerRightInfoBox = GetNode<LowerRightInfoBox>("/root/C7Game/CanvasLayer/Control/GameStatus/LowerRightInfoBox");
@@ -792,7 +796,11 @@ public partial class MapView : Node2D {
 		setCameraLocation(cameraLocation + offset);
 	}
 
-	public void setCameraLocation(Vector2 location, CameraPosition cameraPosition = CameraPosition.Relative) {
+	// Snap is used for example when we want to center a camera to a unit.
+	// If we don't snap, the camera position ends up being something like [1536, 935.5] instead of a clean [1536, 935]
+	// which we don't want because it distorts textures like the LED movement indicators which are only 6x6 pixels.
+	// We also don't want to be snapping all the time, as we want to keep smooth panning.
+	public void setCameraLocation(Vector2 location, CameraPosition cameraPosition = CameraPosition.Relative, CameraSnap cameraSnap = CameraSnap.Off) {
 		// Prevent the camera from moving beyond an unwrapped edge of the map. One complication here is that the viewport might actually be
 		// larger than the map (if we're zoomed far out) so in that case we must apply the constraint the other way around, i.e. constrain the
 		// map to the viewport rather than the viewport to the map.
@@ -832,6 +840,10 @@ public partial class MapView : Node2D {
 				location.Y = topLim;
 			else if (location.Y > bottomLim)
 				location.Y = bottomLim;
+		}
+
+		if (cameraSnap == CameraSnap.On) {
+			location = location.Round();
 		}
 
 		internalCameraLocation = location;
@@ -885,9 +897,9 @@ public partial class MapView : Node2D {
 		return map.tileAt(X, Y);
 	}
 
-	public void centerCameraOnTile(Tile t, CameraPosition cameraPosition = CameraPosition.Relative) {
+	public void centerCameraOnTile(Tile t, CameraPosition cameraPosition = CameraPosition.Relative, CameraSnap cameraSnap = CameraSnap.On) {
 		var tileCenter = new Vector2(t.XCoordinate + 1, t.YCoordinate + 1) * scaledCellSize;
-		setCameraLocation(tileCenter - (float)0.5 * getVisibleAreaSize(), cameraPosition);
+		setCameraLocation(tileCenter - 0.5f * getVisibleAreaSize(), cameraPosition, cameraSnap);
 	}
 
 	public void OnCenterCameraOnUnit() {
