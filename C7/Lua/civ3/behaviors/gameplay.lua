@@ -141,12 +141,23 @@ gameplay = {
       if building.noAgeBonus or gameData == nil or gameData.timeOptions == nil then
         return cityBuilding.baseCulturePerTurn
       end
-      local currentYear = gameData.timeOptions.GetAbsoluteYear(gameData.turn)
-      local ageInYears = currentYear - cityBuilding.year
-      -- Civ 3 doubles the culture of a building once it is a millennium old.
-      -- The bonus never compounds, no matter how old the building gets.
-      if ageInYears < 1000 then
+      -- Compare elapsed base time units, so 1000 means years in the default
+      -- calendar and months in a monthly scenario. Older saves only have year.
+      local age
+      if cityBuilding.turnBuilt ~= nil and cityBuilding.turnBuilt >= 0 then
+        age = gameData.timeOptions.GetRawNumber(gameData.turn)
+          - gameData.timeOptions.GetRawNumber(cityBuilding.turnBuilt)
+      else
+        age = gameData.timeOptions.GetAbsoluteYear(gameData.turn) - cityBuilding.year
+      end
+      -- Civ 3 doubles the culture of a building once it is 1000 time units old.
+      -- The bonus never compounds by default, no matter how old it gets.
+      if age < 1000 then
         return cityBuilding.baseCulturePerTurn
+      end
+      if gameData.rules ~= nil and gameData.rules.ageBonus ~= nil and gameData.rules.ageBonus.repeatable then
+        local doublings = math.floor(age / 1000)
+        return cityBuilding.baseCulturePerTurn * (2 ^ doublings)
       end
       return cityBuilding.baseCulturePerTurn * 2
     end,

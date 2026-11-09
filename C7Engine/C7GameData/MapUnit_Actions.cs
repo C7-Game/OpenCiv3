@@ -56,6 +56,11 @@ public partial class MapUnit {
 					new MsgCityRansacked(tile.cityAtTile.owner.id, tile.cityAtTile, this.owner.civilization.adjective, goldTaken).send();
 				}
 			} else {
+				// TODO: When city capture is implemented, reset each surviving
+				// CityBuilding's year and turnBuilt to the capture turn and
+				// recompute currentCulturePerTurn. Recaptured wonders keep
+				// their base culture but get no age bonus; culture-producing
+				// improvements are destroyed on capture.
 				CityInteractions.DestroyCity(tile);
 			}
 		}
