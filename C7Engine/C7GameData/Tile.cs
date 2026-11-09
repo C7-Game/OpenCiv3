@@ -254,17 +254,48 @@ namespace C7GameData {
 			return neighbors.Values.Where(tile => tile.baseTerrainType.Key == "coast").ToList();
 		}
 
+		// Whether moving from this tile in the given direction crosses a river.
+		//
+		// Rivers run along tile edges, and a tile only shares an edge with its
+		// diagonal neighbors (NE/SE/SW/NW). A move to a cardinal neighbor (N/E/S/W)
+		// instead passes through the corner where four tiles meet. It crosses a
+		// river if river edges meeting at that corner lie on both sides of the path.
 		public bool HasRiverCrossing(TileDirection dir) {
 			switch (dir) {
-				case TileDirection.NORTH: return riverNorth;
 				case TileDirection.NORTHEAST: return riverNortheast;
-				case TileDirection.EAST: return riverEast;
 				case TileDirection.SOUTHEAST: return riverSoutheast;
-				case TileDirection.SOUTH: return riverSouth;
 				case TileDirection.SOUTHWEST: return riverSouthwest;
-				case TileDirection.WEST: return riverWest;
 				case TileDirection.NORTHWEST: return riverNorthwest;
+				case TileDirection.NORTH:
+				case TileDirection.EAST:
+				case TileDirection.SOUTH:
+				case TileDirection.WEST:
+					return CrossesRiverAtCorner(dir);
 				default: return false;
+			}
+		}
+
+		// For a cardinal move, the corner passed through is shared by this tile,
+		// the destination, and the two diagonal neighbors beside the path. Each
+		// side of the path has two candidate edges: one between this tile and the
+		// side neighbor, and one between the destination and that same neighbor.
+		private bool CrossesRiverAtCorner(TileDirection dir) {
+			neighbors.TryGetValue(dir, out Tile to);
+			if (to == null) {
+				return false;
+			}
+
+			switch (dir) {
+				case TileDirection.NORTH:
+					return (riverNorthwest || to.riverSouthwest) && (riverNortheast || to.riverSoutheast);
+				case TileDirection.SOUTH:
+					return (riverSouthwest || to.riverNorthwest) && (riverSoutheast || to.riverNortheast);
+				case TileDirection.EAST:
+					return (riverNortheast || to.riverNorthwest) && (riverSoutheast || to.riverSouthwest);
+				case TileDirection.WEST:
+					return (riverNorthwest || to.riverNortheast) && (riverSouthwest || to.riverSoutheast);
+				default:
+					return false;
 			}
 		}
 
