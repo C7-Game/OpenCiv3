@@ -984,6 +984,7 @@ public partial class Game : Node {
 	}
 
 	private void SetObserverModeOn(GameData gameData) {
+		gameData.revealMap = true;
 		foreach (Player player in gameData.players) {
 			player.isHuman = false;
 		}
@@ -997,6 +998,7 @@ public partial class Game : Node {
 	}
 
 	private void SetObserverModeOff(GameData gameData) {
+		gameData.revealMap = false;
 		foreach (Player player in gameData.players) {
 			if (player.id == EngineStorage.uiControllerID) {
 				player.isHuman = true;

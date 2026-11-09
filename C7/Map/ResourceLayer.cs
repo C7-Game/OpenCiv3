@@ -25,7 +25,7 @@ namespace C7.Map {
 		}
 
 		private bool ResourceVisible(GameData gameData, Tile t) {
-			if (gameData.observerMode || gameData.revealMap) {
+			if (gameData.revealMap) {
 				return true;
 			}
 			return gameData.GetFirstHumanPlayer().KnowsAboutResource(t.Resource);
