@@ -36,6 +36,7 @@ namespace C7GameData.Save {
 				gameMap.startingLocations.Add(gameMap.tiles.Find(t => t.XCoordinate == st.X && t.YCoordinate == st.Y));
 			}
 			gameMap.computeNeighbors();
+			gameMap.computeCardinalRiverFlags();
 			gameMap.barbarianCamps = gameMap.tiles.Where(tile => tile.hasBarbarianCamp).ToList();
 			return gameMap;
 		}

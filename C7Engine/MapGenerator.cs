@@ -110,6 +110,7 @@ namespace C7Engine {
 			// Step 7: Add rivers that start from high points and flow to low
 			// points.
 			AddRivers(wc, gameMap);
+			gameMap.computeCardinalRiverFlags();
 
 			// Step 7.5: Convert desert to flood plains. Civ3 does this after
 			// rivers are placed, so a flood plain always has a river running
@@ -878,7 +879,8 @@ namespace C7Engine {
 		//
 		// Things that need to be improved:
 		//   - when corners are turned, sometimes we get a dangly edge
-		//   - the N S E W river flags aren't set
+		//   - the N S E W river flags aren't set here; GameMap.computeCardinalRiverFlags()
+		//     derives them once all rivers are placed
 		private static void setRiverFlags(Tile t, TileDirection incomingDir, int depth) {
 			//             <      >
 			//         <  NW  ><  NE  >

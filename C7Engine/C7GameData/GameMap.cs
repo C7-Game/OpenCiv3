@@ -61,6 +61,16 @@ namespace C7GameData {
 			}
 		}
 
+		// Fills in the cardinal river flags of every tile from the diagonal ones.
+		// Call this after computeNeighbors() and once rivers are final.
+		public void computeCardinalRiverFlags() {
+			foreach (Tile tile in tiles) {
+				if (tile != Tile.NONE) {
+					tile.UpdateCardinalRiverFlags();
+				}
+			}
+		}
+
 		// This method verifies that the conversion between tile index and coords is consistent for all possible valid inputs. It's not called
 		// anywhere but I'm keeping it around in case we ever need to work on the conversion methods again.
 		public void testTileIndexComputation() {

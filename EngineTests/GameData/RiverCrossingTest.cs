@@ -67,6 +67,23 @@ public class RiverCrossingTest : MapBase {
 		return (from, to);
 	}
 
+	// Maps fill in the cardinal flags once all rivers are final; tests that edit
+	// river edges by hand have to do the same before asking about crossings.
+	private static void RefreshCardinalFlags(Tile from, Tile to) {
+		from.UpdateCardinalRiverFlags();
+		to.UpdateCardinalRiverFlags();
+	}
+
+	private static bool CardinalFlag(Tile tile, TileDirection dir) {
+		return dir switch {
+			TileDirection.NORTH => tile.riverNorth,
+			TileDirection.EAST => tile.riverEast,
+			TileDirection.SOUTH => tile.riverSouth,
+			TileDirection.WEST => tile.riverWest,
+			_ => throw new System.ArgumentException("Not a cardinal direction"),
+		};
+	}
+
 	// Adds river edges so that moving `dir` from `from` to `to` crosses a river.
 	private static void AddCrossingRiver(Tile from, Tile to, TileDirection dir) {
 		if (Diagonals.Contains(dir)) {
@@ -77,6 +94,7 @@ public class RiverCrossingTest : MapBase {
 			SetEdge(from, to, sideA[0], true);
 			SetEdge(from, to, sideB[0], true);
 		}
+		RefreshCardinalFlags(from, to);
 	}
 
 	[Theory]
@@ -107,6 +125,7 @@ public class RiverCrossingTest : MapBase {
 				(Tile from, Tile to) = MakeNeighbors(dir);
 				SetEdge(from, to, a, true);
 				SetEdge(from, to, b, true);
+				RefreshCardinalFlags(from, to);
 				Assert.True(from.HasRiverCrossing(dir), $"{dir}: {a} + {b}");
 			}
 		}
@@ -122,6 +141,7 @@ public class RiverCrossingTest : MapBase {
 			foreach (Edge edge in side) {
 				(Tile from, Tile to) = MakeNeighbors(dir);
 				SetEdge(from, to, edge, true);
+				RefreshCardinalFlags(from, to);
 				Assert.False(from.HasRiverCrossing(dir), $"{dir}: only {edge}");
 			}
 
@@ -130,21 +150,49 @@ public class RiverCrossingTest : MapBase {
 			foreach (Edge edge in side) {
 				SetEdge(from2, to2, edge, true);
 			}
+			RefreshCardinalFlags(from2, to2);
 			Assert.False(from2.HasRiverCrossing(dir), $"{dir}: both edges of one side");
 		}
 
-		(Tile fromNone, _) = MakeNeighbors(dir);
+		(Tile fromNone, Tile toNone) = MakeNeighbors(dir);
+		RefreshCardinalFlags(fromNone, toNone);
 		Assert.False(fromNone.HasRiverCrossing(dir));
 	}
 
 	[Theory]
 	[MemberData(nameof(CardinalData))]
-	public void CardinalMoveIgnoresStoredCardinalRiverFlags(TileDirection dir) {
-		// The cardinal fields are imported river-point data, not crossings.
+	public void CardinalFlagsAreRecomputedFromEdgesOverwritingStaleValues(TileDirection dir) {
+		// A lone river point, as the Civ3 editor can draw: flags with no edges.
 		(Tile from, Tile to) = MakeNeighbors(dir);
 		from.riverNorth = from.riverEast = from.riverSouth = from.riverWest = true;
-		to.riverNorth = to.riverEast = to.riverSouth = to.riverWest = true;
+		RefreshCardinalFlags(from, to);
+		foreach (TileDirection cardinal in Cardinals) {
+			Assert.False(CardinalFlag(from, cardinal), $"stale {cardinal} flag survived");
+		}
 		Assert.False(from.HasRiverCrossing(dir));
+
+		// Only the direction that actually crosses the river gets its flag.
+		AddCrossingRiver(from, to, dir);
+		foreach (TileDirection cardinal in Cardinals) {
+			Assert.Equal(cardinal == dir, CardinalFlag(from, cardinal));
+		}
+		Assert.True(from.HasRiverCrossing(dir));
+	}
+
+	[Fact]
+	public void GameMapComputesCardinalFlagsForEveryTile() {
+		(Tile from, Tile to) = MakeNeighbors(TileDirection.NORTH);
+		AddCrossingRiver(from, to, TileDirection.NORTH);
+		from.riverNorth = to.riverSouth = false;
+		gameMap.tiles.Add(from);
+		gameMap.tiles.Add(to);
+		gameMap.tiles.Add(Tile.NONE);
+
+		gameMap.computeCardinalRiverFlags();
+
+		Assert.True(from.riverNorth);
+		Assert.True(to.riverSouth);
+		Assert.False(Tile.NONE.riverNorth);
 	}
 
 	[Theory]
@@ -159,6 +207,7 @@ public class RiverCrossingTest : MapBase {
 			for (int i = 0; i < edges.Length; i++) {
 				SetEdge(from, to, edges[i], (mask & (1 << i)) != 0);
 			}
+			RefreshCardinalFlags(from, to);
 			Assert.Equal(from.HasRiverCrossing(dir), to.HasRiverCrossing(dir.Reversed()));
 		}
 	}

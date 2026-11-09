@@ -87,17 +87,6 @@ namespace C7GameData {
 		public bool isSnowCapped;
 		public bool isPineForest;
 
-		// Rivers run along tile edges, and a tile only shares an edge with its
-		// diagonal neighbors, so the four diagonal flags (NE/SE/SW/NW) mean "there
-		// is a river on the edge between this tile and that neighbor". The map
-		// generator sets both tiles' flags for each edge.
-		//
-		// The four cardinal flags (N/E/S/W) are different: they come from imported
-		// Civ3 data and mean a river passes through that corner of the tile. They
-		// are used for rendering (see MapView) and BordersRiver(), and are never set
-		// by the map generator. They do NOT indicate a river crossing: to ask
-		// whether a move crosses a river, use HasRiverCrossing(), which derives the
-		// answer for cardinal moves from the diagonal edge flags.
 		public bool riverNorth;
 		public bool riverNortheast;
 		public bool riverEast;
@@ -265,25 +254,37 @@ namespace C7GameData {
 			return neighbors.Values.Where(tile => tile.baseTerrainType.Key == "coast").ToList();
 		}
 
-		// Whether moving from this tile in the given direction crosses a river.
-		//
-		// Rivers run along tile edges, and a tile only shares an edge with its
-		// diagonal neighbors (NE/SE/SW/NW). A move to a cardinal neighbor (N/E/S/W)
-		// instead passes through the corner where four tiles meet. It crosses a
-		// river if river edges meeting at that corner lie on both sides of the path.
 		public bool HasRiverCrossing(TileDirection dir) {
 			switch (dir) {
+				case TileDirection.NORTH: return riverNorth;
 				case TileDirection.NORTHEAST: return riverNortheast;
+				case TileDirection.EAST: return riverEast;
 				case TileDirection.SOUTHEAST: return riverSoutheast;
+				case TileDirection.SOUTH: return riverSouth;
 				case TileDirection.SOUTHWEST: return riverSouthwest;
+				case TileDirection.WEST: return riverWest;
 				case TileDirection.NORTHWEST: return riverNorthwest;
-				case TileDirection.NORTH:
-				case TileDirection.EAST:
-				case TileDirection.SOUTH:
-				case TileDirection.WEST:
-					return CrossesRiverAtCorner(dir);
 				default: return false;
 			}
+		}
+
+		// Sets the four cardinal river flags (N/E/S/W) from the diagonal ones.
+		//
+		// Rivers run along tile edges, and a tile only shares an edge with its
+		// diagonal neighbors (NE/SE/SW/NW), so only those four flags are stored
+		// directly. A move to a cardinal neighbor instead passes through the corner
+		// where four tiles meet, and crosses a river if river edges meeting at that
+		// corner lie on both sides of the path. The cardinal flags record that, so
+		// HasRiverCrossing() is a plain lookup for every direction.
+		//
+		// This needs the neighbors to be wired up and the diagonal flags to be final,
+		// and overwrites any existing cardinal flags. Maps call it for every tile
+		// once they are built or loaded; see GameMap.computeCardinalRiverFlags().
+		public void UpdateCardinalRiverFlags() {
+			riverNorth = CrossesRiverAtCorner(TileDirection.NORTH);
+			riverEast = CrossesRiverAtCorner(TileDirection.EAST);
+			riverSouth = CrossesRiverAtCorner(TileDirection.SOUTH);
+			riverWest = CrossesRiverAtCorner(TileDirection.WEST);
 		}
 
 		// For a cardinal move, the corner passed through is shared by this tile,
