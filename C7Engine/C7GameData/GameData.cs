@@ -80,7 +80,7 @@ namespace C7GameData {
 		internal GameMode.Config gameModeConfig;
 
 		// Optional Lua hook for age-based culture bonuses. Null when the game mode does not define one.
-		internal Func<CityBuilding, GameData, City, Player, int> ageBonusFunc;
+		internal Action<CityBuilding, GameData, City, Player> ageBonusFunc;
 
 		// The cached trade network for all players. This is invalidated whenever
 		// a road is built or a city is created/destroyed.
@@ -470,12 +470,12 @@ namespace C7GameData {
 			}
 
 			string configuredPath = rules?.ageBonus?.luaFunctionPath;
-			if (behaviors.TryImportFunc<Func<CityBuilding, GameData, City, Player, int>>(configuredPath, out ageBonusFunc)) {
+			if (behaviors.TryImportFunc<Action<CityBuilding, GameData, City, Player>>(configuredPath, out ageBonusFunc)) {
 				return;
 			}
 
 			if (configuredPath != AgeBonusRules.DefaultLuaFunctionPath) {
-				behaviors.TryImportFunc<Func<CityBuilding, GameData, City, Player, int>>(
+				behaviors.TryImportFunc<Action<CityBuilding, GameData, City, Player>>(
 					AgeBonusRules.DefaultLuaFunctionPath, out ageBonusFunc);
 			}
 		}

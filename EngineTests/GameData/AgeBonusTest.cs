@@ -48,7 +48,7 @@ public class AgeBonusTest : CityTest {
 	[Fact]
 	public void CultureBuilding_BelowThreshold_GetsNoBonus() {
 		var setup = SetupCultureCity();
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 
 		// 950 years old, just short of the millennium.
 		SetYear(setup.gameData, -3050);
@@ -58,10 +58,10 @@ public class AgeBonusTest : CityTest {
 	[Fact]
 	public void CultureBuilding_AtThreshold_GetsDoubleCulture() {
 		var setup = SetupCultureCity();
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 
 		SetYear(setup.gameData, -3000);
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
 	}
@@ -69,11 +69,11 @@ public class AgeBonusTest : CityTest {
 	[Fact]
 	public void CultureBuilding_WellPastThreshold_DoublesOnlyOnce() {
 		var setup = SetupCultureCity();
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 
 		// Over 3000 years old, but the default bonus does not compound.
 		SetYear(setup.gameData, -750);
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
 	}
@@ -82,10 +82,10 @@ public class AgeBonusTest : CityTest {
 	public void AgeBonusDisabled_KeepsBaseCulture() {
 		var setup = SetupCultureCity();
 		setup.gameData.rules.ageBonus.enabled = false;
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 
 		SetYear(setup.gameData, -1750);
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 
 		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
 	}
@@ -94,11 +94,11 @@ public class AgeBonusTest : CityTest {
 	public void RepeatableAgeBonus_CompoundsEachMillennium() {
 		var setup = SetupCultureCity();
 		setup.gameData.rules.ageBonus.repeatable = true;
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 
 		// 3000 years old, so the culture has doubled three times.
 		SetYear(setup.gameData, -1000);
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 
 		Assert.Equal(16, setup.city.GetCulturePerTurnRaw());
 	}
@@ -111,14 +111,14 @@ public class AgeBonusTest : CityTest {
 			startMonth = 0,
 			timeScale = new int[,] { { 1000 }, { 1 } },
 		};
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 
 		setup.gameData.turn = 999;
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
 
 		setup.gameData.turn = 1000;
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
 	}
 
@@ -130,7 +130,7 @@ public class AgeBonusTest : CityTest {
 			culturePerTurn = 2,
 			flags = [SaveBuilding.Flag.NoAgeBonus],
 		});
-		setup.city.AddBuilding(building, setup.gameData);
+		setup.city.AddBuilding(building);
 
 		SetYear(setup.gameData, -1750);
 		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
@@ -141,7 +141,7 @@ public class AgeBonusTest : CityTest {
 		var setup = SetupCultureCity();
 		Building building = MakeCultureBuilding(2);
 		building.noAgeBonus = true;
-		setup.city.AddBuilding(building, setup.gameData);
+		setup.city.AddBuilding(building);
 
 		SetYear(setup.gameData, -1750);
 		Assert.Equal(2, setup.city.GetCulturePerTurnRaw());
@@ -150,9 +150,11 @@ public class AgeBonusTest : CityTest {
 	[Fact]
 	public void CustomAgeBonusHook_OverridesTheDefaultFunction() {
 		var setup = SetupCultureCity();
-		setup.gameData.ageBonusFunc = (cb, gd, c, p) => 7;
+		setup.gameData.ageBonusFunc = (cb, gd, c, p) => {
+			cb.currentCulturePerTurn = 7;
+		};
 
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 		SetYear(setup.gameData, -3000);
 
 		Assert.Equal(7, setup.city.GetCulturePerTurnRaw());
@@ -161,9 +163,11 @@ public class AgeBonusTest : CityTest {
 	[Fact]
 	public void CustomAgeBonusHook_ZeroCultureMultiplier_IsRespected() {
 		var setup = SetupCultureCity();
-		setup.gameData.ageBonusFunc = (cb, gd, c, p) => 0;
+		setup.gameData.ageBonusFunc = (cb, gd, c, p) => {
+			cb.currentCulturePerTurn = 0;
+		};
 
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 		SetYear(setup.gameData, -3000);
 
 		Assert.Equal(0, setup.city.GetCulturePerTurnRaw());
@@ -196,100 +200,89 @@ public class AgeBonusTest : CityTest {
 	[Fact]
 	public void TryImportFunc_MissingPath_ReturnsFalse() {
 		BehaviorEngine behaviors = LoadBehaviors();
-		Assert.False(behaviors.TryImportFunc<Func<CityBuilding, C7GameData.GameData, City, Player, int>>("gameplay.culture.no_such_function", out Func<CityBuilding, C7GameData.GameData, City, Player, int> func));
+		Assert.False(behaviors.TryImportFunc<Action<CityBuilding, C7GameData.GameData, City, Player>>("gameplay.culture.no_such_function", out Action<CityBuilding, C7GameData.GameData, City, Player> func));
 		Assert.Null(func);
 	}
 
 	[Fact]
 	public void TryImportFunc_ExistingPath_ReturnsTheFunction() {
 		BehaviorEngine behaviors = LoadBehaviors();
-		Assert.True(behaviors.TryImportFunc<Func<CityBuilding, C7GameData.GameData, City, Player, int>>(AgeBonusRules.DefaultLuaFunctionPath, out Func<CityBuilding, C7GameData.GameData, City, Player, int> func));
+		Assert.True(behaviors.TryImportFunc<Action<CityBuilding, C7GameData.GameData, City, Player>>(AgeBonusRules.DefaultLuaFunctionPath, out Action<CityBuilding, C7GameData.GameData, City, Player> func));
 		Assert.NotNull(func);
 	}
 
 	[Fact]
-	public void GetAbsoluteYear_YearsBaseUnit_ReturnsRawYear() {
-		TimeOptions timeOptions = new() { startYear = -4000 };
-		Assert.Equal(-4000, timeOptions.GetAbsoluteYear(0));
-		Assert.Equal(-3000, timeOptions.GetAbsoluteYear(timeOptions.GetTurnFromRaw(-3000)));
-	}
-
-	[Fact]
-	public void AddBuilding_RecordsTheCurrentYearAndTurn() {
+	public void AddBuilding_RecordsTheCurrentTurn() {
 		var setup = SetupCultureCity();
 
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-		Assert.Equal(-4000, setup.city.constructed_buildings[0].year);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 		Assert.Equal(0, setup.city.constructed_buildings[0].turnBuilt);
 
 		SetYear(setup.gameData, -3000);
-		setup.city.AddBuilding(MakeCultureBuilding(2), setup.gameData);
-		Assert.Equal(-3000, setup.city.constructed_buildings[1].year);
+		setup.city.AddBuilding(MakeCultureBuilding(2));
 		Assert.Equal(setup.gameData.turn, setup.city.constructed_buildings[1].turnBuilt);
 	}
 
 	[Fact]
-	public void LoadedBuildingWithoutTurnBuilt_UsesTheSavedYear() {
+	public void LoadedBuildingWithoutTurnBuilt_UsesTheCurrentTurn() {
 		var setup = SetupCultureCity();
 		Building building = MakeCultureBuilding(2);
 
 		CityBuilding cb = new SaveCityBuilding {
 			building = building.name,
-			year = -4000,
-		}.ToCityBuilding([building], [setup.player]);
+		}.ToCityBuilding([building], [setup.player], currentTurn: 0);
 		setup.city.constructed_buildings.Add(cb);
 
+		Assert.Equal(0, cb.turnBuilt);
+
 		SetYear(setup.gameData, -3000);
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
 	}
 
 	[Fact]
-	public void LoadedBuildingWithTurnBuilt_UsesTheTurnInsteadOfTheYear() {
+	public void LoadedBuildingWithTurnBuilt_UsesTheSavedTurn() {
 		var setup = SetupCultureCity();
 		Building building = MakeCultureBuilding(2);
 
 		CityBuilding cb = new SaveCityBuilding {
 			building = building.name,
-			year = -3050,
 			turnBuilt = 0,
-		}.ToCityBuilding([building], [setup.player]);
+		}.ToCityBuilding([building], [setup.player], currentTurn: setup.gameData.turn);
 		setup.city.constructed_buildings.Add(cb);
 
+		Assert.Equal(0, cb.turnBuilt);
+
 		SetYear(setup.gameData, -3000);
-		setup.city.UpdateAgeBonuses(setup.gameData);
+		setup.city.UpdateAgeBonuses();
 
 		Assert.Equal(4, setup.city.GetCulturePerTurnRaw());
 	}
 
 	[Fact]
-	public void LoadedBuildingWithoutCultureData_UsesTheBuildingCulture() {
+	public void LoadedBuildingWithUnknownTurnBuilt_UsesTheCurrentTurn() {
 		Building building = MakeCultureBuilding(2);
 		Player player = MakePlayerForProduction();
 
 		CityBuilding cb = new SaveCityBuilding {
 			building = building.name,
-			year = -4000,
-		}.ToCityBuilding([building], [player]);
+			turnBuilt = -1,
+		}.ToCityBuilding([building], [player], currentTurn: 50);
+
+		Assert.Equal(50, cb.turnBuilt);
+	}
+
+	[Fact]
+	public void LoadedBuildingDerivesCultureFromTheBuildingType() {
+		Building building = MakeCultureBuilding(2);
+		Player player = MakePlayerForProduction();
+
+		CityBuilding cb = new SaveCityBuilding {
+			building = building.name,
+		}.ToCityBuilding([building], [player], currentTurn: 0);
 
 		Assert.Equal(2, cb.baseCulturePerTurn);
-		Assert.Equal(2, cb.currentCulturePerTurn);
-	}
-
-	[Fact]
-	public void LoadedBuildingKeepsSavedCulture() {
-		Building building = MakeCultureBuilding(2);
-		Player player = MakePlayerForProduction();
-
-		CityBuilding cb = new SaveCityBuilding {
-			building = building.name,
-			year = -4000,
-			baseCulturePerTurn = 1,
-			currentCulturePerTurn = 2,
-		}.ToCityBuilding([building], [player]);
-
-		Assert.Equal(1, cb.baseCulturePerTurn);
 		Assert.Equal(2, cb.currentCulturePerTurn);
 	}
 }

@@ -11,11 +11,8 @@ namespace C7GameData.Save {
 	public class SaveCityBuilding {
 		public string building;
 		public ID builtByPlayer;
-		public int year;
-		// -1 for older saves; the age bonus then falls back to year.
-		public int turnBuilt = -1;
-		public int baseCulturePerTurn;
-		public int currentCulturePerTurn;
+		// Null in older saves; the building then starts counting from the current turn.
+		public int? turnBuilt;
 		public int totalCulture;
 
 		public SaveCityBuilding() { }
@@ -23,24 +20,20 @@ namespace C7GameData.Save {
 		public SaveCityBuilding(CityBuilding cityBuilding) {
 			building = cityBuilding.building.name;
 			builtByPlayer = cityBuilding.builtByPlayer.id;
-			year = cityBuilding.year;
 			turnBuilt = cityBuilding.turnBuilt;
-			baseCulturePerTurn = cityBuilding.baseCulturePerTurn;
-			currentCulturePerTurn = cityBuilding.currentCulturePerTurn;
 			totalCulture = cityBuilding.totalCulture;
 		}
 
-		public CityBuilding ToCityBuilding(List<Building> buildings, List<Player> players) {
+		public CityBuilding ToCityBuilding(List<Building> buildings, List<Player> players, int currentTurn) {
 			Building resolvedBuilding = buildings.Find(buildingType => buildingType.name == building);
-			bool hasCultureData = baseCulturePerTurn > 0 || currentCulturePerTurn > 0;
-			int baseCulture = baseCulturePerTurn > 0 ? baseCulturePerTurn : resolvedBuilding?.culturePerTurn ?? 0;
+			int baseCulture = resolvedBuilding?.culturePerTurn ?? 0;
+			int resolvedTurnBuilt = turnBuilt is >= 0 ? turnBuilt.Value : currentTurn;
 			return new CityBuilding {
 				building = resolvedBuilding,
 				builtByPlayer = players.Find(player => player.id == builtByPlayer),
-				year = year,
-				turnBuilt = turnBuilt,
+				turnBuilt = resolvedTurnBuilt,
 				baseCulturePerTurn = baseCulture,
-				currentCulturePerTurn = hasCultureData ? currentCulturePerTurn : baseCulture,
+				currentCulturePerTurn = baseCulture,
 				totalCulture = totalCulture,
 			};
 		}
@@ -103,7 +96,8 @@ namespace C7GameData.Save {
 							List<Civilization> civilizations,
 							List<Building> buildings,
 							List<CitizenType> citizenTypes,
-							List<Inflow> inflows) {
+							List<Inflow> inflows,
+							int currentTurn) {
 			City city = new City{
 				id = id,
 				location = gameMap.tileAt(location.X, location.Y),
@@ -117,7 +111,7 @@ namespace C7GameData.Save {
 				foodStored = foodStored,
 				turnsOfUnhappinessDueToPopRushing = turnsOfUnhappinessDueToPopRushing,
 				capital = capital,
-				constructed_buildings = this.buildings.ConvertAll(building => building.ToCityBuilding(buildings, players)),
+				constructed_buildings = this.buildings.ConvertAll(building => building.ToCityBuilding(buildings, players, currentTurn)),
 			};
 
 			city.SetStoredShields(shieldsStored);

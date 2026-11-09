@@ -132,34 +132,24 @@ gameplay = {
     end,
   },
   culture = {
-    -- Context = CityBuilding building, GameData gameData, City city, Player player
-    age_bonus = function(cityBuilding, gameData, city, player)
-      local building = cityBuilding.building
-      if building == nil or cityBuilding.baseCulturePerTurn <= 0 then
-        return 0
-      end
-      if building.noAgeBonus or gameData == nil or gameData.timeOptions == nil then
-        return cityBuilding.baseCulturePerTurn
-      end
+    -- Context = CityBuilding cityBuilding
+    age_bonus = function(cityBuilding)
+      local timeOptions = game_data().timeOptions
       -- Compare elapsed base time units, so 1000 means years in the default
-      -- calendar and months in a monthly scenario. Older saves only have year.
-      local age
-      if cityBuilding.turnBuilt ~= nil and cityBuilding.turnBuilt >= 0 then
-        age = gameData.timeOptions.GetRawNumber(gameData.turn)
-          - gameData.timeOptions.GetRawNumber(cityBuilding.turnBuilt)
-      else
-        age = gameData.timeOptions.GetAbsoluteYear(gameData.turn) - cityBuilding.year
-      end
+      -- calendar and months in a monthly scenario.
+      local age = timeOptions.GetRawNumber(game_data().turn)
+        - timeOptions.GetRawNumber(cityBuilding.turnBuilt)
+
       -- Civ 3 doubles the culture of a building once it is 1000 time units old.
       -- The bonus never compounds by default, no matter how old it gets.
       if age < 1000 then
-        return cityBuilding.baseCulturePerTurn
+        return
       end
-      if gameData.rules ~= nil and gameData.rules.ageBonus ~= nil and gameData.rules.ageBonus.repeatable then
-        local doublings = math.floor(age / 1000)
-        return cityBuilding.baseCulturePerTurn * (2 ^ doublings)
+      if rules().ageBonus.repeatable then
+        cityBuilding.currentCulturePerTurn = cityBuilding.baseCulturePerTurn * (2 ^ math.floor(age / 1000))
+      else
+        cityBuilding.currentCulturePerTurn = cityBuilding.baseCulturePerTurn * 2
       end
-      return cityBuilding.baseCulturePerTurn * 2
     end,
   }
 }

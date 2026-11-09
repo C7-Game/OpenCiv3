@@ -11,12 +11,8 @@ namespace C7GameData {
 		public Building building;
 		public Player builtByPlayer;
 
-		// Cached calendar year, kept for display and older saves.
-		public int year;
-
-		// Authoritative completion turn for the age bonus. -1 means unknown, so
-		// the age bonus falls back to year.
-		public int turnBuilt = 0;
+		// The turn the building was completed, used to compute the age bonus.
+		public int turnBuilt;
 
 		// TODO: Allow individual instances to opt out of the age bonus; the
 		// current noAgeBonus flag applies to every copy of a building type.
@@ -153,12 +149,12 @@ namespace C7GameData {
 
 				if (b.greatWonderProperties.buildingGainedInEveryCity != null
 					&& !buildingsSeen.Contains(b.greatWonderProperties.buildingGainedInEveryCity)) {
-					result.Add(CreateBuilding(b.greatWonderProperties.buildingGainedInEveryCity, cb.builtByPlayer, cb.year, cb.turnBuilt, EngineStorage.gameData));
+					result.Add(CreateBuilding(b.greatWonderProperties.buildingGainedInEveryCity, cb.builtByPlayer, cb.turnBuilt));
 				}
 				if (b.greatWonderProperties.buildingGainedInEveryCityOnContinent != null
 					&& c.IsOnSameContinentAs(this)
 					&& !buildingsSeen.Contains(b.greatWonderProperties.buildingGainedInEveryCityOnContinent)) {
-					result.Add(CreateBuilding(b.greatWonderProperties.buildingGainedInEveryCityOnContinent, cb.builtByPlayer, cb.year, cb.turnBuilt, EngineStorage.gameData));
+					result.Add(CreateBuilding(b.greatWonderProperties.buildingGainedInEveryCityOnContinent, cb.builtByPlayer, cb.turnBuilt));
 				}
 			}
 
@@ -334,7 +330,7 @@ namespace C7GameData {
 			if (producedItem is UnitPrototype prototype) {
 				AddUnit(prototype, gameData);
 			} else if (producedItem is Building building) {
-				AddBuilding(building, gameData);
+				AddBuilding(building);
 
 				// If we completed a great wonder, mark it as completed so no
 				// other civ can build it. If any other cities are building the
@@ -741,9 +737,9 @@ namespace C7GameData {
 		}
 
 		// Uses the Lua ageBonus function if available; otherwise keeps base culture per turn unchanged.
-		public void UpdateAgeBonuses(GameData gameData) {
+		public void UpdateAgeBonuses() {
 			foreach (CityBuilding cb in constructed_buildings) {
-				UpdateAgeBonus(gameData, cb);
+				UpdateAgeBonus(cb);
 			}
 		}
 
@@ -771,37 +767,36 @@ namespace C7GameData {
 			return (int)Math.Floor(Math.Log10(culture)) + 1;
 		}
 
-		public void AddBuilding(Building building, GameData gameData) {
-			int year = gameData.timeOptions?.GetAbsoluteYear(gameData.turn) ?? 0;
-			constructed_buildings.Add(CreateBuilding(building, owner, year, gameData.turn, gameData));
+		public void AddBuilding(Building building) {
+			constructed_buildings.Add(CreateBuilding(building, owner, EngineStorage.gameData.turn));
 		}
 
-		private CityBuilding CreateBuilding(Building building, Player builtByPlayer, int year, int turnBuilt, GameData gameData) {
+		private CityBuilding CreateBuilding(Building building, Player builtByPlayer, int turnBuilt) {
 			CityBuilding cb = new CityBuilding {
 				building = building,
 				builtByPlayer = builtByPlayer,
-				year = year,
 				turnBuilt = turnBuilt,
 				baseCulturePerTurn = building.culturePerTurn,
 				currentCulturePerTurn = building.culturePerTurn,
 				totalCulture = 0,
 			};
-			UpdateAgeBonus(gameData, cb);
+			UpdateAgeBonus(cb);
 			return cb;
 		}
 
 		// Uses the Lua ageBonus function if available; otherwise keeps base culture per turn unchanged.
-		private void UpdateAgeBonus(GameData gameData, CityBuilding cb) {
-			if (cb.building == null || cb.building.culturePerTurn <= 0 || cb.building.noAgeBonus
-				|| gameData?.rules?.ageBonus?.enabled == false) {
-				cb.currentCulturePerTurn = cb.baseCulturePerTurn;
+		private void UpdateAgeBonus(CityBuilding cb) {
+			cb.currentCulturePerTurn = cb.baseCulturePerTurn;
+			if (cb.building == null || cb.building.culturePerTurn <= 0 || cb.building.noAgeBonus) {
 				return;
 			}
 
-			Func<CityBuilding, GameData, City, Player, int> ageBonus = gameData?.ageBonusFunc;
-			cb.currentCulturePerTurn = ageBonus != null
-				? ageBonus(cb, gameData, this, owner)
-				: cb.baseCulturePerTurn;
+			EngineStorage.ReadGameData(gameData => {
+				if (gameData.rules?.ageBonus?.enabled == false) {
+					return;
+				}
+				gameData.ageBonusFunc?.Invoke(cb, gameData, this, owner);
+			});
 		}
 
 		public void RemoveBuilding(CityBuilding building) {
