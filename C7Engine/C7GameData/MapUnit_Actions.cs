@@ -37,19 +37,20 @@ public partial class MapUnit {
 				gameData.map.barbarianCamps.Remove(tile);
 				animate(MapUnit.AnimatedAction.VICTORY);
 
-			int gold = owner.rules.BarbarianCampGold;
-			owner.gold += gold;
-			if (owner.isHuman) {
-				new MsgBarbarianCampDispersed(owner.id, gold).send();
-			}
+				int gold = owner.rules.BarbarianCampGold;
+				owner.gold += gold;
+				if (owner.isHuman) {
+					new MsgBarbarianCampDispersed(owner.id, gold).send();
+				}
 
-			tile.overlays.Remove(gameData.terrainImprovements.First(t => t.layer == TerrainImprovement.Layer.BarbarianCamp));
-			foreach (var p in gameData.players) {
-				if (p.tileKnowledge.knownTerrainImprovements.TryGetValue(tile.Id, out var improvements)) {
-					p.tileKnowledge.knownTerrainImprovements[tile.Id] = improvements.Where(ti => ti != Tile.TileOverlays.BARBARIAN_CAMP);
+				tile.overlays.Remove(gameData.terrainImprovements.First(t => t.layer == TerrainImprovement.Layer.BarbarianCamp));
+				foreach (var p in gameData.players) {
+					if (p.tileKnowledge.knownTerrainImprovements.TryGetValue(tile.Id, out var improvements)) {
+						p.tileKnowledge.knownTerrainImprovements[tile.Id] = improvements.Where(ti => ti != Tile.TileOverlays.BARBARIAN_CAMP);
+					}
 				}
 			}
-		}
+		});
 
 		// Destroy the enemy city on the tile unless we're the barbarians,
 		// in which case we'll just take some gold.
