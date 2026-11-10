@@ -531,11 +531,9 @@ namespace C7GameData {
 
 		public bool HasImprovements => overlays.HasBeenImproved();
 
-		// Returns all the tiles that belong to the player,
-		// but have no units of that player on them.
-		// Useful for some calculations.
-		public bool IsUnmanedAndOwnedBy(Player player) {
-			return !player.HasUnitsOnTile(this) && this.owningCity != null && this.owningCity.owner == player;
+		public bool IsOwnedByPlayer(Player player) {
+			var owner = this.OwningPlayer();
+			return owner != null && owner == player;
 		}
 	}
 }

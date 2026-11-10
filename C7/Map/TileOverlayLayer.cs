@@ -93,7 +93,7 @@ namespace C7.Map {
 		private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {
 			var knownTerrainImprovements = new List<TerrainImprovement>();
 			if (!EngineStorage.gameData.observerMode) {
-				var knownImprovements = player.tileKnowledge.knownTerrainImprovements;
+				var knownImprovements = player.tileKnowledge.KnownTerrainImprovements;
 
 				foreach (var improvement in terrainImprovements) {
 					if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {

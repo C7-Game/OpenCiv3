@@ -45,8 +45,8 @@ public partial class MapUnit {
 
 				tile.overlays.Remove(gameData.terrainImprovements.First(t => t.layer == TerrainImprovement.Layer.BarbarianCamp));
 				foreach (var p in gameData.players) {
-					if (p.tileKnowledge.knownTerrainImprovements.TryGetValue(tile.Id, out var improvements)) {
-						p.tileKnowledge.knownTerrainImprovements[tile.Id] = improvements.Where(ti => ti != Tile.TileOverlays.BARBARIAN_CAMP);
+					if (p.tileKnowledge.KnownTerrainImprovements.TryGetValue(tile.Id, out var improvements)) {
+						p.tileKnowledge.UpdateOverlayTileKnowledgeFor(tile, improvements.Where(ti => ti != Tile.TileOverlays.BARBARIAN_CAMP));
 					}
 				}
 			}

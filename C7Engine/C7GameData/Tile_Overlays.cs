@@ -64,11 +64,11 @@ public partial class Tile {
 		return CanRenderTerrainGraphics(POLLUTION);
 	}
 
-	private bool CanRenderTerrainGraphics(string terrainType) {
+	private bool CanRenderTerrainGraphics(string overlayKey) {
 		if (EngineStorage.gameData.observerMode)
 			return true;
 		Player player = EngineStorage.GetUIController();
-		if (player.tileKnowledge.knownTerrainImprovements.TryGetValue(this.Id, out var tls) && tls.Contains(terrainType))
+		if (player.tileKnowledge.KnowsAboutOverlay(this, overlayKey))
 			return true;
 		return false;
 	}
@@ -192,7 +192,7 @@ public partial class Tile {
 
 			// since we added roads & railroads on city tiles, this is probably not needed
 			// I am only leaving this here, because it doesn't seem to affect the game
-			// and it's also related to the tile path algorithm, and I think I want to favourite 
+			// and it's also related to the tile path algorithm, and I think I want to favourite
 			// going through cities if possible, for better defense.
 			if (tile.HasCity()) {
 				return 0;
