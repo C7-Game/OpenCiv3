@@ -373,7 +373,7 @@ public partial class RiverLayer : LooseLayer {
 		// It is the easternmost point of the current tile.
 		Vector2 thePoint = tileCenter + riverCenterOffset;
 
-		// We draw the texture centered on the point by starting the draw from half of its width away  
+		// We draw the texture centered on the point by starting the draw from half of its width away
 		Vector2 drawOffset = -0.5f * riverSize;
 
 		// The right river texture is calculated by evaluating the tiles around the point
@@ -597,6 +597,18 @@ public partial class LooseView : Node2D {
 	}
 }
 
+namespace C7GameData {
+	public enum CameraPosition {
+		Absolute, // means that the camera does not respect the wrapping of the world
+		Relative  // means the camera respects the wrapping of the world, or lack thereof, not allowing to go off limits
+	}
+
+	public enum ViewMode {
+		Game,
+		CityScreen
+	}
+}
+
 public partial class MapView : Node2D {
 	// cellSize is half the size of the tile sprites, or the amount of space each tile takes up when they are packed on the grid (note tiles are
 	// staggered and half overlap).
@@ -631,6 +643,8 @@ public partial class MapView : Node2D {
 
 	private List<LooseView> looseViews = new();
 
+	public ViewMode ViewMode { get; private set; } = ViewMode.Game;
+
 	// Specifies a rectangular block of tiles that are currently potentially on screen. Accessible through getVisibleRegion(). Tile coordinates
 	// are "virtual", i.e. "unwrapped", so there isn't necessarily a tile at each location. The region is intended to include the upper left
 	// coordinates but not the lower right ones. When iterating over all tiles in the region you must account for the fact that map rows are
@@ -655,15 +669,17 @@ public partial class MapView : Node2D {
 	private LowerRightInfoBox lowerRightInfoBox;
 	private MiniMap miniMap;
 
-	public enum CameraPosition {
-		Absolute, // means that the camera does not respect the wrapping of the world
-		Relative  // means the camera respects the wrapping of the world, or lack thereof, not allowing to go off limits
-	}
+	private CityScreen cityScreen;
+	public City lastInspectedCity { get; private set; } = null;
 
 	public override void _Ready() {
 		lowerRightInfoBox = GetNode<LowerRightInfoBox>("/root/C7Game/CanvasLayer/Control/GameStatus/LowerRightInfoBox");
 		lowerRightInfoBox.game = game;
 		lowerRightInfoBox.CenterCameraOnActiveUnit += OnCenterCameraOnUnit;
+
+		cityScreen = GetNode<CityScreen>("/root/C7Game/CanvasLayer/CityScreen");
+		cityScreen.CityScreenEntered += OnCityScreenEntered;
+		cityScreen.CityScreenExited += OnCityScreenExited;
 
 		var canvasControl = GetNode<Control>("/root/C7Game/CanvasLayer/Control");
 
@@ -676,6 +692,17 @@ public partial class MapView : Node2D {
 
 	public override void _ExitTree() {
 		lowerRightInfoBox.CenterCameraOnActiveUnit -= OnCenterCameraOnUnit;
+		cityScreen.CityScreenEntered -= OnCityScreenEntered;
+		cityScreen.CityScreenExited -= OnCityScreenExited;
+	}
+
+	private void OnCityScreenEntered(ParameterWrapper<City> city) {
+		ViewMode = ViewMode.CityScreen;
+		lastInspectedCity = city.Value;
+	}
+	private void OnCityScreenExited(ParameterWrapper<City> city) {
+		ViewMode = ViewMode.Game;
+		lastInspectedCity = city.Value;
 	}
 
 	public MapView(Game game, int mapWidth, int mapHeight, bool wrapHorizontally, bool wrapVertically) {

@@ -26,7 +26,7 @@ namespace C7.Map {
 			var ti = looseView.mapView.game.tileInfo;
 
 			(bool, bool, bool) Status(Tile tile) {
-				return (tk.isTileKnown(tile), tk.isActiveTile(tile), ti?.targetTile == tile);
+				return (tk.isTileKnown(tile), IsTileCurrentlyActive(tk, tile, looseView), ti?.targetTile == tile);
 			}
 
 			int column = 0;
@@ -54,6 +54,19 @@ namespace C7.Map {
 			var fogRect = new Rect2(fogOrigin, tileSize);
 			var spriteRect = new Rect2(column * tileSize.X, row * tileSize.Y, tileSize * 0.999f);
 			looseView.DrawTextureRectRegion(fogOfWarTexture, fogRect, spriteRect);
+		}
+
+		private bool IsTileCurrentlyActive(TileKnowledge tileKnowledge, Tile tile, LooseView looseView) {
+			if (looseView.mapView.ViewMode == ViewMode.Game)
+				return tileKnowledge.isActiveTile(tile);
+			if (looseView.mapView.ViewMode == ViewMode.CityScreen) {
+				// workable tiles don't include the city tile
+				var isCityTile = looseView.mapView.lastInspectedCity.location == tile;
+				var isWorkableTile = looseView.mapView.lastInspectedCity.GetWorkableTiles().Contains(tile);
+				return isCityTile || isWorkableTile;
+			}
+
+			return false;
 		}
 	}
 }
