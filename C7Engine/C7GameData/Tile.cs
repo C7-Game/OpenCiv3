@@ -268,6 +268,49 @@ namespace C7GameData {
 			}
 		}
 
+		// Sets the four cardinal river flags (N/E/S/W) from the diagonal ones.
+		//
+		// Rivers run along tile edges, and a tile only shares an edge with its
+		// diagonal neighbors (NE/SE/SW/NW), so only those four flags are stored
+		// directly. A move to a cardinal neighbor instead passes through the corner
+		// where four tiles meet, and crosses a river if river edges meeting at that
+		// corner lie on both sides of the path. The cardinal flags record that, so
+		// HasRiverCrossing() is a plain lookup for every direction.
+		//
+		// This needs the neighbors to be wired up and the diagonal flags to be final,
+		// and overwrites any existing cardinal flags. Maps call it for every tile
+		// once they are built or loaded; see GameMap.computeCardinalRiverFlags().
+		public void UpdateCardinalRiverFlags() {
+			riverNorth = CrossesRiverAtCorner(TileDirection.NORTH);
+			riverEast = CrossesRiverAtCorner(TileDirection.EAST);
+			riverSouth = CrossesRiverAtCorner(TileDirection.SOUTH);
+			riverWest = CrossesRiverAtCorner(TileDirection.WEST);
+		}
+
+		// For a cardinal move, the corner passed through is shared by this tile,
+		// the destination, and the two diagonal neighbors beside the path. Each
+		// side of the path has two candidate edges: one between this tile and the
+		// side neighbor, and one between the destination and that same neighbor.
+		private bool CrossesRiverAtCorner(TileDirection dir) {
+			neighbors.TryGetValue(dir, out Tile to);
+			if (to == null) {
+				return false;
+			}
+
+			switch (dir) {
+				case TileDirection.NORTH:
+					return (riverNorthwest || to.riverSouthwest) && (riverNortheast || to.riverSoutheast);
+				case TileDirection.SOUTH:
+					return (riverSouthwest || to.riverNorthwest) && (riverSoutheast || to.riverNortheast);
+				case TileDirection.EAST:
+					return (riverNortheast || to.riverNorthwest) && (riverSoutheast || to.riverSouthwest);
+				case TileDirection.WEST:
+					return (riverNorthwest || to.riverNortheast) && (riverSouthwest || to.riverSoutheast);
+				default:
+					return false;
+			}
+		}
+
 		public bool IsLand() {
 			return !baseTerrainType.isWater();
 		}
