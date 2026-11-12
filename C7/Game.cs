@@ -882,6 +882,11 @@ public partial class Game : Node {
 			ToggleObserverMode();
 		}
 
+		if (eventKeyDown.Keycode == Godot.Key.M && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
+			ToggleRevealMap();
+			return;
+		}
+
 		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
 			if (preferences.Visible) {
 				preferences.HidePreferences();
