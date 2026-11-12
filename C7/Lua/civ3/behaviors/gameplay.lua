@@ -142,6 +142,27 @@ gameplay = {
     display_text = function(context)
       return get_display_time_text(context)
     end,
+  },
+  culture = {
+    -- Context = CityBuilding cityBuilding
+    age_bonus = function(cityBuilding)
+      local timeOptions = game_data().timeOptions
+      -- Compare elapsed base time units, so 1000 means years in the default
+      -- calendar and months in a monthly scenario.
+      local age = timeOptions.GetRawNumber(game_data().turn)
+        - timeOptions.GetRawNumber(cityBuilding.turnBuilt)
+
+      -- Civ 3 doubles the culture of a building once it is 1000 time units old.
+      -- The bonus never compounds by default, no matter how old it gets.
+      if age < 1000 then
+        return
+      end
+      if rules().ageBonus.repeatable then
+        cityBuilding.currentCulturePerTurn = cityBuilding.baseCulturePerTurn * (2 ^ math.floor(age / 1000))
+      else
+        cityBuilding.currentCulturePerTurn = cityBuilding.baseCulturePerTurn * 2
+      end
+    end,
   }
 }
 

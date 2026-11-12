@@ -80,6 +80,9 @@ namespace C7GameData {
 		internal BehaviorEngine luaBehaviorEngine;
 		internal GameMode.Config gameModeConfig;
 
+		// Optional Lua hook for age-based culture bonuses. Null when the game mode does not define one.
+		internal Action<CityBuilding, GameData, City, Player> ageBonusFunc;
+
 		// The cached trade network for all players. This is invalidated whenever
 		// a road is built or a city is created/destroyed.
 		private TradeNetwork tradeNetwork;
@@ -457,6 +460,25 @@ namespace C7GameData {
 
 			// should never happen, if it does some part of the algorithm has gone wrong
 			throw new Exception($"Failed to resolve ownership of {t} between {a.name} and {b.name}, something went wrong");
+		}
+
+		// Loads the configured age bonus function, falling back to the default
+		// implementation when the save or scenario does not define a usable one.
+		internal void LoadAgeBonusFunction(BehaviorEngine behaviors) {
+			ageBonusFunc = null;
+			if (behaviors == null) {
+				return;
+			}
+
+			string configuredPath = rules?.ageBonus?.luaFunctionPath;
+			if (behaviors.TryImportFunc<Action<CityBuilding, GameData, City, Player>>(configuredPath, out ageBonusFunc)) {
+				return;
+			}
+
+			if (configuredPath != AgeBonusRules.DefaultLuaFunctionPath) {
+				behaviors.TryImportFunc<Action<CityBuilding, GameData, City, Player>>(
+					AgeBonusRules.DefaultLuaFunctionPath, out ageBonusFunc);
+			}
 		}
 	}
 
