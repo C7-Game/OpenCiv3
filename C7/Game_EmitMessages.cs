@@ -487,7 +487,7 @@ public partial class Game {
 				int capacity = transport.unitType.capacity;
 				int free = transport.FreeCapacity();
 				options.Add(new ButtonAction() {
-					message = $"{transport.GetDisplayName()} ({free}/{capacity})",
+					message = $"{transport.GetDisplayName()} (Space available: {free}/{capacity})",
 					action = () => {
 						new MsgLoadToTransport(msg.unit.id, transport.id).send();
 					}

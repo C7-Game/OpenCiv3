@@ -279,6 +279,10 @@ public partial class MapUnit {
 
 		movementPoints.onUnitMove(movementCost);
 
+		// We moved into a transport: assume transport pose after run animation
+		if (loadedOnUnitId != null)
+			ResetFacingDirection();
+
 		return true;
 	}
 
@@ -441,7 +445,7 @@ public partial class MapUnit {
 		}
 		t.Board(this);
 		isFortified = true;
-		ResetFacingDirection();
+
 		if (this.owner.isHuman)
 			new MsgUnitMoved(this).send();
 	}
