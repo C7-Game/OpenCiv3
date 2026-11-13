@@ -700,11 +700,13 @@ public partial class Game {
 		));
 	}
 
-	public void EmitMapMenuSignal() {
+	public void EmitMapMenuSignal(int selectedOption = 0) {
 		List<ButtonAction> options = new List<ButtonAction>();
 
 		bool gridVisible = mapView != null ? mapView.gridLayer.visible : PreferencesSettings.GetShowGrid();
 		options.Add(CreateMapMenuToggle(
+			0,
+			selectedOption,
 			$"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
 			() => {
 				if (mapView != null) {
@@ -715,14 +717,14 @@ public partial class Game {
 					bool newValue = !PreferencesSettings.GetShowGrid();
 					PreferencesSettings.SetShowGrid(newValue);
 				}
-			},
-			gridVisible));
+			}));
 
 		int zoomPercent = mapView != null ? Mathf.RoundToInt(mapView.cameraZoom * 100) : 100;
 		options.Add(CreateMapMenuToggle(
+			1,
+			selectedOption,
 			$"Zoom (Z): {zoomPercent}%",
-			ToggleCameraZoom,
-			mapView != null && mapView.cameraZoom == 1.0f));
+			ToggleCameraZoom));
 
 		var backBtn = new ButtonAction() {
 			message = "Back",
@@ -744,15 +746,14 @@ public partial class Game {
 		));
 	}
 
-	private ButtonAction CreateMapMenuToggle(string message, Action toggle, bool pressed) {
+	private ButtonAction CreateMapMenuToggle(int optionIndex, int selectedOption, string message, Action toggle) {
 		return new ButtonAction() {
 			message = message,
 			action = () => {
 				toggle();
-				// Re-open map menu to reflect updated state
-				EmitMapMenuSignal();
+				EmitMapMenuSignal(optionIndex);
 			},
-			pressed = pressed,
+			pressed = optionIndex == selectedOption,
 		};
 	}
 }
