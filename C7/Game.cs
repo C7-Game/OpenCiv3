@@ -1027,6 +1027,17 @@ public partial class Game : Node {
 		});
 	}
 
+	private void ToggleCameraZoom() {
+		if (mapView == null) {
+			return;
+		}
+		if (mapView.cameraZoom != 1) {
+			mapView.setCameraZoomFromMiddle(1.0f);
+		} else {
+			mapView.setCameraZoomFromMiddle(0.5f);
+		}
+	}
+
 	private void HandleMagnifyGesture(InputEventMagnifyGesture magnifyGesture) {
 		double newScale = mapView.cameraZoom * magnifyGesture.Factor;
 
@@ -1190,11 +1201,7 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.ToggleZoom) {
-			if (mapView.cameraZoom != 1) {
-				mapView.setCameraZoomFromMiddle(1.0f);
-			} else {
-				mapView.setCameraZoomFromMiddle(0.5f);
-			}
+			ToggleCameraZoom();
 		}
 
 		if (currentAction == C7Action.ToggleAnimations) {

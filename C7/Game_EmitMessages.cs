@@ -717,13 +717,15 @@ public partial class Game {
 		));
 	}
 
-	public void EmitMapMenuSignal() {
-		var options = new List<ButtonAction>();
+	public void EmitMapMenuSignal(int selectedOption = 0) {
+		List<ButtonAction> options = new List<ButtonAction>();
 
 		bool gridVisible = mapView != null ? mapView.gridLayer.visible : PreferencesSettings.GetShowGrid();
-		var showGridBtn = new ButtonAction() {
-			message = $"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
-			action = () => {
+		options.Add(CreateMapMenuToggle(
+			0,
+			selectedOption,
+			$"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
+			() => {
 				if (mapView != null) {
 					bool newValue = !mapView.gridLayer.visible;
 					mapView.gridLayer.visible = newValue;
@@ -732,12 +734,14 @@ public partial class Game {
 					bool newValue = !PreferencesSettings.GetShowGrid();
 					PreferencesSettings.SetShowGrid(newValue);
 				}
-				// Re-open map menu to reflect updated state
-				EmitMapMenuSignal();
-			},
-			pressed = gridVisible,
-		};
-		options.Add(showGridBtn);
+			}));
+
+		int zoomPercent = mapView != null ? Mathf.RoundToInt(mapView.cameraZoom * 100) : 100;
+		options.Add(CreateMapMenuToggle(
+			1,
+			selectedOption,
+			$"Zoom (Z): {zoomPercent}%",
+			ToggleCameraZoom));
 
 		var backBtn = new ButtonAction() {
 			message = "Back",
@@ -757,5 +761,16 @@ public partial class Game {
 				margins: new Margins(top: 100)
 			)
 		));
+	}
+
+	private ButtonAction CreateMapMenuToggle(int optionIndex, int selectedOption, string message, Action toggle) {
+		return new ButtonAction() {
+			message = message,
+			action = () => {
+				toggle();
+				EmitMapMenuSignal(optionIndex);
+			},
+			pressed = optionIndex == selectedOption,
+		};
 	}
 }
