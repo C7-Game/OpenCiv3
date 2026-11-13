@@ -13,7 +13,7 @@ public partial class Util {
 	static public string Civ3Root = GetCiv3Path();
 
 	static public string GetCiv3Path() {
-		string path = C7Settings.GetSettingValue("locations", "civ3InstallDir");
+		string path = C7Settings.GetSettingValue(C7Settings.Locations.SectionName, C7Settings.Locations.Civ3InstallDir);
 		if (path != null) return path;
 
 		return Civ3Location.GetCiv3Path();

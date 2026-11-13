@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using IniParser.Model;
 using IniParser.Exceptions;
 
@@ -40,6 +38,15 @@ namespace C7Engine {
 			public const string Civilization = nameof(Civilization);
 			public const string Difficulty = nameof(Difficulty);
 			public const string Opponents = nameof(Opponents);
+			public const string LatestSave = nameof(LatestSave);
+			public const string LastWorldSave = "LastWorldSave";
+		}
+
+		public static class Locations {
+			public const string SectionName = "locations";
+			public const string SaveFolder = nameof(SaveFolder);
+			public const string Civ3InstallDir = "civ3InstallDir";
+			public const string UseStandaloneMode = "useStandaloneMode";
 		}
 
 		public static class Rules {
@@ -90,6 +97,19 @@ namespace C7Engine {
 		public static void SetBool(string section, string key, bool value) {
 			SetValue(section, key, value ? "true" : "false");
 		}
+
+		public static int GetIntOrDefault(string section, string key, int defaultValue) {
+			string value = GetSettingsValueOrDefault(section, key, defaultValue.ToString());
+			if (int.TryParse(value, out int result)) {
+				return result;
+			}
+			return defaultValue;
+		}
+
+		public static void SetInt(string section, string key, int value) {
+			SetValue(section, key, value.ToString());
+		}
+
 		public static string GetSettingsValueOrDefault(string section, string key, string defaultValue) {
 			if (settings == null) {
 				LoadSettings();
@@ -109,7 +129,21 @@ namespace C7Engine {
 		}
 
 		public static bool UseStandaloneMode() {
-			return GetSettingsValueOrDefault("locations", "useStandaloneMode", "false") == "true";
+			return GetBoolOrDefault(Locations.SectionName, Locations.UseStandaloneMode, false);
+		}
+
+		public static string GetLatestSave() {
+			return GetSettingsValueOrDefault(LastGame.SectionName, LastGame.LatestSave, null);
+		}
+
+		public static void SetLatestSave(string path) {
+			SetValue(LastGame.SectionName, LastGame.LatestSave, path);
+			SaveSettings();
+		}
+
+		public static void SetLastWorldSave(string path) {
+			SetValue(LastGame.SectionName, LastGame.LastWorldSave, path);
+			SaveSettings();
 		}
 	}
 }

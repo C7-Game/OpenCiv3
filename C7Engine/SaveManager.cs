@@ -35,8 +35,8 @@ namespace C7Engine {
 			return save;
 		}
 
-		public static void Save(string path) {
-			GameData gameData = EngineStorage.gameData;
+		public static void Save(GameData gameData, string path) {
+			Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path)));
 			SaveGame save = SaveGame.FromGameData(gameData);
 			save.Save(path);
 		}
