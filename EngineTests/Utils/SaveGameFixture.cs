@@ -41,15 +41,16 @@ public class SaveGameFixture : IDisposable {
 			optimalNumberOfCities = 20,
 		};
 
-		WorldCharacteristics wc = new(save) {
+		save.Seed = TestSeed;
+		save.BarbarianInfo.barbarianActivity = BarbarianActivity.Roaming;
+
+		WorldCharacteristics wc = new() {
 			landform = WorldCharacteristics.Landform.Pangaea,
 			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
 			age = WorldCharacteristics.Age.Billion_4,
 			climate = WorldCharacteristics.Climate.Normal,
 			temperature = WorldCharacteristics.Temperature.Temperate,
-			barbarianActivity = BarbarianActivity.Roaming,
 			worldSize = worldSize,
-			mapSeed = TestSeed,
 		};
 
 		GameSetup gameSetup = new() {

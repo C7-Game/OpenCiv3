@@ -115,7 +115,7 @@ namespace C7GameData {
 			SetWorldWrap(savData, save);
 
 			SetBarbarianActivity(savData, save);
-			SetWorldSettings(savData, save);
+			SetWorldCharacteristics(savData, save);
 
 			// Import tiles.  This is similar to, but different from the BIQ version as tile contents may have changed in-game.
 			int i = 0;
@@ -276,7 +276,7 @@ namespace C7GameData {
 
 			SetMapDimensions(biq, save);
 			SetWorldWrap(biq, save);
-			SetWorldSettings(biq, save);
+			SetWorldCharacteristics(biq, save);
 
 			// Import tiles
 			int i = 0;
@@ -2208,48 +2208,54 @@ namespace C7GameData {
 			}
 		}
 
-		private static void SetWorldSettings(SavData civ3Save, SaveGame save) {
+		private static void SetWorldCharacteristics(SavData civ3Save, SaveGame save) {
 			if (civ3Save?.Wrld is not null) {
 				QueryCiv3.Sav.WRLD wrld = civ3Save.Wrld;
-				QueryCiv3.Biq.WSIZ size = civ3Save.Bic.Wsiz[wrld.WsizID];
-				save.WorldSettings = new WorldSettings {
-					worldSize = size.Name,
-					customWorldSize = size.Width != wrld.Width || size.Height != wrld.Height,
-					landform = ToEnumOrNull<WorldCharacteristics.Landform>(wrld.ActualLandform),
-					oceanCoverage = ToOceanCoverage(wrld.ActualOceanCoverage),
-					climate = ToEnumOrNull<WorldCharacteristics.Climate>(wrld.ActualClimate),
-					temperature = ToEnumOrNull<WorldCharacteristics.Temperature>(wrld.ActualTemperature),
-					age = ToEnumOrNull<WorldCharacteristics.Age>(wrld.ActualAge),
-				};
+				SetWorldCharacteristics(save, civ3Save.Bic.Wsiz[wrld.WsizID],
+					wrld.ActualLandform, wrld.ActualOceanCoverage, wrld.ActualClimate,
+					wrld.ActualTemperature, wrld.ActualAge);
 			}
 		}
 
-		private static void SetWorldSettings(BiqData biq, SaveGame save) {
+		private static void SetWorldCharacteristics(BiqData biq, SaveGame save) {
 			if (biq?.Wchr is not null && biq.Wchr.Length > 0) {
 				QueryCiv3.Biq.WCHR wchr = biq.Wchr[0];
-				QueryCiv3.Biq.WSIZ size = biq.Wsiz[wchr.WorldSize];
-				save.WorldSettings = new WorldSettings {
-					worldSize = size.Name,
-					customWorldSize = size.Width != biq.Wmap[0].Width || size.Height != biq.Wmap[0].Height,
-					landform = ToEnumOrNull<WorldCharacteristics.Landform>(wchr.ActualLandform),
-					oceanCoverage = ToOceanCoverage(wchr.ActualOceanCoverage),
-					climate = ToEnumOrNull<WorldCharacteristics.Climate>(wchr.ActualClimate),
-					temperature = ToEnumOrNull<WorldCharacteristics.Temperature>(wchr.ActualTemperature),
-					age = ToEnumOrNull<WorldCharacteristics.Age>(wchr.ActualAge),
-				};
+				SetWorldCharacteristics(save, biq.Wsiz[wchr.WorldSize],
+					wchr.ActualLandform, wchr.ActualOceanCoverage, wchr.ActualClimate,
+					wchr.ActualTemperature, wchr.ActualAge);
 			}
 		}
 
-		private static T? ToEnumOrNull<T>(int value) where T : struct, Enum {
-			return Enum.IsDefined(typeof(T), value) ? (T)(object)value : null;
+		private static void SetWorldCharacteristics(SaveGame save, QueryCiv3.Biq.WSIZ size,
+				int landform, int oceanCoverage, int climate, int temperature, int age) {
+			save.WorldCharacteristics = new WorldCharacteristics {
+				worldSize = ToWorldSize(size),
+				landform = (WorldCharacteristics.Landform)landform,
+				oceanCoverage = ToOceanCoverage(oceanCoverage),
+				climate = (WorldCharacteristics.Climate)climate,
+				temperature = (WorldCharacteristics.Temperature)temperature,
+				age = (WorldCharacteristics.Age)age,
+			};
 		}
 
-		private static WorldCharacteristics.OceanCoverage? ToOceanCoverage(int value) {
+		private static WorldSize ToWorldSize(QueryCiv3.Biq.WSIZ size) {
+			return new WorldSize {
+				name = size.Name,
+				width = size.Width,
+				height = size.Height,
+				optimalNumberOfCities = size.OptimalNumberOfCities,
+				techRate = size.TechRate,
+				distanceBetweenCivs = size.DistanceBetweenCivs,
+				numberOfCivs = size.NumberOfCivs,
+			};
+		}
+
+		private static WorldCharacteristics.OceanCoverage ToOceanCoverage(int value) {
 			return value switch {
 				0 => WorldCharacteristics.OceanCoverage.Percent_80,
 				1 => WorldCharacteristics.OceanCoverage.Percent_70,
 				2 => WorldCharacteristics.OceanCoverage.Percent_60,
-				_ => null,
+				_ => WorldCharacteristics.OceanCoverage.Percent_70,
 			};
 		}
 

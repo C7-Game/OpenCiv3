@@ -428,15 +428,16 @@ public partial class WorldSetup : Control {
 		GlobalSingleton Global = GetNode<GlobalSingleton>("/root/GlobalSingleton");
 		Global.ResetLoadGameFields();
 
-		Global.WorldCharacteristics = new WorldCharacteristics(_saveGame) {
+		_saveGame.Seed = GameSeed;
+		_saveGame.BarbarianInfo.barbarianActivity = _barbarianActivity;
+
+		Global.WorldCharacteristics = new WorldCharacteristics {
 			landform = landform,
 			oceanCoverage = ocean,
 			age = age,
 			climate = clim,
 			temperature = temp,
 			worldSize = _worldSize,
-			barbarianActivity = _barbarianActivity,
-			mapSeed = GameSeed,
 		};
 
 		Global.SaveGame = _saveGame;

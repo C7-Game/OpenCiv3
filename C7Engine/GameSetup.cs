@@ -32,27 +32,19 @@ public class GameSetup {
 
 		save.VictoryConditions = victoryConditions;
 
+		save.WorldCharacteristics = worldCharacteristics;
+		MapGeneratorData generatorData = new(save);
+
 		if (save.Map.tiles.Count == 0) {
 			log.Information("Starting map generation");
-			save.Map = new SaveMap(MapGenerator.GenerateMap(worldCharacteristics));
-			save.Seed = worldCharacteristics.mapSeed;
-			WorldSize worldSize = worldCharacteristics.worldSize;
-			save.WorldSettings = new WorldSettings {
-				worldSize = worldSize?.name,
-				customWorldSize = worldSize != null
-					&& (worldSize.width != save.Map.tilesWide || worldSize.height != save.Map.tilesTall),
-				landform = worldCharacteristics.landform,
-				oceanCoverage = worldCharacteristics.oceanCoverage,
-				climate = worldCharacteristics.climate,
-				temperature = worldCharacteristics.temperature,
-				age = worldCharacteristics.age,
-			};
+			save.Map = new SaveMap(MapGenerator.GenerateMap(generatorData));
+			save.Seed = generatorData.mapSeed;
 			log.Information("Done with map generation");
 		}
 
 		if (save.Players.Count == 0) {
 			ids = new(save);
-			PopulatePlayers(save);
+			PopulatePlayers(save, generatorData);
 		}
 	}
 
@@ -120,18 +112,17 @@ public class GameSetup {
 			   ?? WorldSize.Generic();
 	}
 
-	private void PopulatePlayers(SaveGame save) {
-		Random rand = new(worldCharacteristics.mapSeed + 0x531);
+	private void PopulatePlayers(SaveGame save, MapGeneratorData generatorData) {
+		Random rand = new(generatorData.mapSeed + 0x531);
 
 		// Add barbarian
-		AddPlayer(save, save.Civilizations.Find(c => c.isBarbarian), isHuman: false);
-		save.BarbarianInfo.barbarianActivity = worldCharacteristics.barbarianActivity;
+		AddPlayer(save, save.Civilizations.Find(c => c.isBarbarian), generatorData, isHuman: false);
 
 		// TODO: There is an option called "Culturally Linked Start Loc."
 		// which (if on) puts players with the same culture group near each other
 
 		// Add the human player.
-		AddPlayer(save, this.playerCivilization, isHuman: true);
+		AddPlayer(save, this.playerCivilization, generatorData, isHuman: true);
 
 		// Add the opponents.
 		HashSet<string> taken = new();
@@ -157,11 +148,11 @@ public class GameSetup {
 			taken.Add(selectedName);
 
 			Civilization civ = save.Civilizations.Find(x => x.name == selectedName);
-			AddPlayer(save, civ, isHuman: false);
+			AddPlayer(save, civ, generatorData, isHuman: false);
 		}
 	}
 
-	private void AddPlayer(SaveGame save, Civilization civ, bool isHuman) {
+	private void AddPlayer(SaveGame save, Civilization civ, MapGeneratorData generatorData, bool isHuman) {
 		SavePlayer player = new() {
 			human = isHuman,
 			id = ids.CreateID("Player"),
@@ -173,7 +164,7 @@ public class GameSetup {
 			eraCivilopediaName = "ERAS_Ancient_Times",
 			// TODO: load this from the rules
 			gold = 10,
-			governmentId = worldCharacteristics.defaultGovernment.id,
+			governmentId = generatorData.defaultGovernment.id,
 		};
 		save.Players.Add(player);
 

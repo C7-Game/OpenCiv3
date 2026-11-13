@@ -722,16 +722,16 @@ public partial class Game {
 	}
 
 	public void EmitWorldSettingsSignal() {
-		WorldSettings settings = EngineStorage.gameData.worldSettings;
+		WorldCharacteristics settings = EngineStorage.gameData.worldCharacteristics;
 		int seed = EngineStorage.gameData.seed;
 
 		List<string> lines = [
 			$"[b]Size:[/b] {FormatWorldSize(settings)}",
-			$"[b]Landform:[/b] {FormatValue(settings.landform)}",
-			$"[b]Ocean Coverage:[/b] {FormatOceanCoverage(settings.oceanCoverage)}",
-			$"[b]Climate:[/b] {FormatValue(settings.climate)}",
-			$"[b]Temperature:[/b] {FormatValue(settings.temperature)}",
-			$"[b]Age:[/b] {FormatAge(settings.age)}",
+			$"[b]Landform:[/b] {FormatValue(settings?.landform)}",
+			$"[b]Ocean Coverage:[/b] {FormatOceanCoverage(settings?.oceanCoverage)}",
+			$"[b]Climate:[/b] {FormatValue(settings?.climate)}",
+			$"[b]Temperature:[/b] {FormatValue(settings?.temperature)}",
+			$"[b]Age:[/b] {FormatAge(settings?.age)}",
 			$"[b]Seed:[/b] {seed}",
 		];
 
@@ -757,14 +757,21 @@ public partial class Game {
 	}
 
 	private static string FormatValue<T>(T? value) where T : struct, Enum {
-		return value?.ToString() ?? "Unknown";
+		return value.HasValue ? value.Value.ToString() : "Unknown";
 	}
 
-	private static string FormatWorldSize(WorldSettings settings) {
-		if (settings.customWorldSize) {
+	private static string FormatWorldSize(WorldCharacteristics settings) {
+		WorldSize worldSize = settings?.worldSize;
+		if (worldSize == null) {
+			return "Unknown";
+		}
+
+		GameMap map = EngineStorage.gameData.map;
+		if (map != null && (worldSize.width != map.numTilesWide || worldSize.height != map.numTilesTall)) {
 			return "Custom";
 		}
-		return string.IsNullOrEmpty(settings.worldSize) ? "Unknown" : settings.worldSize;
+
+		return string.IsNullOrEmpty(worldSize.name) ? "Unknown" : worldSize.name;
 	}
 
 	private static string FormatOceanCoverage(WorldCharacteristics.OceanCoverage? coverage) {

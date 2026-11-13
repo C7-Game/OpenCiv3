@@ -53,7 +53,7 @@ namespace C7GameData.Save {
 		public static SaveGame FromGameData(GameData data) {
 			SaveGame save = new SaveGame {
 				Seed = data.seed,
-				WorldSettings = data.worldSettings,
+				WorldCharacteristics = data.worldCharacteristics,
 				TurnNumber = data.turn,
 				Civilizations = data.civilizations,
 				CultureGroups = data.cultureGroups,
@@ -236,7 +236,7 @@ namespace C7GameData.Save {
 			// copy data without references
 			var data = new GameData(Seed) {
 				turn = TurnNumber,
-				worldSettings = WorldSettings,
+				worldCharacteristics = WorldCharacteristics,
 				terrainTypes = TerrainTypes,
 				Resources = Resources,
 				scenarioSearchPath = ScenarioSearchPath,
@@ -499,7 +499,7 @@ namespace C7GameData.Save {
 
 		public string Version = "0.0.0";
 		public int Seed = -1;
-		public WorldSettings WorldSettings = new();
+		public WorldCharacteristics WorldCharacteristics;
 		public int TurnNumber = 0;
 		public SaveMap Map = new SaveMap();
 		public List<TerrainType> TerrainTypes = new List<TerrainType>();
