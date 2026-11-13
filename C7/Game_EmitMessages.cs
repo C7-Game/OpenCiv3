@@ -701,12 +701,12 @@ public partial class Game {
 	}
 
 	public void EmitMapMenuSignal() {
-		var options = new List<ButtonAction>();
+		List<ButtonAction> options = new List<ButtonAction>();
 
 		bool gridVisible = mapView != null ? mapView.gridLayer.visible : PreferencesSettings.GetShowGrid();
-		var showGridBtn = new ButtonAction() {
-			message = $"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
-			action = () => {
+		options.Add(CreateMapMenuToggle(
+			$"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
+			() => {
 				if (mapView != null) {
 					bool newValue = !mapView.gridLayer.visible;
 					mapView.gridLayer.visible = newValue;
@@ -715,18 +715,14 @@ public partial class Game {
 					bool newValue = !PreferencesSettings.GetShowGrid();
 					PreferencesSettings.SetShowGrid(newValue);
 				}
-				// Re-open map menu to reflect updated state
-				EmitMapMenuSignal();
 			},
-			pressed = gridVisible,
-		};
-		options.Add(showGridBtn);
+			gridVisible));
 
-		var zoomBtn = new ButtonAction() {
-			message = "Zoom (Z)",
-			action = () => ToggleCameraZoom(),
-		};
-		options.Add(zoomBtn);
+		int zoomPercent = mapView != null ? Mathf.RoundToInt(mapView.cameraZoom * 100) : 100;
+		options.Add(CreateMapMenuToggle(
+			$"Zoom (Z): {zoomPercent}%",
+			ToggleCameraZoom,
+			mapView != null && mapView.cameraZoom == 1.0f));
 
 		var backBtn = new ButtonAction() {
 			message = "Back",
@@ -746,5 +742,17 @@ public partial class Game {
 				margins: new Margins(top: 100)
 			)
 		));
+	}
+
+	private ButtonAction CreateMapMenuToggle(string message, Action toggle, bool pressed) {
+		return new ButtonAction() {
+			message = message,
+			action = () => {
+				toggle();
+				// Re-open map menu to reflect updated state
+				EmitMapMenuSignal();
+			},
+			pressed = pressed,
+		};
 	}
 }
