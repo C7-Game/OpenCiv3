@@ -152,7 +152,7 @@ public class GameMapGeneratorTest {
 				foreach (var temp in temps) {
 					foreach (var climate in climates) {
 						for (int k = 0; k < numMapsPerCategory; ++k) {
-							archipelagoMaps[i].Add(MapGenerator.GenerateMap(new WorldCharacteristics() {
+							archipelagoMaps[i].Add(MapGenerator.GenerateMap(new MapGeneratorData() {
 								landform = WorldCharacteristics.Landform.Archipelago,
 								oceanCoverage = oceans[i],
 								age = age,
@@ -179,7 +179,7 @@ public class GameMapGeneratorTest {
 				foreach (var temp in temps) {
 					foreach (var climate in climates) {
 						for (int k = 0; k < numMapsPerCategory; ++k) {
-							continentMaps[i].Add(MapGenerator.GenerateMap(new WorldCharacteristics() {
+							continentMaps[i].Add(MapGenerator.GenerateMap(new MapGeneratorData() {
 								landform = WorldCharacteristics.Landform.Continents,
 								oceanCoverage = oceans[i],
 								age = age,
@@ -206,7 +206,7 @@ public class GameMapGeneratorTest {
 				foreach (var temp in temps) {
 					foreach (var climate in climates) {
 						for (int k = 0; k < numMapsPerCategory; ++k) {
-							pangaeaMaps[i].Add(MapGenerator.GenerateMap(new WorldCharacteristics() {
+							pangaeaMaps[i].Add(MapGenerator.GenerateMap(new MapGeneratorData() {
 								landform = WorldCharacteristics.Landform.Pangaea,
 								oceanCoverage = oceans[i],
 								age = age,

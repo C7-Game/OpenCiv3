@@ -19,15 +19,16 @@ public partial class QuickStartSetup : Node {
 		var save = game.GetSave();
 		WorldSize worldSize = GameSetup.WorldSizeFromSettings(save.WorldSizes);
 
-		global.WorldCharacteristics = new WorldCharacteristics(save) {
-			barbarianActivity = GameSetup.BarbarianActivityFromSettings(),
+		save.Seed = new Random().Next();
+		save.BarbarianInfo.barbarianActivity = GameSetup.BarbarianActivityFromSettings();
+
+		global.WorldCharacteristics = new WorldCharacteristics {
 			landform = GameSetup.LandformFromSettings(),
 			oceanCoverage = GameSetup.OceanCoverageFromSettings(),
 			age = GameSetup.AgeFromSettings(),
 			climate = GameSetup.ClimateFromSettings(),
 			temperature = GameSetup.TemperatureFromSettings(),
 			worldSize = worldSize,
-			mapSeed = new Random().Next(),
 		};
 
 		global.SaveGame = save;

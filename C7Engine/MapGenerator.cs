@@ -44,10 +44,13 @@ namespace C7Engine {
 		}
 		public Age age;
 
+		public WorldSize worldSize;
+	}
+
+	public class MapGeneratorData : WorldCharacteristics {
 		public BarbarianActivity barbarianActivity;
 
 		public int mapSeed = -1;
-		public WorldSize worldSize;
 		public List<TerrainType> terrainTypes;
 		public List<Resource> resources = new();
 		public Government defaultGovernment = new();
@@ -55,9 +58,10 @@ namespace C7Engine {
 		public int maxRankOfWorkableTiles;
 		public int maxRankOfBarbarianCampTiles;
 
-		public WorldCharacteristics() { }
+		public MapGeneratorData() { }
 
-		public WorldCharacteristics(SaveGame save) {
+		public MapGeneratorData(SaveGame save) {
+			mapSeed = save.Seed;
 			terrainTypes = save.TerrainTypes;
 			resources = save.Resources;
 			defaultGovernment = save.Governments.Find(g => g.defaultType);
@@ -66,6 +70,15 @@ namespace C7Engine {
 			maxRankOfBarbarianCampTiles = save.Rules.MaxRankOfBarbarianCampTiles;
 
 			barbarianActivity = save.BarbarianInfo.barbarianActivity;
+
+			if (save.WorldCharacteristics is not null) {
+				climate = save.WorldCharacteristics.climate;
+				landform = save.WorldCharacteristics.landform;
+				oceanCoverage = save.WorldCharacteristics.oceanCoverage;
+				temperature = save.WorldCharacteristics.temperature;
+				age = save.WorldCharacteristics.age;
+				worldSize = save.WorldCharacteristics.worldSize;
+			}
 		}
 	}
 
@@ -75,7 +88,7 @@ namespace C7Engine {
 		private const int MIN_TILES_PER_PLAYER_ISLAND = 81;
 
 		// The entry point to the overall map generation process.
-		public static GameMap GenerateMap(WorldCharacteristics wc) {
+		public static GameMap GenerateMap(MapGeneratorData wc) {
 			if (wc.mapSeed == -1) {
 				log.Information("Random seed is not specified, generating...");
 				wc.mapSeed = new Random().Next(int.MaxValue);
@@ -144,7 +157,7 @@ namespace C7Engine {
 			return gameMap;
 		}
 
-		private static void SanitizeWorldCharacteristics(WorldCharacteristics wc) {
+		private static void SanitizeWorldCharacteristics(MapGeneratorData wc) {
 			// TODO: Supporting maps of odd dimensions should be doable, but beyond current tiling implementation 
 			// As a mitigation, we simply shrink the map dimensions a bit 
 
@@ -159,7 +172,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static GameMap GenerateTerrainShape(WorldCharacteristics wc) {
+		private static GameMap GenerateTerrainShape(MapGeneratorData wc) {
 			int width = wc.worldSize.width;
 			int height = wc.worldSize.height;
 			WorldCharacteristics.OceanCoverage oceanCoverage = wc.oceanCoverage;
@@ -189,7 +202,7 @@ namespace C7Engine {
 			return null;
 		}
 
-		private static GameMap ToLandAndWaterGameMap(WorldCharacteristics wc, HeightMap hm, WorldCharacteristics.OceanCoverage oceanCoverage) {
+		private static GameMap ToLandAndWaterGameMap(MapGeneratorData wc, HeightMap hm, WorldCharacteristics.OceanCoverage oceanCoverage) {
 			TerrainType grassland = wc.terrainTypes.Find(x => x.Key == "grassland");
 			TerrainType coast = wc.terrainTypes.Find(x => x.Key == "coast");
 			TerrainType sea = wc.terrainTypes.Find(x => x.Key == "sea");
@@ -247,7 +260,7 @@ namespace C7Engine {
 			};
 		}
 
-		private static bool MapIsAcceptable(WorldCharacteristics wc, GameMap m) {
+		private static bool MapIsAcceptable(MapGeneratorData wc, GameMap m) {
 			WorldCharacteristics.OceanCoverage oceanCoverage = wc.oceanCoverage;
 			WorldCharacteristics.Landform landform = wc.landform;
 			int totalTiles = m.tiles.Count;
@@ -339,7 +352,7 @@ namespace C7Engine {
 			return true;
 		}
 
-		private static void AddHillsAndMountains(WorldCharacteristics wc, GameMap m) {
+		private static void AddHillsAndMountains(MapGeneratorData wc, GameMap m) {
 			// Generate a new height map that has lots of smaller blobs, to avoid
 			// having one giant mountain range.
 			HeightMap hm = new(seed: wc.mapSeed + 0xfeed, width:wc.worldSize.width, height:wc.worldSize.height, scale:.2);
@@ -407,7 +420,7 @@ namespace C7Engine {
 
 		// Assigns a biome id to each land tile, creating potential biome zones
 		// that will later be assigned to actual biomes.
-		private static void SplitContinentsIntoPotentialBiomes(WorldCharacteristics wc, GameMap m) {
+		private static void SplitContinentsIntoPotentialBiomes(MapGeneratorData wc, GameMap m) {
 			// Randomize the order we iterate through the tiles.
 			Random rand = new(wc.mapSeed + 0xba11);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();
@@ -523,7 +536,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AssignBiomes(WorldCharacteristics wc, GameMap m) {
+		private static void AssignBiomes(MapGeneratorData wc, GameMap m) {
 			TerrainType tundra = wc.terrainTypes.Find(x => x.Key == "tundra");
 			TerrainType grassland = wc.terrainTypes.Find(x => x.Key == "grassland");
 			TerrainType desert = wc.terrainTypes.Find(x => x.Key == "desert");
@@ -660,7 +673,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AddVegetation(WorldCharacteristics wc, GameMap m) {
+		private static void AddVegetation(MapGeneratorData wc, GameMap m) {
 			TerrainType forest = wc.terrainTypes.Find(x => x.Key == "forest");
 			TerrainType jungle = wc.terrainTypes.Find(x => x.Key == "jungle");
 			TerrainType marsh = wc.terrainTypes.Find(x => x.Key == "marsh");
@@ -753,7 +766,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AddRivers(WorldCharacteristics wc, GameMap m) {
+		private static void AddRivers(MapGeneratorData wc, GameMap m) {
 			Random rand = new(wc.mapSeed + 0xabc12);
 			HeightMap hm = new(seed: wc.mapSeed + 0x21cba, width:wc.worldSize.width, height:wc.worldSize.height, scale:.1);
 
@@ -974,7 +987,7 @@ namespace C7Engine {
 		// In Civ3, any desert tile with a river running along it becomes a
 		// flood plain. Only tiles whose terrain is fully desert convert - hills
 		// or vegetation on the tile make it a different terrain.
-		internal static void AddFloodPlains(WorldCharacteristics wc, GameMap m) {
+		internal static void AddFloodPlains(MapGeneratorData wc, GameMap m) {
 			TerrainType floodPlain = wc.terrainTypes.Find(x => x.Key == "flood plain");
 			if (floodPlain == null) {
 				log.Warning("Rules have no 'flood plain' terrain; skipping flood plain generation.");
@@ -993,7 +1006,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static void FixContinentalShelf(WorldCharacteristics wc, GameMap m) {
+		private static void FixContinentalShelf(MapGeneratorData wc, GameMap m) {
 			TerrainType coast = wc.terrainTypes.Find(x => x.Key == "coast");
 			TerrainType sea = wc.terrainTypes.Find(x => x.Key == "sea");
 
@@ -1028,7 +1041,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AddResources(WorldCharacteristics wc, GameMap m) {
+		private static void AddResources(MapGeneratorData wc, GameMap m) {
 			Random rand = new(wc.mapSeed + 0x7171);
 
 			// Randomize the order resources are placed and the order we go
@@ -1073,7 +1086,7 @@ namespace C7Engine {
 		// appearance seems to have a default of 100 for civ3, but if it isn't
 		// specified (like for luxuries) it is some random value less than 100
 		// but always larger than 50.
-		private static int GetAppearance(WorldCharacteristics wc, Random rand, Resource r, int minCount) {
+		private static int GetAppearance(MapGeneratorData wc, Random rand, Resource r, int minCount) {
 			// The the appearance ratio, with a random number between 50 and
 			// 100 if it isn't specified. Use multiple random calls to roughly
 			// simulate a normal distribution using uniform random samples.
@@ -1088,7 +1101,7 @@ namespace C7Engine {
 			return targetCount;
 		}
 
-		private static void PlaceLuxuryResourceType(Random rand, WorldCharacteristics wc, GameMap m, Resource r, List<int> tileIndicies, Dictionary<Resource, int> resourceToContinentPlacement) {
+		private static void PlaceLuxuryResourceType(Random rand, MapGeneratorData wc, GameMap m, Resource r, List<int> tileIndicies, Dictionary<Resource, int> resourceToContinentPlacement) {
 			int targetCount = GetAppearance(wc, rand, r, minCount:1);
 			int placed = 0;
 			resourceToContinentPlacement[r] = -1;
@@ -1156,7 +1169,7 @@ namespace C7Engine {
 			return false;
 		}
 
-		private static bool IsValidForLuxuryPlacement(WorldCharacteristics wc, GameMap m, Resource r, Tile t) {
+		private static bool IsValidForLuxuryPlacement(MapGeneratorData wc, GameMap m, Resource r, Tile t) {
 			HashSet<Tile> continent = m.continents.First(x => x.Contains(t));
 
 			// Don't put luxuries on islands too small for players.
@@ -1186,7 +1199,7 @@ namespace C7Engine {
 			return true;
 		}
 
-		private static bool HasSufficientLandNeighborsForResource(WorldCharacteristics wc, Tile t) {
+		private static bool HasSufficientLandNeighborsForResource(MapGeneratorData wc, Tile t) {
 			int landTiles = 0;
 
 			foreach (Tile x in t.GetTilesWithinRankDistance(wc.maxRankOfWorkableTiles)) {
@@ -1198,7 +1211,7 @@ namespace C7Engine {
 			return landTiles >= 1;
 		}
 
-		private static void PlaceStrategicResourceType(Random rand, WorldCharacteristics wc, GameMap m, Resource r, List<int> tileIndicies) {
+		private static void PlaceStrategicResourceType(Random rand, MapGeneratorData wc, GameMap m, Resource r, List<int> tileIndicies) {
 			int targetCount = GetAppearance(wc, rand, r, minCount:2);
 			int placed = 0;
 
@@ -1231,7 +1244,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static bool IsValidForStrategicResourcePlacement(WorldCharacteristics wc, GameMap m, Resource r, Tile t) {
+		private static bool IsValidForStrategicResourcePlacement(MapGeneratorData wc, GameMap m, Resource r, Tile t) {
 			HashSet<Tile> continent = m.continents.First(x => x.Contains(t));
 
 			// Don't put strategic resources on super tiny islands - though
@@ -1263,7 +1276,7 @@ namespace C7Engine {
 			return true;
 		}
 
-		private static void PlaceBonusResources(Random rand, WorldCharacteristics wc, GameMap m,
+		private static void PlaceBonusResources(Random rand, MapGeneratorData wc, GameMap m,
 												List<Resource> bonusResources, List<int> tileIndicies) {
 			int totalPossibleBonusResources = m.tiles.Count / 32;
 			int placed = 0;
@@ -1301,7 +1314,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static bool PlaceBonusResource(WorldCharacteristics wc, GameMap m, Resource r, List<int> tileIndicies) {
+		private static bool PlaceBonusResource(MapGeneratorData wc, GameMap m, Resource r, List<int> tileIndicies) {
 			// We want to place this resource. Find the first valid tile
 			// we can stick it on.
 			//
@@ -1330,7 +1343,7 @@ namespace C7Engine {
 			return false;
 		}
 
-		private static Dictionary<Resource, int> CalculateBonusResourceTerrainScores(WorldCharacteristics wc, List<Resource> bonusResources) {
+		private static Dictionary<Resource, int> CalculateBonusResourceTerrainScores(MapGeneratorData wc, List<Resource> bonusResources) {
 			Dictionary<Resource, int> result = new();
 
 			foreach (Resource r in bonusResources) {
@@ -1352,7 +1365,7 @@ namespace C7Engine {
 			return result;
 		}
 
-		private static void AddBarbarianCamps(WorldCharacteristics wc, GameMap m) {
+		private static void AddBarbarianCamps(MapGeneratorData wc, GameMap m) {
 			Random rand = new(wc.mapSeed + 0xba7b5);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();
 			rand.Shuffle<int>(CollectionsMarshal.AsSpan(tileIndicies));
@@ -1382,7 +1395,7 @@ namespace C7Engine {
 		/// TODO: Make configurable
 		/// TODO: Determine what these values are in Civ3 
 		/// </summary>
-		private static int DeriveTotalPossibleBarbCamps(WorldCharacteristics wc, int landTiles) {
+		private static int DeriveTotalPossibleBarbCamps(MapGeneratorData wc, int landTiles) {
 			var totalCampsBaseline = landTiles / 100;
 			switch (wc.barbarianActivity) {
 				case BarbarianActivity.None:
@@ -1401,7 +1414,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static bool IsValidForBarbarianCamp(WorldCharacteristics wc, GameMap m, Tile t) {
+		private static bool IsValidForBarbarianCamp(MapGeneratorData wc, GameMap m, Tile t) {
 			// No barbarian camps on water, volcanos, or mountains.
 			if (!t.IsLand() || t == Tile.NONE || t.overlayTerrainType.Key == "volcano" || t.overlayTerrainType.Key == "mountains") {
 				return false;
@@ -1433,7 +1446,7 @@ namespace C7Engine {
 			return true;
 		}
 
-		private static void DetermineStartingLocations(WorldCharacteristics wc, GameMap m) {
+		private static void DetermineStartingLocations(MapGeneratorData wc, GameMap m) {
 			Random rand = new(wc.mapSeed + 0x1337);
 			List<HashSet<Tile>> landContinents = m.continents.Where(x => x.First().IsLand()).ToList();
 
@@ -1557,7 +1570,7 @@ namespace C7Engine {
 		}
 
 		// TODO: merge this with the ai logic
-		private static int ScorePossibleCityLocation(WorldCharacteristics wc, Tile t) {
+		private static int ScorePossibleCityLocation(MapGeneratorData wc, Tile t) {
 			if (!t.IsAllowCities()) {
 				return int.MinValue;
 			}
@@ -1617,7 +1630,7 @@ namespace C7Engine {
 			return score;
 		}
 
-		public static void AddBonusGrasslands(WorldCharacteristics wc, GameMap m) {
+		public static void AddBonusGrasslands(MapGeneratorData wc, GameMap m) {
 			// Randomize the order we iterate through the tiles.
 			Random rand = new(wc.mapSeed + 0x7361);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();

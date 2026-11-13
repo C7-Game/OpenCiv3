@@ -739,6 +739,12 @@ public partial class Game {
 		};
 		options.Add(showGridBtn);
 
+		var worldSettingsBtn = new ButtonAction() {
+			message = "View World Settings",
+			action = () => EmitWorldSettingsSignal(),
+		};
+		options.Add(worldSettingsBtn);
+
 		var backBtn = new ButtonAction() {
 			message = "Back",
 			action = () => EmitGameMainMenuSignal(),
@@ -757,5 +763,71 @@ public partial class Game {
 				margins: new Margins(top: 100)
 			)
 		));
+	}
+
+	public void EmitWorldSettingsSignal() {
+		WorldCharacteristics settings = EngineStorage.gameData.worldCharacteristics;
+		int seed = EngineStorage.gameData.seed;
+
+		List<string> lines = [
+			$"[b]Size:[/b] {FormatWorldSize(settings)}",
+			$"[b]Landform:[/b] {FormatValue(settings?.landform)}",
+			$"[b]Ocean Coverage:[/b] {FormatOceanCoverage(settings?.oceanCoverage)}",
+			$"[b]Climate:[/b] {FormatValue(settings?.climate)}",
+			$"[b]Temperature:[/b] {FormatValue(settings?.temperature)}",
+			$"[b]Age:[/b] {FormatAge(settings?.age)}",
+			$"[b]Seed:[/b] {seed}",
+		];
+
+		var options = new List<ButtonAction> {
+			new ButtonAction() {
+				message = "Back",
+				action = () => EmitMapMenuSignal(),
+			},
+		};
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"World Settings",
+				string.Join("\n", lines),
+				options,
+				Advisor.None,
+				Mood.None,
+				hSize: 400,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	private static string FormatValue<T>(T? value) where T : struct, Enum {
+		return value.HasValue ? value.Value.ToString() : "Unknown";
+	}
+
+	private static string FormatWorldSize(WorldCharacteristics settings) {
+		WorldSize worldSize = settings?.worldSize;
+		if (worldSize == null) {
+			return "Unknown";
+		}
+
+		GameMap map = EngineStorage.gameData.map;
+		if (map != null && (worldSize.width != map.numTilesWide || worldSize.height != map.numTilesTall)) {
+			return "Custom";
+		}
+
+		return string.IsNullOrEmpty(worldSize.name) ? "Unknown" : worldSize.name;
+	}
+
+	private static string FormatOceanCoverage(WorldCharacteristics.OceanCoverage? coverage) {
+		return coverage.HasValue ? $"{(int)coverage.Value}%" : "Unknown";
+	}
+
+	private static string FormatAge(WorldCharacteristics.Age? age) {
+		return age switch {
+			WorldCharacteristics.Age.Billion_3 => "3 billion years",
+			WorldCharacteristics.Age.Billion_4 => "4 billion years",
+			WorldCharacteristics.Age.Billion_5 => "5 billion years",
+			_ => "Unknown",
+		};
 	}
 }
