@@ -317,7 +317,6 @@ public partial class PlayerSetup : Control {
 	private void PersistGameSettings(GameSetup gameSetup) {
 		try {
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.WorldSize, gameSetup.worldCharacteristics.worldSize.name);
-			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.BarbarianActivity, save.BarbarianInfo.barbarianActivity.ToString());
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Landform, gameSetup.worldCharacteristics.landform.ToString());
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.OceanCoverage, gameSetup.worldCharacteristics.oceanCoverage.ToString());
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Climate, gameSetup.worldCharacteristics.climate.ToString());
@@ -325,6 +324,8 @@ public partial class PlayerSetup : Control {
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Age, gameSetup.worldCharacteristics.age.ToString());
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Civilization, gameSetup.playerCivilization.name);
 			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.Difficulty, gameSetup.difficulty.Name);
+
+			C7Settings.SetValue(C7Settings.LastGame.SectionName, C7Settings.LastGame.BarbarianActivity, save.BarbarianInfo.barbarianActivity.ToString());
 
 			List<SelectedOpponent> ops = gameSetup.opponents;
 			string opponentsValue = string.Join("|", ops.Select(o => o switch {

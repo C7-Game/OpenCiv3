@@ -26,14 +26,16 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 		}
 	}
 
-	private static MapGeneratorData MakeWorldCharacteristics(GameMap map) {
+	private static MapGeneratorData MakeGeneratorData(GameMap map) {
 		return new MapGeneratorData() {
-			landform = WorldCharacteristics.Landform.Pangaea,
-			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
-			age = WorldCharacteristics.Age.Billion_4,
-			climate = WorldCharacteristics.Climate.Normal,
-			temperature = WorldCharacteristics.Temperature.Temperate,
-			worldSize = new WorldSize() { width = 100, height = 100 },
+			worldCharacteristics = new WorldCharacteristics {
+				landform = WorldCharacteristics.Landform.Pangaea,
+				oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
+				age = WorldCharacteristics.Age.Billion_4,
+				climate = WorldCharacteristics.Climate.Normal,
+				temperature = WorldCharacteristics.Temperature.Temperate,
+				worldSize = new WorldSize() { width = 100, height = 100 },
+			},
 			terrainTypes = new List<TerrainType>() {
 				new() { Key = "grassland" },
 				new() { Key = "plains" },
@@ -55,7 +57,7 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 
 	[Fact]
 	public void DesertWithRiverBecomesFloodPlain() {
-		MapGeneratorData wc = MakeWorldCharacteristics(gameMap);
+		MapGeneratorData mgd = MakeGeneratorData(gameMap);
 		InitilizeStartTile(MakeDesertTile(), new TileLocation(50, 50));
 		Tile neighbor = AddNeighborsAndUpdateMap(startTile, MakeDesertTile(), TileDirection.SOUTHEAST);
 		RegisterTiles(startTile, neighbor);
@@ -63,7 +65,7 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 		// The center tile has a river along its NE edge.
 		startTile.riverNortheast = true;
 
-		MapGenerator.AddFloodPlains(wc, gameMap);
+		MapGenerator.AddFloodPlains(mgd, gameMap);
 
 		Assert.Equal("flood plain", startTile.baseTerrainType.Key);
 		Assert.Equal("flood plain", startTile.overlayTerrainType.Key);
@@ -74,7 +76,7 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 
 	[Fact]
 	public void HillAndVegetationDesertDoesNotBecomeFloodPlain() {
-		MapGeneratorData wc = MakeWorldCharacteristics(gameMap);
+		MapGeneratorData mgd = MakeGeneratorData(gameMap);
 		InitilizeStartTile(MakeDesertTile(), new TileLocation(50, 50));
 		Tile hilly = AddNeighborsAndUpdateMap(startTile, new Tile(ID.None("")) {
 			baseTerrainType = new TerrainType() { Key = "desert" },
@@ -90,7 +92,7 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 		hilly.riverNortheast = true;
 		forested.riverNortheast = true;
 
-		MapGenerator.AddFloodPlains(wc, gameMap);
+		MapGenerator.AddFloodPlains(mgd, gameMap);
 
 		// A desert with hills or forest on it is a different terrain, and
 		// Civ3 only converts pure desert.
@@ -102,26 +104,26 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 
 	[Fact]
 	public void DesertWithoutRiverStaysDesert() {
-		MapGeneratorData wc = MakeWorldCharacteristics(gameMap);
+		MapGeneratorData mgd = MakeGeneratorData(gameMap);
 		InitilizeStartTile(MakeDesertTile(), new TileLocation(50, 50));
 		Tile neighbor = AddNeighborsAndUpdateMap(startTile, MakeDesertTile(), TileDirection.SOUTHEAST);
 		RegisterTiles(startTile, neighbor);
 
-		MapGenerator.AddFloodPlains(wc, gameMap);
+		MapGenerator.AddFloodPlains(mgd, gameMap);
 
 		Assert.Equal("desert", startTile.baseTerrainType.Key);
 	}
 
 	[Fact]
 	public void RulesWithoutFloodPlainTerrainAreLeftAlone() {
-		MapGeneratorData wc = MakeWorldCharacteristics(gameMap);
-		wc.terrainTypes.RemoveAll(x => x.Key == "flood plain");
+		MapGeneratorData mgd = MakeGeneratorData(gameMap);
+		mgd.terrainTypes.RemoveAll(x => x.Key == "flood plain");
 		InitilizeStartTile(MakeDesertTile(), new TileLocation(50, 50));
 		Tile neighbor = AddNeighborsAndUpdateMap(startTile, MakeDesertTile(), TileDirection.SOUTHEAST);
 		RegisterTiles(startTile, neighbor);
 		startTile.riverNortheast = true;
 
-		MapGenerator.AddFloodPlains(wc, gameMap);
+		MapGenerator.AddFloodPlains(mgd, gameMap);
 
 		Assert.Equal("desert", startTile.baseTerrainType.Key);
 		Assert.Equal("desert", neighbor.baseTerrainType.Key);
@@ -132,17 +134,19 @@ public class FloodPlainsTest : MapBase, IClassFixture<SaveGameFixture> {
 	// along a river is left unconverted.
 	[Fact]
 	public void GeneratedMapFloodPlainsTrackRivers() {
-		MapGeneratorData wc = new(saveGameFixture.saveGame) {
-			landform = WorldCharacteristics.Landform.Pangaea,
-			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
-			age = WorldCharacteristics.Age.Billion_4,
-			climate = WorldCharacteristics.Climate.Arid,
-			temperature = WorldCharacteristics.Temperature.Warm,
-			worldSize = new WorldSize() { width = 100, height = 100 },
+		MapGeneratorData mgd = new(saveGameFixture.saveGame) {
+			worldCharacteristics = new WorldCharacteristics {
+				landform = WorldCharacteristics.Landform.Pangaea,
+				oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
+				age = WorldCharacteristics.Age.Billion_4,
+				climate = WorldCharacteristics.Climate.Arid,
+				temperature = WorldCharacteristics.Temperature.Warm,
+				worldSize = new WorldSize() { width = 100, height = 100 },
+			},
 			mapSeed = 123456,
 		};
 
-		GameMap m = MapGenerator.GenerateMap(wc);
+		GameMap m = MapGenerator.GenerateMap(mgd);
 
 		foreach (Tile t in m.tiles) {
 			if (!t.IsLand()) {
