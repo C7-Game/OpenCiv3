@@ -80,7 +80,10 @@ public partial class CityScreen : Control {
 
 	private Dictionary<string, ImageTexture> effectIcons = new();
 
-	private City lastInspectedCity; // the last city a player zoomed in
+	public City lastInspectedCity { get; private set; } // the last city a player zoomed in
+
+	[Signal] public delegate void CityScreenEnteredEventHandler(ParameterWrapper<City> city);
+	[Signal] public delegate void CityScreenExitedEventHandler(ParameterWrapper<City> city);
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready() {
@@ -292,7 +295,7 @@ public partial class CityScreen : Control {
 	private void OnShowCityScreenLocked(GameData gameData, ParameterWrapper<City> city) {
 		this.Show();
 		lastInspectedCity = city.Value;
-		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH], MapView.CameraPosition.Absolute);
+		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH], CameraPosition.Absolute);
 		tileAssignmentLayer.city = city.Value;
 		cityName.Text = city.Value.name;
 		RenderPopHeads(city.Value);
@@ -303,12 +306,14 @@ public partial class CityScreen : Control {
 		RenderExistingBuildings(city.Value.GetBuildings());
 		RenderStrategicResources(gameData, city.Value);
 		RenderLuxuries(gameData, city.Value);
+		EmitSignal(SignalName.CityScreenEntered, new ParameterWrapper<City>(lastInspectedCity));
 	}
 
 	private void OnExit() {
 		productionMenu.Hide();
 		tileAssignmentLayer.city = null;
 		mapView.centerCameraOnTile(lastInspectedCity.location.neighbors[TileDirection.SOUTH]);
+		EmitSignal(SignalName.CityScreenExited, new ParameterWrapper<City>(lastInspectedCity));
 	}
 
 	private void RenderStrategicResources(GameData gameData, City city) {

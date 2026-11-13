@@ -274,7 +274,8 @@ public partial class UnitLayer : LooseLayer {
 
 		// If the unit we're about to draw is currently selected, draw the cursor first underneath it
 		if ((unit != MapUnit.NONE) && (unit == looseView.mapView.game.CurrentlySelectedUnit)) {
-			drawCursor(looseView, tileCenter + animOffset);
+			if (looseView.mapView.ViewMode == ViewMode.Game)
+				drawCursor(looseView, tileCenter + animOffset);
 		}
 
 		drawUnitAnimFrame(looseView, unit, appearance, tileCenter);
