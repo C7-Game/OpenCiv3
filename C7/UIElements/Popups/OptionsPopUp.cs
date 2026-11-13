@@ -32,6 +32,7 @@ public class OptionsPopUp : InformationPopup {
 			optionsList.Add(actionButton);
 		}
 
+		// Fall back to the first row when the caller doesn't preselect one
 		if (!optionsList.Any(option => option.pressed)) {
 			optionsList.First().pressed = true;
 		}

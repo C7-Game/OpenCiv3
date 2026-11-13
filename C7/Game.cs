@@ -374,16 +374,13 @@ public partial class Game : Node {
 				this.EmitCivilizationDestroyedSignal(mCivD);
 				InterestingEvent();
 				break;
+			case MsgBarbarianCampDispersed mBCD:
+				if (mBCD.controllerId == controller.id)
+					this.EmitBarbarianCampDispersedSignal(mBCD);
+				break;
 			case MsgPlayerDefeated mPD:
 				this.EmitDefeatSignal(mPD.playerId);
 				InterestingEvent();
-				break;
-			case MsgShowMilitaryAdvisorPopup mSMAP:
-				if (!popupOverlay.Visible) {
-					var mood = mSMAP.happy ? Mood.Happy : Mood.Angry;
-					var pop = new InformationalPopup(mSMAP.message, Advisor.Military, mood);
-					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Info);
-				}
 				break;
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
@@ -898,6 +895,11 @@ public partial class Game : Node {
 			ToggleObserverMode();
 		}
 
+		if (eventKeyDown.Keycode == Godot.Key.M && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
+			ToggleRevealMap();
+			return;
+		}
+
 		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
 			if (preferences.Visible) {
 				preferences.HidePreferences();
@@ -990,7 +992,14 @@ public partial class Game : Node {
 		});
 	}
 
+	private void ToggleRevealMap() {
+		EngineStorage.ReadGameData((GameData gameData) => {
+			gameData.revealMap = !gameData.revealMap;
+		});
+	}
+
 	private void SetObserverModeOn(GameData gameData) {
+		gameData.revealMap = true;
 		foreach (Player player in gameData.players) {
 			player.isHuman = false;
 		}
@@ -1004,6 +1013,7 @@ public partial class Game : Node {
 	}
 
 	private void SetObserverModeOff(GameData gameData) {
+		gameData.revealMap = false;
 		foreach (Player player in gameData.players) {
 			if (player.id == EngineStorage.uiControllerID) {
 				player.isHuman = true;

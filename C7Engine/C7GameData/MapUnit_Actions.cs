@@ -37,10 +37,10 @@ public partial class MapUnit {
 			tile.hasBarbarianCamp = false;
 			animate(MapUnit.AnimatedAction.VICTORY);
 
-			// TODO: make this configurable
-			owner.gold += 25;
+			int gold = owner.rules.BarbarianCampGold;
+			owner.gold += gold;
 			if (owner.isHuman) {
-				new MsgShowMilitaryAdvisorPopup($"We cleared a barbarian encampment and earned 25 gold!", happy: true).send();
+				new MsgBarbarianCampDispersed(owner.id, gold).send();
 			}
 		}
 
@@ -48,8 +48,7 @@ public partial class MapUnit {
 		// in which case we'll just take some gold.
 		if (tile.HasCity() && !owner.IsAtPeaceWith(tile.cityAtTile.owner)) {
 			if (owner.isBarbarians) {
-				// TODO: Add rules for how much gold is taken.
-				int goldTaken = tile.cityAtTile.owner.gold / 4;
+				int goldTaken = RansackGold(tile.cityAtTile);
 				tile.cityAtTile.owner.gold -= goldTaken;
 				this.RemoveFromPlay();
 				if (tile.cityAtTile.owner.isHuman) {
@@ -73,6 +72,12 @@ public partial class MapUnit {
 				owner.EnsureRelationshipExists(t.owningCity.owner);
 			}
 		}
+	}
+
+	// How much gold this barbarian unit carries away from the city it ransacks.
+	private int RansackGold(City city) {
+		Func<MapUnit, City, int> ransackGold = EngineStorage.gameData.luaBehaviorEngine.ImportFunc<Func<MapUnit, City, int>>("gameplay.barbarians.ransack_gold");
+		return Math.Clamp(ransackGold.Invoke(this, city), 0, Math.Max(city.owner.gold, 0));
 	}
 
 	public void Fortify() {

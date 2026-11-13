@@ -40,6 +40,11 @@ local function disband_reward(context)
   end
 end
 
+-- Barbarians that reach a city carry away a quarter of its owner's gold.
+local function ransack_gold(barbarian, city)
+  return math.floor(city.owner.gold / 4)
+end
+
 local function get_display_time_text(raw_time)
   local bc = game_data().timeOptions.negativeLabel
   local ad = game_data().timeOptions.positiveLabel
@@ -123,6 +128,13 @@ gameplay = {
     -- Context = MapUnit mapUnit
     disband = function(context)
       disband_reward(context)
+    end,
+  },
+  barbarians = {
+    -- Context = MapUnit barbarian, City city
+    -- Returns the gold the barbarian takes from the city's owner when it ransacks the city.
+    ransack_gold = function(barbarian, city)
+      return ransack_gold(barbarian, city)
     end,
   },
   time = {

@@ -104,25 +104,25 @@ namespace C7.Map {
 			if (!workableTiles.Contains(tile.neighbors[TileDirection.NORTHWEST])) {
 				looseView.DrawLine(tileCenter + new Vector2(-tileWidth / 2, 0),
 									tileCenter + new Vector2(0, -tileHeight / 2),
-									Colors.White, width: 2);
+									Colors.White, width: 1);
 			}
 
 			if (!workableTiles.Contains(tile.neighbors[TileDirection.NORTHEAST])) {
 				looseView.DrawLine(tileCenter + new Vector2(tileWidth / 2, 0),
 									tileCenter + new Vector2(0, -tileHeight / 2),
-									Colors.White, width: 2);
+									Colors.White, width: 1);
 			}
 
 			if (!workableTiles.Contains(tile.neighbors[TileDirection.SOUTHWEST])) {
 				looseView.DrawLine(tileCenter + new Vector2(-tileWidth / 2, 0),
 									tileCenter + new Vector2(0, tileHeight / 2),
-									Colors.White, width: 2);
+									Colors.White, width: 1);
 			}
 
 			if (!workableTiles.Contains(tile.neighbors[TileDirection.SOUTHEAST])) {
 				looseView.DrawLine(tileCenter + new Vector2(tileWidth / 2, 0),
 									tileCenter + new Vector2(0, tileHeight / 2),
-									Colors.White, width: 2);
+									Colors.White, width: 1);
 			}
 		}
 
