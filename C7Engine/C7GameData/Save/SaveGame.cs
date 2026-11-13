@@ -254,6 +254,7 @@ namespace C7GameData.Save {
 				history = History,
 				GreatWondersBuilt = GreatWondersBuilt,
 				Codex = Codex,
+				pediaIcons = pediaIcons,
 			};
 
 			return data;
@@ -539,6 +540,11 @@ namespace C7GameData.Save {
 		[JsonIgnore]
 		public Codex Codex;
 
+		// The parsed PediaIcons mappings, used for civilopedia icon art. Not
+		// serialized; the importers populate it.
+		[JsonIgnore]
+		public PediaIcons pediaIcons;
+
 		public List<Difficulty> Difficulties = new();
 		public Difficulty GameDifficulty = new();
 
@@ -560,8 +566,9 @@ namespace C7GameData.Save {
 
 			// This lambda has side effects in the Game.cs code.
 			if (result.ScenarioSearchPath?.Count() > 0) {
-				getPediaIconsPath(result.ScenarioSearchPath);
+				string pediaIconsPath = getPediaIconsPath(result.ScenarioSearchPath);
 				result.Codex = new Codex(getCivilopediaTextPath(result.ScenarioSearchPath));
+				result.pediaIcons = new PediaIcons(pediaIconsPath);
 			}
 			return result;
 		}

@@ -8,7 +8,7 @@ using Serilog;
 namespace C7GameData {
 
 	// A class for interacting with the PediaIcons.txt file used in scenarios.
-	class PediaIcons {
+	public class PediaIcons {
 		private static readonly ILogger log = Log.ForContext<PediaIcons>();
 
 		// A mapping from the civilopedia entry name (like PRTO_Spearman or
@@ -19,6 +19,10 @@ namespace C7GameData {
 		// A mapping from the civilopedia entry name (like TECH_Map_Making) to
 		// the small icon used in the science advisor display.
 		private readonly Dictionary<string, string> techSmallIconMapping = new();
+
+		// A mapping from the civilopedia entry name (like TECH_Map_Making) to
+		// the large icon used in the civilopedia.
+		private readonly Dictionary<string, string> techLargeIconMapping = new();
 
 		// A mapping from the all caps name of a race (BABYLON, GERMANS, 
 		// RUSSIAN, etc) to the art file with happy/neutral/mad images of the
@@ -62,6 +66,12 @@ namespace C7GameData {
 					techSmallIconMapping[lines[i].Substring(1)] = lines[i + 1];
 				}
 
+				if (lines[i].StartsWith("#TECH") && lines[i].EndsWith("_LARGE")) {
+					// The civilopedia icon for a tech is its small icon path
+					// with the `_LARGE` suffix, e.g. #TECH_Bronze_Working_LARGE.
+					techLargeIconMapping[lines[i].Substring(1, lines[i].Length - 7)] = lines[i + 1];
+				}
+
 				if (lines[i].StartsWith("#RACE") && i + 2 < lines.Length) {
 					// +2 because the line at +1 is the leaderheads neutral
 					// victory image.
@@ -73,6 +83,14 @@ namespace C7GameData {
 					// columns for culture groups or by era. We don't try to
 					// support that yet.
 					buildingToRowNumberMapping[lines[i].Substring(6)] = Int32.Parse(lines[i + 2]);
+				}
+
+				if ((lines[i].StartsWith("#ICON_BLDG") || lines[i].StartsWith("#ICON_GOOD")) && i + 1 < lines.Length) {
+					// The large civilopedia icon shown on the entry's page.
+					string icon = FindLargeIcon(lines, i + 1);
+					if (icon != null) {
+						civilopediaLargeIcons[lines[i].Substring(6)] = icon;
+					}
 				}
 
 				if (lines[i].StartsWith("#UNITICON_PRTO") && i + 1 < lines.Length) {
@@ -92,6 +110,35 @@ namespace C7GameData {
 			}
 			log.Warning($"Could not find #TECH_{civilopediaEntry} in PediaIcons file '{pediaIconsPath}'");
 			return null;
+		}
+
+		public string GetTechCivilopediaIconPath(string civilopediaEntry) {
+			return techLargeIconMapping.TryGetValue(civilopediaEntry, out string iconPath) ? iconPath : null;
+		}
+
+		public string GetCivilopediaIconPath(string civilopediaEntry) {
+			return civilopediaLargeIcons.TryGetValue(civilopediaEntry, out string iconPath) ? iconPath : null;
+		}
+
+		// Finds the first large icon in a #ICON_ block, skipping the header
+		// lines that describe the variants (e.g. `CULTURE` and a row number).
+		private static string FindLargeIcon(string[] lines, int start) {
+			string firstIcon = null;
+			for (int i = start; i < lines.Length; i++) {
+				string line = lines[i].Trim();
+				if (line.Length == 0 || line.StartsWith("#")) {
+					break;
+				}
+				if (!line.EndsWith(".pcx", StringComparison.OrdinalIgnoreCase)) {
+					continue;
+				}
+
+				if (line.Contains("large", StringComparison.OrdinalIgnoreCase)) {
+					return line;
+				}
+				firstIcon ??= line;
+			}
+			return firstIcon;
 		}
 
 		public int GetBuildingRowNumber(string civilopediaEntry) {
