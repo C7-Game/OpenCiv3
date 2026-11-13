@@ -601,8 +601,7 @@ namespace C7GameData {
 			int baseBeakers = (commerce.useful * owner.scienceRate + 5) / 10;
 			int baseHappiness = (commerce.useful * owner.luxuryRate + 5) / 10;
 
-			// if baseBeakers + baseHappiness > total useful commerce, truncate luxury spending
-			// confirmed this matched base Civ 3 logic via Ghidra dump
+			// If the total exceeds available commerce, truncate luxury spending
 			if (baseBeakers + baseHappiness > commerce.useful) {
 				baseHappiness = commerce.useful - baseBeakers;
 			}
