@@ -466,42 +466,47 @@ public partial class Game {
 	}
 
 	private void EmitSelectTransportSignal(MsgSelectTransport msg) {
-		// The load hotkey works even when there is no transport here
-		if (msg.transports.Count == 0)
-			return;
-
-		// Nothing to choose from, load the unit right away
-		if (msg.transports.Count == 1) {
-			new MsgLoadToTransport(msg.unit.id, msg.transports[0].id).send();
-			return;
-		}
-
-		var options = new List<ButtonAction>();
 
 		EngineStorage.ReadGameData(data => {
-			foreach (MapUnit transport in msg.transports) {
-				var capacity = transport.unitType.capacity;
+			List<MapUnit> transports = msg.unit.GetTransportsToBoard(msg.unit.location);
+
+			// The load hotkey works even when there is no transport here
+			if (transports.Count == 0)
+				return;
+
+			// Nothing to choose from, load the unit right away
+			if (transports.Count == 1) {
+				new MsgLoadToTransport(msg.unit.id, transports[0].id).send();
+				return;
+			}
+
+			List<ButtonAction> options = new List<ButtonAction>();
+
+			// List out options
+			foreach (MapUnit transport in transports) {
+				int capacity = transport.unitType.capacity;
+				int free = transport.FreeCapacity();
 				options.Add(new ButtonAction() {
-					message = $"{transport.GetDisplayName()} ({capacity - transport.FreeCapacity()}/{capacity})",
+					message = $"{transport.GetDisplayName()} ({free}/{capacity})",
 					action = () => {
 						new MsgLoadToTransport(msg.unit.id, transport.id).send();
 					}
 				});
 			}
-		});
 
-		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
-			new OptionsPopUp(
-				controller.id,
-				"Transports",
-				$"Select a transport for the {msg.unit.GetDisplayName()}.",
-				options,
-				Advisor.None,
-				Mood.None,
-				hSize: 350,
-				margins: new Margins(top: 100)
-			)
-		));
+			EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+				new OptionsPopUp(
+					controller.id,
+					"Transports",
+					$"Select a transport for the {msg.unit.GetDisplayName()}.",
+					options,
+					Advisor.None,
+					Mood.None,
+					hSize: 350,
+					margins: new Margins(top: 100)
+				)
+			));
+		});
 	}
 
 	private void EmitAlreadyInRevolutionSignal(MsgAlreadyInRevolution msg) {

@@ -544,9 +544,11 @@ namespace C7GameData {
 		public List<MapUnit> GetTransportsToBoard(Tile tile) {
 			// Sort candidates by free capacity, but prefer transports that already have units
 			return tile.unitsOnTile
+				.Where(u => u.owner == this.owner)
 				.Where(u => u.CanTransport() && u.CanLoad(this))
-				.OrderBy(t => !t.IsEmpty())
-				.ThenByDescending(t => t.FreeCapacity())
+				.OrderBy(t => t.IsEmpty())                             // 1. fill non-empty first
+				.ThenByDescending(t => t.unitType.capacity)            // 2. then by overall capacity
+				.ThenBy(t => t.FreeCapacity() - t.unitType.capacity)   // 3. then by #loaded
 				.ToList();
 		}
 
@@ -589,8 +591,8 @@ namespace C7GameData {
 			return this.unitType.capacity - loaded.Count;
 		}
 
-		private bool IsEmpty() => unitType.capacity > 0 && FreeCapacity() == unitType.capacity;
-		private bool IsFull() => unitType.capacity > 0 && FreeCapacity() == 0;
+		public bool IsEmpty() => unitType.capacity > 0 && FreeCapacity() == unitType.capacity;
+		public bool IsFull() => unitType.capacity > 0 && FreeCapacity() == 0;
 
 		private static bool HasHostileUnits(Tile tile, Player player) {
 			foreach (MapUnit other in tile.unitsOnTile) {

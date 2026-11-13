@@ -1227,9 +1227,7 @@ public partial class Game : Node {
 
 
 		if (currentAction == C7Action.UnitLoad) {
-			EngineStorage.ReadGameData((GameData gameData) => {
-				new MsgSelectTransport(CurrentlySelectedUnit, CurrentlySelectedUnit.GetTransportsToBoard(CurrentlySelectedUnit.location)).send();
-			});
+			new MsgSelectTransport(CurrentlySelectedUnit).send();
 		}
 		if (currentAction == C7Action.UnitUnload) {
 			new MsgUnloadTransport(CurrentlySelectedUnit.id).send();
