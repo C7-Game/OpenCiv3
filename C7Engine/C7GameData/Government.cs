@@ -16,8 +16,8 @@ namespace C7GameData {
 		// If true, this is the government used while switching governments.
 		public bool transitionType;
 
-		// The "despotism penalty" applies for this goverment; reduces all 
-		// commerce, production and food output done by citizen laborers by -1 
+		// The "despotism penalty" applies for this goverment; reduces all
+		// commerce, production and food output done by citizen laborers by -1
 		// when they produce more than 2.
 		public bool hasTilePenalty {
 			get => _hasTilePenalty;
@@ -88,7 +88,7 @@ namespace C7GameData {
 			// city has fresh water access. Shields and commerce are still penalized.
 			bool exempt = yield.type == Tile.YieldType.Food
 				&& t.HasCity()
-				&& t.cityAtTile.owner.civilization.traits.Contains(Civilization.Trait.Agricultural)
+				&& t.cityAtTile.owner.IsAgricultural()
 				&& t.cityAtTile.hasFreshwaterAccess;
 
 			if (!exempt) {

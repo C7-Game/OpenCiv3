@@ -73,8 +73,7 @@ public partial class Tile {
 			// food. See https://wiki.civforum.de/wiki/Stadtfeldertrag_(Civ3).
 			// Agricultural civilizations get 3 food in city center.
 			// The third food is lost to despotism penalty unless city is placed on fresh water source.
-			// Made player.civilization nullable since some tests instantiate a player with no assigned civ
-			yield = player.civilization?.traits.Contains(Civilization.Trait.Agricultural) == true ? 3 : 2;
+			yield = player.IsAgricultural() ? 3 : 2;
 		}
 
 		yield += this.overlays.GetBaseYieldBonus(YieldType.Food);
@@ -115,7 +114,7 @@ public partial class Tile {
 				yield += 2;
 
 				// Industrious civs get +1 production in metropolises
-				if (cityAtTile.owner.civilization.traits.Contains(Civilization.Trait.Industrious)) {
+				if (cityAtTile.owner.IsIndustrious()) {
 					yield += 1;
 				}
 			}
@@ -158,7 +157,7 @@ public partial class Tile {
 		// TODO: Consider making these values moddable via Lua
 		if (HasCity()) {
 			int regularCityYield;
-			bool isCommercial = player.civilization?.traits.Contains(Civilization.Trait.Commercial) == true;
+			bool isCommercial = player.IsCommercial();
 			if (cityAtTile.residents.Count <= EngineStorage.gameData.rules.MaximumLevel1CitySize) {
 				regularCityYield = 1;
 			} else if (cityAtTile.residents.Count <= EngineStorage.gameData.rules.MaximumLevel2CitySize) {
@@ -185,8 +184,7 @@ public partial class Tile {
 			yield = Math.Max(regularCityYield, capitalCityYield);
 
 			// Handle coastal cities + seafaring trait, applies AFTER 4 commerce floor for capitals
-			if (player.civilization?.traits.Contains(Civilization.Trait.Seafaring) == true
-			&& NeighborsOcean()) {
+			if (player.IsSeafaring() && NeighborsOcean()) {
 				yield += 1;
 			}
 		}
