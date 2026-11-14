@@ -102,9 +102,9 @@ namespace C7GameData.Save {
 			foreach (TileLocation tile in tileKnowledge) {
 				player.tileKnowledge.AddTileToKnown(map.tileAt(tile.X, tile.Y));
 			}
-			foreach (var kti in knownTerrainImprovements) {
-				player.tileKnowledge.UpdateOverlayTileKnowledgeFor(kti.Key, kti.Value);
-			}
+
+			player.tileKnowledge.FromSerializedImprovementsData(knownTerrainImprovements);
+
 			foreach (ID techId in player.civilization.startingTechs) {
 				if (!player.knownTechs.Contains(techId)) {
 					player.knownTechs.Add(techId);

@@ -48,7 +48,7 @@ namespace C7GameData {
 				knownTiles.Add(t);
 				borderTiles.Remove(t);
 
-				UpdateOverlayTileKnowledgeFor(t);
+				TileSeen(t);
 
 				foreach (Tile border in t.neighbors.Values) {
 					if (border == Tile.NONE) {
@@ -221,40 +221,33 @@ namespace C7GameData {
 			}
 		}
 
-		/// <summary>
-		/// If improvements is not provided as an argument, all available overlays on the tile will be added to this knowledge.
-		/// </summary>
-		/// <param name="tile"></param>
-		public void UpdateOverlayTileKnowledgeFor(Tile tile) {
-			UpdateOverlayTileKnowledgeFor(tile.Id, tile.overlays.GetImprovements().Select(ti => ti.key).ToList());
-		}
-		public void UpdateOverlayTileKnowledgeFor(Tile tile, IEnumerable<string> improvements) {
-			UpdateOverlayTileKnowledgeFor(tile.Id, improvements);
-		}
-		public void UpdateOverlayTileKnowledgeFor(string stringId, IEnumerable<string> improvements) {
-			UpdateOverlayTileKnowledgeFor(ID.FromString(stringId), improvements);
-		}
-		public void UpdateOverlayTileKnowledgeFor(ID id, IEnumerable<string> improvements) {
-			var improvementList = improvements?.ToList();
-			if (improvementList == null || improvementList.Count == 0) {
-				log.Warning("Empty or null improvements provided, removing tile from overlay knowledge");
-				knownTerrainImprovements.Remove(id);
-				return;
+		public void FromSerializedImprovementsData(Dictionary<string, List<string>> serialisedImprovements) {
+			foreach ((string id, List<string> improvements) in serialisedImprovements) {
+				var tileId = ID.FromString(id);
+				SetImprovementsForTile(tileId, improvements);
 			}
-			knownTerrainImprovements[id] = improvementList;
+		}
+
+		public void TileSeen(Tile tile) {
+			SetImprovementsForTile(tile.Id, tile.overlays.GetImprovements().Select(ti => ti.key).ToList());
+		}
+
+		private void SetImprovementsForTile(ID tileId, IEnumerable<string> improvements) {
+			knownTerrainImprovements[tileId] = improvements.ToList();
 		}
 
 		public void MaybeRemoveTerrainImprovement(ID id, string improvementKey) {
-			if (_player.tileKnowledge.KnownTerrainImprovements.TryGetValue(id, out var improvements)) {
-				_player.tileKnowledge.UpdateOverlayTileKnowledgeFor(id, improvements.Where(ti => ti != improvementKey));
+			if (knownTerrainImprovements.ContainsKey(id)) {
+				knownTerrainImprovements[id].Remove(improvementKey);
+				if (knownTerrainImprovements[id].Count == 0) {
+					knownTerrainImprovements.Remove(id);
+				}
 			}
 		}
 
 		public bool KnowsAboutOverlay(Tile tile, string overlayKey) {
-			if (knownTerrainImprovements.TryGetValue(tile.Id, out var knownOverlays) && knownOverlays.Contains(overlayKey))
-				return true;
-
-			return false;
+			return knownTerrainImprovements.TryGetValue(tile.Id, out ICollection<string> knownOverlays)
+				   && knownOverlays.Contains(overlayKey);
 		}
 
 		public List<Tile> OwnedTiles() {

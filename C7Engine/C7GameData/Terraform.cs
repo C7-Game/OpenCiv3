@@ -102,7 +102,7 @@ public class Terraform {
 			// update all the players' knowledge that can actively see this tile
 			EngineStorage.ReadGameData(data => {
 				foreach (Player dataPlayer in data.players.Where(dataPlayer => dataPlayer.tileKnowledge.activeTiles.Contains(tile))) {
-					dataPlayer.tileKnowledge.UpdateOverlayTileKnowledgeFor(tile);
+					dataPlayer.tileKnowledge.TileSeen(tile);
 				}
 			});
 		}
