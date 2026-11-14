@@ -43,10 +43,6 @@ public partial class StatusMenu : Control {
 	}
 
 	private void OpenDiplomacyPopup() {
-		EngineStorage.ReadGameData((GameData gD) => {
-			Player player = gD.GetFirstHumanPlayer();
-
-			popupOverlay.ShowPopup(new DiplomacySelection(player, gD.players), PopupOverlay.PopupCategory.Info);
-		});
+		new MsgDiplomacyPopUp().send();
 	}
 }

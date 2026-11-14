@@ -34,6 +34,7 @@ namespace C7GameData {
 			this.name = name;
 		}
 		public string name;
+		public string civilopediaEntry;
 
 		// `noun` is "Americans" for "America", or "Spanish" for "Spain", etc.
 		public string noun;

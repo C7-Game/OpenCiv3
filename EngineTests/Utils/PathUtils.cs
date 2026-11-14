@@ -22,6 +22,10 @@ public class PathUtils {
 		get => Path.Combine(Civ3Location.GetCiv3Path(), "Conquests", "Text", "PediaIcons.txt");
 	}
 
+	public static string defaultCivilopediaTextPath {
+		get => Path.Combine(Civ3Location.GetCiv3Path(), "Conquests", "Text", "Civilopedia.txt");
+	}
+
 	public static string testDirectory {
 		get {
 			string[] parts = AppDomain.CurrentDomain.BaseDirectory.Split(Path.DirectorySeparatorChar);

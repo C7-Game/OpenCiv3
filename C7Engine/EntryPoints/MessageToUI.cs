@@ -1,6 +1,7 @@
 namespace C7Engine {
 	using C7GameData;
 	using System;
+	using System.Collections.Generic;
 
 	public interface IMessageToUI {
 		public void send();
@@ -51,21 +52,95 @@ namespace C7Engine {
 		}
 	}
 
-	public class MsgStartTurn : MessageToUI { }
+	public class MsgNewGame : MessageToUI {
+		public ID controllerId;
 
+		public MsgNewGame(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+	public class MsgStartTurn : MessageToUI { }
+	public class MsgGameMainMenu : MessageToUI { }
+
+	public class MsgDiplomacyPopUp : MessageToUI { }
+
+	public class MsgRefuseContact : MessageToUI {
+		public ID opponentId;
+
+		public MsgRefuseContact(ID opponentId) {
+			this.opponentId = opponentId;
+		}
+	}
+
+	public class MsgAlreadyInRevolution : MessageToUI {
+		public ID controllerId;
+
+		public MsgAlreadyInRevolution(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+
+	public class MsgConfirmStartRevolution : MessageToUI {
+		public ID controllerId;
+
+		public MsgConfirmStartRevolution(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+	public class MsgDescendIntoAnarchy : MessageToUI {
+		public ID controllerId;
+		public Government government;
+
+		public MsgDescendIntoAnarchy(ID controllerId, Government government) {
+			this.controllerId = controllerId;
+			this.government = government;
+		}
+	}
+
+	public class MsgScienceGuidance : MessageToUI { }
 	public class MsgShowScienceAdvisor : MessageToUI { }
+
+	// Asks the player to pick a tech, or to spend a free tech advance.
+	public class MsgPromptResearch : MessageToUI { }
 
 	public class MsgUpdateUiAfterDomesticChange : MessageToUI { }
 
-	public class MsgWarDeclaration : MessageToUI {
+	public class MsgWarDeclarationNotification : MessageToUI {
 		public Player aggressor;
 		public Player opponent;
 
-		public MsgWarDeclaration(Player aggressor, Player opponent) {
+		public MsgWarDeclarationNotification(Player aggressor, Player opponent) {
 			this.aggressor = aggressor;
 			this.opponent = opponent;
 		}
 	}
+
+	public class MsgNameCity : MessageToUI {
+		public ID controllerId;
+		public string nextCityName;
+
+		public MsgNameCity(ID controllerId, string nextCityName) {
+			this.controllerId = controllerId;
+			this.nextCityName = nextCityName;
+		}
+	}
+
+	// Foreign
+	public class MsgWarDeclarationConfirmation : MessageToUI {
+		public ID aggressorId;
+		public ID opponentId;
+		public Action callback;
+
+		public MsgWarDeclarationConfirmation(ID aggressorId, ID opponentId, Action callback) {
+			this.aggressorId = aggressorId;
+			this.opponentId = opponentId;
+			this.callback = callback;
+		}
+	}
+
+	// Military
+	public class MsgDiplomacyWarDeclarationConfirmation(ID aggressorId, ID opponentId, Action callback)
+		: MsgWarDeclarationConfirmation(aggressorId, opponentId, callback);
 
 	public class MsgCityDestroyed : MessageToUI {
 		public City city;
@@ -75,11 +150,69 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgCityRaised : MessageToUI {
+		public ID controllerId;
+		public ID ownerId;
+		public City city;
+		public int goldTaken;
+		public bool controllerWon;
+
+		public MsgCityRaised(ID controllerId, ID ownerId, City city, int goldTaken, bool controllerWon) {
+			this.controllerId = controllerId;
+			this.ownerId = ownerId;
+			this.city = city;
+			this.goldTaken = goldTaken;
+			this.controllerWon = controllerWon;
+		}
+	}
+
+	public class MsgCityRansacked : MessageToUI {
+		public ID controllerId;
+		public City city;
+		public string barbTribe;
+		public int goldLiberated;
+
+		public MsgCityRansacked(ID controllerId, City city, string barbTribe, int goldLiberated) {
+			this.controllerId = controllerId;
+			this.city = city;
+			this.barbTribe = barbTribe;
+			this.goldLiberated = goldLiberated;
+		}
+	}
+
+	public class MsgCityRiotWarning : MessageToUI {
+		public ID controllerId;
+		public City city;
+
+		public MsgCityRiotWarning(ID controllerId, City city) {
+			this.controllerId = controllerId;
+			this.city = city;
+		}
+	}
+
+	public class MsgSelectGovernment : MessageToUI {
+		public ID controllerId;
+
+		public MsgSelectGovernment(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+
 	public class MsgCivilizationDestroyed : MessageToUI {
+		public ID controllerId;
 		public Civilization civilization;
 
-		public MsgCivilizationDestroyed(Civilization civ) {
+		public MsgCivilizationDestroyed(ID controllerId, Civilization civ) {
+			this.controllerId = controllerId;
 			this.civilization = civ;
+		}
+	}
+
+	public class MsgPlayerDefeated : MessageToUI {
+		public ID playerId;
+
+		public MsgPlayerDefeated(ID playerId) {
+			this.playerId = playerId;
 		}
 	}
 
@@ -121,20 +254,23 @@ namespace C7Engine {
 		}
 	}
 
-	public class MsgShowMilitaryAdvisorPopup : MessageToUI {
-		public string message;
-		public bool happy;
-		public MsgShowMilitaryAdvisorPopup(string message, bool happy) {
-			this.message = message;
-			this.happy = happy;
+	public class MsgBarbarianCampDispersed : MessageToUI {
+		public ID controllerId;
+		public int goldEarned;
+
+		public MsgBarbarianCampDispersed(ID controllerId, int goldEarned) {
+			this.controllerId = controllerId;
+			this.goldEarned = goldEarned;
 		}
 	}
 
 	public class MsgShowTemporaryPopup : MessageToUI {
+		public ID controllerId;
 		public string message;
 		public Tile location;
 
-		public MsgShowTemporaryPopup(string message, Tile location) {
+		public MsgShowTemporaryPopup(ID receiver, string message, Tile location) {
+			this.controllerId = receiver;
 			this.message = message;
 			this.location = location;
 		}
@@ -161,6 +297,13 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgSelectTransport : MessageToUI {
+		public MapUnit unit;
+		public MsgSelectTransport(MapUnit unit) {
+			this.unit = unit;
+		}
+	}
+
 	public class MsgTransportUnloaded : MessageToUI {
 		public MapUnit Unit;
 		public MsgTransportUnloaded(MapUnit unit) {
@@ -172,6 +315,22 @@ namespace C7Engine {
 		public City city;
 		public MsgDisplayAbandonCityPopup(City city) {
 			this.city = city;
+		}
+	}
+
+	public class MsgDisbandUnitConfirmation : MessageToUI {
+		public MapUnit mapUnit;
+		public MsgDisbandUnitConfirmation(MapUnit mapUnit) {
+			this.mapUnit = mapUnit;
+		}
+	}
+
+	public class MsgReplaceTerrainImprovementConfirmation : MessageToUI {
+		public TerrainImprovement terrainImprovement;
+		public Terraform terraform;
+		public MsgReplaceTerrainImprovementConfirmation(TerrainImprovement terrainImprovement, Terraform terraform) {
+			this.terrainImprovement = terrainImprovement;
+			this.terraform = terraform;
 		}
 	}
 

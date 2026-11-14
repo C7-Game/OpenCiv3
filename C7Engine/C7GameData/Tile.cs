@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using C7Engine;
+using C7GameData.Save;
 using static C7GameData.City;
 using static C7GameData.TerrainImprovement;
 using static C7GameData.Tile.TileOverlays;
@@ -77,8 +78,6 @@ namespace C7GameData {
 		public Dictionary<TileDirection, Tile> neighbors { get; set; } = new Dictionary<TileDirection, Tile>();
 
 		public CityResident personWorkingTile = null;   //allows us to see if another city is working this tile
-
-		public bool hasBarbarianCamp = false;
 
 		//See discussion on page 4 of the "Babylon" thread (https://forums.civfanatics.com/threads/0-1-babylon-progress-thread.673959) about sub-terrain type and Civ3 properties.
 		//We may well move these properties somewhere, whether that's Civ3ExtraInfo, a Civ3Tile child class, a Dictionary property, or something else, in the future.
@@ -164,6 +163,31 @@ namespace C7GameData {
 		// that actually exists on the tile.
 		public bool IsImpassable() {
 			return overlayTerrainType.impassable;
+		}
+
+		// Whether this tile's terrain stops the given unit type from entering.
+		//
+		// Terrain that is impassable to every unit blocks everyone. Terrain that
+		// is only impassable to some units is described by the terrain itself,
+		// which also lists the improvements that grant passage - in Civ3 a
+		// wheeled unit may enter mountains, jungle, marsh and volcano once the
+		// tile is roaded or railed.
+		public bool IsImpassableTo(UnitPrototype unitType) {
+			if (overlayTerrainType.impassable)
+				return true;
+
+			foreach ((SaveUnitPrototype.Flag flag, string[] improvements) in overlayTerrainType.impassableTo) {
+				if (!unitType.flags.Contains(flag))
+					continue;
+
+				return !improvements.Any(HasImprovementWithKey);
+			}
+
+			return false;
+		}
+
+		private bool HasImprovementWithKey(string key) {
+			return overlays.GetImprovements().Any(i => i.key == key);
 		}
 
 		//This should be used when we want to check if land tiles are next to water tiles.
@@ -258,6 +282,22 @@ namespace C7GameData {
 			return baseTerrainType.isSea();
 		}
 
+		public bool IsFlatLand() {
+			return IsLand() && !overlayTerrainType.isHilly();
+		}
+
+		public bool HasJungle() {
+			return overlayTerrainType.isJungle();
+		}
+
+		public bool HasForest() {
+			return overlayTerrainType.isForest();
+		}
+
+		public bool HasMarsh() {
+			return overlayTerrainType.isMarsh();
+		}
+
 		public bool IsCountedForDomination() {
 			return IsLand() || IsCoast();
 		}
@@ -267,7 +307,19 @@ namespace C7GameData {
 		}
 
 		public bool IsAllowCities() {
-			return overlayTerrainType.allowCities && !hasBarbarianCamp;
+			return overlayTerrainType.allowCities && !HasBarbarianCamp();
+		}
+
+		public bool HasBarbarianCamp() {
+			return overlays.terrainImprovementByLayer.ContainsKey(Layer.BarbarianCamp);
+		}
+
+		public bool IsMountains() {
+			return overlayTerrainType.isMountain();
+		}
+
+		public bool IsHills() {
+			return overlayTerrainType.isHills();
 		}
 
 		public bool IsVolcano() {
@@ -309,7 +361,7 @@ namespace C7GameData {
 			return riverNorth || riverNortheast || riverEast || riverSoutheast || riverSouth || riverSouthwest || riverWest || riverNorthwest;
 		}
 
-		// TODO: This method doesn't handle the electicity tech which allows
+		// TODO: This method doesn't handle the electricity tech which allows
 		// irrigating without fresh water access.
 		public bool CanBeIrrigated(TerrainImprovement irrigation, Player player) {
 			// Irrigation can't be done if there is no irrigation bonus for the
@@ -388,9 +440,7 @@ namespace C7GameData {
 				c.SetStoredShields(shieldsAwarded, true);
 				c.SetStoredShields(Math.Min(c.shieldsStored, c.owner.ShieldCost(c.itemBeingProduced)));
 
-				if (c.owner.isHuman) {
-					new MsgShowTemporaryPopup($"{shieldsAwarded} shields awarded for clearing forests", other).send();
-				}
+				new MsgShowTemporaryPopup(c.owner.id, $"{shieldsAwarded} shields awarded for clearing forests", other).send();
 
 				return;
 			}
@@ -502,5 +552,10 @@ namespace C7GameData {
 		}
 
 		public bool HasImprovements => overlays.HasBeenImproved();
+
+		public bool IsOwnedByPlayer(Player player) {
+			var owner = this.OwningPlayer();
+			return owner != null && owner == player;
+		}
 	}
 }

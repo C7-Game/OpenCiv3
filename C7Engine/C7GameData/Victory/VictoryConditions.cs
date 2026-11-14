@@ -1,3 +1,5 @@
+using C7Engine;
+
 namespace C7GameData;
 
 public class VictoryConditions {
@@ -14,4 +16,16 @@ public class VictoryConditions {
 	public bool VictoryLocations { get; set; }
 	public bool CaptureTheFlag { get; set; }
 	public bool ReverseCaptureTheFlag { get; set; }
+
+	public static VictoryConditions FromSettings() {
+		string allowConquestRaw = C7Settings.GetSettingsValueOrDefault(C7Settings.Rules.SectionName, C7Settings.Rules.AllowConquestVictory, "");
+		string allowDominationRaw = C7Settings.GetSettingsValueOrDefault(C7Settings.Rules.SectionName, C7Settings.Rules.AllowDominationVictory, "");
+
+		VictoryConditions vc = new() {
+			AllowConquestVictory = bool.TryParse(allowConquestRaw, out bool allowConquest) && allowConquest,
+			AllowDominationVictory = bool.TryParse(allowDominationRaw, out bool allowDomination) && allowDomination
+		};
+
+		return vc;
+	}
 }

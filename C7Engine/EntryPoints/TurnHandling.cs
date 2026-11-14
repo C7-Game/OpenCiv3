@@ -106,7 +106,8 @@ namespace C7Engine {
 			// Order players: Human -> AI -> Barbarian AI
 			var orderedPlayers = gameData.players.OrderByDescending(p => !p.isBarbarians).ThenByDescending(p => p.isHuman).ToList();
 			foreach (Player player in orderedPlayers) {
-				if (player.hasPlayedThisTurn || player.defeated) {
+				// A defeated UI controller still gets its turn, so control returns to the UI and the loop stops.
+				if (player.hasPlayedThisTurn || (player.defeated && player.id != EngineStorage.uiControllerID)) {
 					continue;
 				}
 
@@ -116,7 +117,7 @@ namespace C7Engine {
 
 				if (player.isBarbarians) {
 					await BarbarianAI.PlayTurn(player, gameData);
-				} else if (!player.isHuman) {
+				} else if (!player.isHuman && !player.defeated) {
 					await PlayerAI.PlayTurn(player, gameData);
 				}
 

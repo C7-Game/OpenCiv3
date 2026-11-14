@@ -76,6 +76,14 @@ namespace C7Engine {
 		}
 
 		public static void MaybePickTechToResearch(Player player, List<Tech> techs) {
+			// AI players get no prompt, so they spend any free advances immediately.
+			while (!player.isHuman && player.freeTechsRemaining > 0) {
+				Tech freeTech = player.GetAvailableTechsToResearch(techs).FirstOrDefault();
+				if (freeTech == null || !player.ClaimFreeTech(EngineStorage.gameData, freeTech)) {
+					break;
+				}
+			}
+
 			while (player.currentlyResearchedTech == null || player.knownTechs.Contains(player.currentlyResearchedTech)) {
 				Tech toResearch = player.GetAvailableTechsToResearch(techs).FirstOrDefault();
 				if (toResearch == null) {
@@ -242,7 +250,7 @@ namespace C7Engine {
 			}
 
 			List<Tile> reachableBarbCampsTiles = player.tileKnowledge.AllKnownTiles()
-				.Where(t => unit.CanEnter(t) && t.hasBarbarianCamp).ToList();
+				.Where(t => unit.CanEnter(t) && t.HasBarbarianCamp()).ToList();
 
 			Tile closestBarbCamp = Tile.NONE;
 			int closestBarbDistance = int.MaxValue;
@@ -437,7 +445,7 @@ namespace C7Engine {
 						city = city
 					};
 					city.AddCitizen(newResident);
-					CityTileAssignmentAI.AssignNewCitizenToTile(EngineStorage.gameData, newResident, manageMoods: true);
+					CityTileAssignmentAI.AssignNewCitizenToTile(EngineStorage.gameData, newResident, manageMoods: true, totalResidents: numResidents);
 				}
 			}
 		}

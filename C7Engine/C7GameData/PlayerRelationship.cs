@@ -103,7 +103,7 @@ public class PlayerRelationship {
 	}
 
 	// Breaks peace and all other multiturn deals when war is declared 
-	public static void DeclareWar(Player aggressor, Player defender, bool sneakAttack, int refuseContactUntilTurn) {
+	public static void DeclareWar(Player aggressor, Player defender, bool sneakAttack, int currentTurn, int refuseContactUntilTurn) {
 		var defenderRelationshipToAggressor = defender.playerRelationships[aggressor.id];
 		var aggressorRelationshipToDefender = aggressor.playerRelationships[defender.id];
 		// increment the times the aggressor has declared war on the defender
@@ -133,7 +133,7 @@ public class PlayerRelationship {
 
 		log.Information($"{aggressor} declared war on {defender}{(sneakAttack ? $" in a sneak attack" : "")}!" +
 						$" Defender is refusing contact for at least up to turn {refuseContactUntilTurn}" +
-						$" ({refuseContactUntilTurn - EngineStorage.gameData.turn} turns)!");
+						$" ({refuseContactUntilTurn - currentTurn} turns)!");
 	}
 
 	public static void SignPeaceAfterWar(Player left, Player right, GameData gameData) {

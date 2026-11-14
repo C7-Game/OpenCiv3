@@ -1,6 +1,7 @@
 using Godot;
 using C7GameData;
 using Serilog;
+using System;
 
 [GlobalClass]
 [Tool]
@@ -21,9 +22,13 @@ public partial class PopupOverlay : HBoxContainer {
 	[Signal] public delegate void LoadGameEventHandler();
 	[Signal] public delegate void RetireEventHandler();
 	[Signal] public delegate void QuitEventHandler();
+	[Signal] public delegate void OpenPreferencesEventHandler();
 
 
 	Control currentChild = null;
+
+	// Set when a popup defers its decision until an advisor screen is closed.
+	private Action advisorCloseAction;
 
 	[Export]
 	private Control control;
@@ -46,10 +51,14 @@ public partial class PopupOverlay : HBoxContainer {
 
 	public bool ShowingPopup => currentChild is not null;
 
-	public void PlaySound(AudioStream stream) {
-		AudioStreamPlayer player = GetNode<AudioStreamPlayer>("PopupSound");
-		player.Stream = stream;
-		player.Play();
+	public void SetAdvisorCloseAction(Action action) {
+		advisorCloseAction = action;
+	}
+
+	public void OnAdvisorClosed() {
+		Action action = advisorCloseAction;
+		advisorCloseAction = null;
+		action?.Invoke();
 	}
 
 	public void ShowPopup(Popup child, PopupCategory category) {
@@ -72,12 +81,10 @@ public partial class PopupOverlay : HBoxContainer {
 			_ => null
 		};
 
-		var wav = soundFile == null ? null : AudioLoader.Load(soundFile);
-
 		ShowChild(child);
 
-		if (wav != null) {
-			PlaySound(wav);
+		if (soundFile != null) {
+			GlobalAudio.manager.PlayUIAudio(soundFile);
 		}
 	}
 

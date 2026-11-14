@@ -28,6 +28,10 @@ public partial class GlobalSingleton : Node {
 	public WorldCharacteristics WorldCharacteristics;
 
 	public GlobalSingleton() {
+		// Resolve the settings file before anything reads or writes settings.
+		// We can't rely on the working directory to point at the game.
+		C7Settings.SettingsFilePath = GamePaths.SettingsFilePath;
+
 		if (C7Settings.UseStandaloneMode()) {
 			ActivateGameMode(GamePaths.standalone);
 		} else {

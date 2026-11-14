@@ -7,11 +7,14 @@ using static C7Engine.MsgChooseResearch;
 public partial class ScienceSelection : Popup {
 	Player player;
 	List<Tech> options = new();
+	bool claimingFreeTech;
+	OptionButton optionButton;
 
-	public ScienceSelection(Player player) {
+	public ScienceSelection(Player player, bool claimingFreeTech = false) {
 		alignment = BoxContainer.AlignmentMode.End;
 		margins = new Margins(right: 10);
 		this.player = player;
+		this.claimingFreeTech = claimingFreeTech;
 	}
 
 	public override void _Ready() {
@@ -30,26 +33,29 @@ public partial class ScienceSelection : Popup {
 		AddHeader("Science Advisor", 120);
 
 		Label messageLabel = new();
-		messageLabel.Text = "What shall we explore now?";
+		messageLabel.Text = claimingFreeTech
+			? "You have earned a free advance. Choose a technology:"
+			: "What shall we explore now?";
 		messageLabel.SetPosition(new Vector2(25, 160));
 		AddChild(messageLabel);
 
-		OptionButton optionButton = MakeStyledOptionButton();
+		optionButton = MakeStyledOptionButton();
 		AddChild(optionButton);
 		optionButton.SetPosition(new Vector2(25, 190));
 
 		AddButton("OK. Sounds good.", 235, () => {
-			new MsgChooseResearch(options[optionButton.Selected], AdvisorState.DontShow).send();
-			GetParent().EmitSignal(PopupOverlay.SignalName.HidePopup);
+			Choose(SelectedTech);
 		});
 		AddButton("What's the big picture?", 265, () => {
+			if (claimingFreeTech) {
+				GetParent<PopupOverlay>().SetAdvisorCloseAction(ClaimFreeTechFromCurrentResearch);
+			}
 			new MsgShowScienceAdvisor().send();
 			GetParent().EmitSignal(PopupOverlay.SignalName.HidePopup);
 		});
 
 		AddConfirmButton(new Vector2(width - 40, height - 40), () => {
-			new MsgChooseResearch(options[optionButton.Selected], AdvisorState.DontShow).send();
-			GetParent().EmitSignal(PopupOverlay.SignalName.HidePopup);
+			Choose(SelectedTech);
 		});
 	}
 
@@ -95,9 +101,43 @@ public partial class ScienceSelection : Popup {
 	}
 
 	private void AddItem(GameData gameData, Tech tech, OptionButton optionButton) {
-		int turns = player.EstimateTurnsToResearch(gameData, tech);
-		string turnsStr = turns == int.MaxValue ? "--" : $"{turns}";
-		optionButton.AddItem($"{tech.Name} ({turnsStr} turns)");
+		if (claimingFreeTech) {
+			optionButton.AddItem(tech.Name);
+		} else {
+			int turns = player.EstimateTurnsToResearch(gameData, tech);
+			string turnsStr = turns == int.MaxValue ? "--" : $"{turns}";
+			optionButton.AddItem($"{tech.Name} ({turnsStr} turns)");
+		}
 		options.Add(tech);
+	}
+
+	private void Choose(Tech tech) {
+		if (tech == null) {
+			return;
+		}
+		if (claimingFreeTech) {
+			new MsgClaimFreeTech(tech).send();
+		} else {
+			new MsgChooseResearch(tech, AdvisorState.DontShow).send();
+		}
+		GetParent().EmitSignal(PopupOverlay.SignalName.HidePopup);
+	}
+
+	// Spends the free advance on the queued tech, matching Civ3.
+	private void ClaimFreeTechFromCurrentResearch() {
+		Tech selected = player.ResearchQueue.Count > 0 ? player.ResearchQueue.Peek() : SelectedTech;
+		if (selected != null) {
+			new MsgClaimFreeTech(selected).send();
+		}
+	}
+
+	private Tech SelectedTech {
+		get {
+			int selected = optionButton.Selected;
+			if (selected < 0 || selected >= options.Count) {
+				return null;
+			}
+			return options[selected];
+		}
 	}
 }

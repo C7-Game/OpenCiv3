@@ -39,12 +39,47 @@ public partial class Tile {
 			tile.overlays.Add(craters);
 	}
 
+	public bool HasRoadGraphics() {
+		if (this.HasCity() && this.neighbors.Any(x => x.Value.HasRoadGraphics())) return true;
+		if (!HasRoad()) return false;
+		return CanRenderTerrainGraphics(ROAD);
+	}
+
+	public bool HasRailroadGraphics() {
+		if (this.HasCity()
+			&& EngineStorage.GetUIController()
+				.HasTech(EngineStorage.gameData.Terraforms.First(t => t.Improvement.key == RAILROAD).RequiredTech)
+			&& this.neighbors.Any(x => x.Value.HasRailroadGraphics())) return true;
+		if (!HasRailroad()) return false;
+		return CanRenderTerrainGraphics(RAILROAD);
+	}
+
+	public bool HasIrrigationGraphics() {
+		if (!HasIrrigation()) return false;
+		return CanRenderTerrainGraphics(IRRIGATION);
+	}
+
+	public bool HasPollutionGraphics() {
+		if (!HasPollution()) return false;
+		return CanRenderTerrainGraphics(POLLUTION);
+	}
+
+	private bool CanRenderTerrainGraphics(string overlayKey) {
+		if (EngineStorage.gameData.observerMode)
+			return true;
+		Player player = EngineStorage.GetUIController();
+		if (player.tileKnowledge.KnowsAboutOverlay(this, overlayKey))
+			return true;
+		return false;
+	}
+
 	public class TileOverlays {
 		public const string ROAD = "road";
 		public const string RAILROAD = "railroad";
 		public const string IRRIGATION = "irrigation";
 		public const string MINE = "mine";
 		public const string FORTRESS = "fortress";
+		public const string GOODY_HUT = "goodyHut";
 		public const string BARRICADE = "barricade";
 		public const string BARBARIAN_CAMP = "barbarianCamp";
 		public const string RUINS = "ruins";
@@ -118,6 +153,7 @@ public partial class Tile {
 				i => i.layer != Layer.Craters
 					 && i.layer != Layer.Pollution
 					 && i.layer != Layer.Ruins
+					 && i.layer != Layer.BarbarianCamp
 				);
 		}
 		public IEnumerable<TerrainImprovement> GetEffectImprovements() {
@@ -125,6 +161,7 @@ public partial class Tile {
 				i => i.layer == Layer.Craters
 					 || i.layer == Layer.Pollution
 					 || i.layer == Layer.Ruins
+					 || i.layer == Layer.BarbarianCamp
 			);
 		}
 
@@ -155,7 +192,7 @@ public partial class Tile {
 
 			// since we added roads & railroads on city tiles, this is probably not needed
 			// I am only leaving this here, because it doesn't seem to affect the game
-			// and it's also related to the tile path algorithm, and I think I want to favourite 
+			// and it's also related to the tile path algorithm, and I think I want to favourite
 			// going through cities if possible, for better defense.
 			if (tile.HasCity()) {
 				return 0;

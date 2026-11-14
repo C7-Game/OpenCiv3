@@ -56,6 +56,7 @@ namespace C7GameData {
 	 **/
 	public class UnitPrototype : IProducible {
 		public string name { get; set; }
+		public string civilopediaEntry { get; set; }
 		public Art art { get; set; }
 		public int shieldCost { get; set; }
 		public int populationCost { get; set; }
@@ -114,6 +115,19 @@ namespace C7GameData {
 			}
 		}
 
+		// Wheeled units cannot enter terrain that Civ3 marks as impassable to
+		// wheeled units (mountains, jungle, marsh and volcano in the base game).
+		public bool wheeled {
+			get => flags.Contains(SaveUnitPrototype.Flag.Wheeled);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.Wheeled);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.Wheeled);
+				}
+			}
+		}
+
 		public HashSet<string> categories = new HashSet<string>();
 
 		public HashSet<UnitAction> actions = [];
@@ -135,6 +149,8 @@ namespace C7GameData {
 			(name, art, shieldCost, populationCost)
 				= (proto.name, proto.art, proto.shieldCost, proto.populationCost);
 
+			civilopediaEntry = proto.civilopediaEntry;
+
 			(attack, defense, bombard, bombardRange, rateOfFire)
 				= (proto.attack, proto.defense, proto.bombard, proto.bombardRange, proto.rateOfFire);
 
@@ -149,7 +165,7 @@ namespace C7GameData {
 			terraformActions = proto.terraformActions.Select(id => terraforms.First(t => t.Id == id)).ToHashSet();
 		}
 
-		public int ShieldCost(HashSet<Civilization.Trait> civTraits, float costFactor) {
+		public int ShieldCost(Player player, float costFactor) {
 			return (int)(shieldCost * costFactor);
 		}
 
@@ -159,6 +175,10 @@ namespace C7GameData {
 
 		public bool IsSeaUnit() {
 			return categories.Contains("Sea");
+		}
+
+		public bool IsAirUnit() {
+			return categories.Contains("Air");
 		}
 
 		public override string ToString() {

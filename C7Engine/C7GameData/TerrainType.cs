@@ -1,8 +1,7 @@
 namespace C7GameData {
-	using QueryCiv3;
 	using QueryCiv3.Biq;
 	using System.Collections.Generic;
-	using System.Linq;
+	using Save;
 
 	public class TerrainType {
 		//The "key" is a language-independent name for the terrain.  Civ3 relies on their index in the list to know
@@ -18,9 +17,23 @@ namespace C7GameData {
 		public int movementCost { get; set; }
 		public bool allowCities { get; set; } = true;
 		public bool impassable { get; set; }
+
+		// Terrain that is impassable to some unit types but not others, keyed by
+		// unit ability. The value lists the improvements that grant a unit with
+		// that ability passage, so an empty list means nothing does. In Civ3 a
+		// wheeled unit may enter mountains, jungle, marsh and volcano, but only
+		// once the tile is roaded or railed.
+		//
+		// Terrain that is impassable to every unit is the `impassable` flag
+		// above instead, and no improvement lifts that.
+		public Dictionary<SaveUnitPrototype.Flag, string[]> impassableTo = new();
 		public StrengthBonus defenseBonus;
 		public HashSet<string> allowedResources = new();
 		public int height = -1;
+
+		// This only affects our map generation, nothing else.
+		// Also, it's currently only applicable to the 3 "vegetation" terrain types: forest, marsh, jungle
+		public HashSet<string> allowedInTerrain = new();
 
 		// These enum and field are kept for compatibility with CIV3 saves.
 		public enum Civ3FoliageAction {
@@ -40,6 +53,14 @@ namespace C7GameData {
 			return false;
 		}
 
+		public bool isHills() {
+			return Key.Equals("hills");
+		}
+
+		public bool isMountain() {
+			return Key.Equals("mountains");
+		}
+
 		public bool isVolcano() {
 			return Key.Equals("volcano");
 		}
@@ -56,6 +77,22 @@ namespace C7GameData {
 
 		public bool isSea() {
 			return Key.Equals("sea");
+		}
+
+		public bool isOcean() {
+			return Key.Equals("ocean");
+		}
+
+		public bool isJungle() {
+			return Key.Equals("jungle");
+		}
+
+		public bool isForest() {
+			return Key.Equals("forest");
+		}
+
+		public bool isMarsh() {
+			return Key.Equals("marsh");
 		}
 
 		public override string ToString() {
@@ -82,13 +119,19 @@ namespace C7GameData {
 				allowedFoliageAction = LoadFoliageAction(civ3Terrain),
 			};
 
-			if (c7Terrain.Key == "mountains" || c7Terrain.Key == "volcano") {
+			// Civ3's only unit-specific terrain restriction. It is not absolute:
+			// a road or railroad on the tile lets wheeled units through, so
+			// record both the restriction and what lifts it.
+			if (civ3Terrain.ImpassableByWheeled != 0)
+				c7Terrain.impassableTo[SaveUnitPrototype.Flag.Wheeled] = [Tile.TileOverlays.ROAD, Tile.TileOverlays.RAILROAD];
+
+			if (c7Terrain.isMountain() || c7Terrain.isVolcano()) {
 				c7Terrain.height = 4;
-			} else if (c7Terrain.Key == "hills") {
+			} else if (c7Terrain.isHills()) {
 				c7Terrain.height = 2;
-			} else if (c7Terrain.Key == "ocean" || c7Terrain.Key == "sea" || c7Terrain.Key == "coast" || c7Terrain.Key == "marsh") {
+			} else if (c7Terrain.isOcean() || c7Terrain.isSea() || c7Terrain.isCoast() || c7Terrain.isMarsh()) {
 				c7Terrain.height = -2;
-			} else if (c7Terrain.Key == "forest" || c7Terrain.Key == "jungle") {
+			} else if (c7Terrain.isForest() || c7Terrain.isJungle()) {
 				c7Terrain.height = 1;
 			} else {
 				c7Terrain.height = 0;
