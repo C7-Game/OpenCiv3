@@ -13,8 +13,8 @@ namespace C7GameData {
 		}
 
 		public HashSet<Tile> knownTiles { get; private set; } = new();
-		private Dictionary<ID, IEnumerable<string>> knownTerrainImprovements { get; set; } = new();
-		public IReadOnlyDictionary<ID, IEnumerable<string>> KnownTerrainImprovements => knownTerrainImprovements;
+		private Dictionary<ID, ICollection<string>> knownTerrainImprovements { get; set; } = new();
+		public IReadOnlyDictionary<ID, ICollection<string>> KnownTerrainImprovements => knownTerrainImprovements;
 		public HashSet<Tile> borderTiles { get; private set; } = new();
 		public HashSet<Tile> activeTiles = new HashSet<Tile>();
 
@@ -242,6 +242,12 @@ namespace C7GameData {
 				return;
 			}
 			knownTerrainImprovements[id] = improvementList;
+		}
+
+		public void MaybeRemoveTerrainImprovement(ID id, string improvementKey) {
+			if (_player.tileKnowledge.KnownTerrainImprovements.TryGetValue(id, out var improvements)) {
+				_player.tileKnowledge.UpdateOverlayTileKnowledgeFor(id, improvements.Where(ti => ti != improvementKey));
+			}
 		}
 
 		public bool KnowsAboutOverlay(Tile tile, string overlayKey) {

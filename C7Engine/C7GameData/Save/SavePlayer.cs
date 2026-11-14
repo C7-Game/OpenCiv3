@@ -170,13 +170,13 @@ namespace C7GameData.Save {
 				playerRelationships.Add(keyValuePair.Key.ToString(), keyValuePair.Value);
 			}
 
-			foreach (var tkti in player.tileKnowledge.KnownTerrainImprovements) {
-				if (!tkti.Value.Any()) continue;
-				if (knownTerrainImprovements.TryGetValue(tkti.Key.ToString(), out var existing)) {
-					knownTerrainImprovements[tkti.Key.ToString()] = existing.Concat(tkti.Value).ToList();
-				} else {
-					knownTerrainImprovements.TryAdd(tkti.Key.ToString(), tkti.Value.ToList());
-				}
+			foreach (var (tile, improvements) in player.tileKnowledge.KnownTerrainImprovements) {
+				if (!improvements.Any()) continue;
+
+				if (!knownTerrainImprovements.ContainsKey(tile.ToString()))
+					knownTerrainImprovements[tile.ToString()] = [];
+
+				knownTerrainImprovements[tile.ToString()].AddRange(improvements);
 			}
 		}
 

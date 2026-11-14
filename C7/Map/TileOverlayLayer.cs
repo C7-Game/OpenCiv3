@@ -91,19 +91,18 @@ namespace C7.Map {
 		}
 
 		private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {
-			var knownTerrainImprovements = new List<TerrainImprovement>();
-			if (!EngineStorage.gameData.observerMode) {
-				var knownImprovements = player.tileKnowledge.KnownTerrainImprovements;
+			if (EngineStorage.gameData.observerMode) return tile.overlays.GetImprovements().ToList();
 
+			var knownTerrainImprovements = new List<TerrainImprovement>();
+			var knownImprovements = player.tileKnowledge.KnownTerrainImprovements;
+
+			if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {
 				foreach (var improvement in terrainImprovements) {
-					if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {
-						if (imprs.Contains(improvement.key))
-							knownTerrainImprovements.Add(improvement);
-					}
+					if (imprs.Contains(improvement.key))
+						knownTerrainImprovements.Add(improvement);
 				}
-				return knownTerrainImprovements;
 			}
-			return tile.overlays.GetImprovements().ToList();
+			return knownTerrainImprovements;
 		}
 
 		private void DrawIrrigation(LooseView looseView, Tile tile, Rect2 screenTarget) {
