@@ -889,6 +889,21 @@ public partial class Game : Node {
 		}
 	}
 
+	// The advisor or game view each function key opens.
+	private static readonly Dictionary<Godot.Key, (StringName signal, string target)> NavigationKeys = new() {
+		[Godot.Key.F1] = (SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor),
+		[Godot.Key.F2] = (SignalName.ShowSpecificAdvisor, C7Action.ShowTradeAdvisor),
+		[Godot.Key.F3] = (SignalName.ShowSpecificAdvisor, C7Action.ShowMilitaryAdvisor),
+		[Godot.Key.F4] = (SignalName.ShowSpecificAdvisor, C7Action.ShowForeignAdvisor),
+		[Godot.Key.F5] = (SignalName.ShowSpecificAdvisor, C7Action.ShowCulturalAdvisor),
+		[Godot.Key.F6] = (SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor),
+		[Godot.Key.F7] = (SignalName.ShowGameView, C7Action.ShowWondersView),
+		[Godot.Key.F8] = (SignalName.ShowGameView, C7Action.ShowVictoryStatusView),
+		[Godot.Key.F9] = (SignalName.ShowGameView, C7Action.ShowPalaceView),
+		[Godot.Key.F10] = (SignalName.ShowGameView, C7Action.ShowSpaceRaceView),
+		[Godot.Key.F11] = (SignalName.ShowGameView, C7Action.ShowDemographicsView),
+	};
+
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {
 		if (interactablePopUpController.Visible)
 			return;
@@ -911,39 +926,8 @@ public partial class Game : Node {
 			return;
 		}
 
-		if (eventKeyDown.Keycode == Godot.Key.F1) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F2) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowTradeAdvisor);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F3) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowMilitaryAdvisor);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F4) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowForeignAdvisor);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F5) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowCulturalAdvisor);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F6) {
-			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
-		}
-
-		if (eventKeyDown.Keycode == Godot.Key.F7) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowWondersView);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F8) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowVictoryStatusView);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F9) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowPalaceView);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F10) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowSpaceRaceView);
-		}
-		if (eventKeyDown.Keycode == Godot.Key.F11) {
-			EmitSignal(SignalName.ShowGameView, C7Action.ShowDemographicsView);
+		if (NavigationKeys.TryGetValue(eventKeyDown.Keycode, out (StringName signal, string target) navigation)) {
+			EmitSignal(navigation.signal, navigation.target);
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.C && HasCurrentlySelectedUnit()) {
