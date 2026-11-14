@@ -74,6 +74,7 @@ namespace C7GameData {
 
 		public bool observerMode = false;
 		public bool showGridCoordinates = false;
+		public bool revealMap = false;
 
 		public string scenarioSearchPath;   //legacy from Civ3, we'll probably have a more modern format someday but this keeps legacy compatibility
 
@@ -146,8 +147,13 @@ namespace C7GameData {
 			int n = experienceLevels.IndexOf(experienceLevel);
 			if (n + 1 < experienceLevels.Count)
 				return experienceLevels[n + 1];
-			else
-				return null;
+			return null;
+		}
+		public ExperienceLevel GetExperienceLevelBefore(ExperienceLevel experienceLevel) {
+			int n = experienceLevels.IndexOf(experienceLevel);
+			if (n - 1 >= 0)
+				return experienceLevels[n - 1];
+			return null;
 		}
 
 		// Players are in an active locked war (can't make peace)
@@ -251,8 +257,13 @@ namespace C7GameData {
 		public void CheckForCivDestructionAndNotifyUi(Player player) {
 			if (this.CheckForCivDestruction(player)) {
 				this.CivDestructionCallback(player);
+
 				// Let the UI know about the civ destruction.
-				new MsgCivilizationDestroyed(EngineStorage.uiControllerID, player.civilization).send();
+				if (player.id == EngineStorage.uiControllerID) {
+					new MsgPlayerDefeated(EngineStorage.uiControllerID).send();
+				} else {
+					new MsgCivilizationDestroyed(EngineStorage.uiControllerID, player.civilization).send();
+				}
 			}
 		}
 
@@ -292,9 +303,9 @@ namespace C7GameData {
 		}
 
 		[LuaMethod]
-		public void SendMessageToUiFromLua(string message, Tile location) {
+		public void SendMessageToUiFromLua(ID receiver, string message, Tile location) {
 			log.Information($"[LUA API] - {message}");
-			new MsgShowTemporaryPopup(message, location).send();
+			new MsgShowTemporaryPopup(receiver, message, location).send();
 
 		}
 

@@ -152,8 +152,8 @@ namespace C7Engine {
 		}
 
 		private static void SanitizeWorldCharacteristics(MapGeneratorData mgd) {
-			// TODO: Supporting maps of odd dimensions should be doable, but beyond current tiling implementation 
-			// As a mitigation, we simply shrink the map dimensions a bit 
+			// TODO: Supporting maps of odd dimensions should be doable, but beyond current tiling implementation
+			// As a mitigation, we simply shrink the map dimensions a bit
 
 			if (mgd.worldCharacteristics.worldSize.width % 2 == 1) {
 				log.Warning("Uneven map width. Shrinking by one.");
@@ -403,7 +403,8 @@ namespace C7Engine {
 					continue;
 				}
 				if (height >= mountainLowerBound && height < mountainUpperBound) {
-					if (random.Next(100) < volcanoPercent) {
+					// prevent volcanoes from spawning next to each other
+					if (random.Next(100) < volcanoPercent && t.FindInRing(1, tile => tile.overlayTerrainType.isVolcano()) == null) {
 						t.overlayTerrainType = volcano;
 					} else {
 						t.overlayTerrainType = mountains;
@@ -1378,7 +1379,6 @@ namespace C7Engine {
 				Tile t = m.tiles[tileIndicies[i]];
 				if (IsValidForBarbarianCamp(mgd, m, t)) {
 					m.barbarianCamps.Add(t);
-					t.hasBarbarianCamp = true;
 					++numCamps;
 				}
 			}
@@ -1387,7 +1387,7 @@ namespace C7Engine {
 		/// <summary>
 		/// Apply barbarian activity level to barbarian camp spawn rate. Currently NOT based on Civ3 values.
 		/// TODO: Make configurable
-		/// TODO: Determine what these values are in Civ3 
+		/// TODO: Determine what these values are in Civ3
 		/// </summary>
 		private static int DeriveTotalPossibleBarbCamps(MapGeneratorData mgd, int landTiles) {
 			var totalCampsBaseline = landTiles / 100;
@@ -1429,7 +1429,7 @@ namespace C7Engine {
 
 			// No barbarian camps within the big fat cross of another camp.
 			foreach (Tile n in t.GetTilesWithinRankDistance(mgd.maxRankOfBarbarianCampTiles)) {
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					return false;
 				}
 			}
@@ -1458,7 +1458,7 @@ namespace C7Engine {
 			// Find all viable city locations.
 			Dictionary<Tile, int> scoredTiles = new();
 			foreach (Tile t in m.tiles) {
-				int score = ScorePossibleCityLocation(mgd, t);
+				int score = ScorePossibleCityLocation(mgd, m, t);
 				if (score > 0) {
 					scoredTiles[t] = score;
 				}
@@ -1564,7 +1564,7 @@ namespace C7Engine {
 		}
 
 		// TODO: merge this with the ai logic
-		private static int ScorePossibleCityLocation(MapGeneratorData mgd, Tile t) {
+		private static int ScorePossibleCityLocation(MapGeneratorData mgd, GameMap m, Tile t) {
 			if (!t.IsAllowCities()) {
 				return int.MinValue;
 			}
@@ -1586,7 +1586,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 
@@ -1601,7 +1601,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 			}
