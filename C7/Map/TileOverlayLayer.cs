@@ -156,7 +156,7 @@ public class TileOverlayLayer : LooseLayer {
 		if (roadIndex != 0) {
 			looseView.DrawTextureRectRegion(roadTexture, screenTarget, GetRoadRect(roadIndex));
 		}
-		looseView.DrawTextureRectRegion(railroadTexture, screenTarget, GetRoadRect(railroadIndex));
+		looseView.DrawTextureRectRegion(railroadTexture, screenTarget, GetRailRoadRect(tile, railroadIndex));
 	}
 
 	private void DrawRuins(LooseView looseView, Tile tile, Vector2 tileCenter) {
@@ -239,7 +239,6 @@ public class TileOverlayLayer : LooseLayer {
 
 	// Railroad textures have an extra row compared to road textures
 	// which it's used for 8x8 connections, so we choose one randomly to add variation
-	// private Rect2 GetRailRoadRect(ID id, int index) {
 	private Rect2 GetRailRoadRect(Tile tile, int index) {
 		int row = index >> 4;
 		int column = index & 0xF;
