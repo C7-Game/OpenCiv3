@@ -8,9 +8,7 @@ using C7.UIElements;
 using C7Engine.Pathing;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using C7.UIElements;
 using C7.UIElements.Popups;
 using static AdvisorHead;
 using static C7GameData.MapUnit;
@@ -447,8 +445,9 @@ public partial class Game : Node {
 				EmitAlreadyInRevolutionSignal(mAIR);
 				break;
 			case MsgShowTemporaryPopup mSTP:
-				Vector2 pos = mapView.screenLocationOfTile(mSTP.location, true);
-				TemporaryPopup.Show(this, mSTP.message, pos);
+				if (mSTP.controllerId != this.controller.id) return;
+				if (EngineStorage.gameData.observerMode) return; // TODO: make configurable
+				TemporaryPopup.Show(this.mapView, this, mSTP.message, mSTP.location);
 				break;
 			case MsgUnitMoved mUUAAB:
 				EmitSignal(SignalName.UnitMoved, new ParameterWrapper<MapUnit>(mUUAAB.Unit));
@@ -794,7 +793,7 @@ public partial class Game : Node {
 		Tile tile = PositionToTile(screenPosition);
 
 		if (!canMove) {
-			new MsgShowTemporaryPopup("This unit has already moved.", tile).send();
+			new MsgShowTemporaryPopup(controller.id, "This unit has already moved.", tile).send();
 		}
 	}
 
@@ -839,7 +838,7 @@ public partial class Game : Node {
 	public void ShowTileInfo(Tile tile) {
 		tileInfo = new TileInfo(tile);
 		var zoom = mapView.cameraZoom;
-		var tileCenter = mapView.screenLocationOfTile(tile, true);
+		var tileCenter = mapView.screenLocationOfTileAbsolute(tile, true);
 		var tileInfoPopup = new TileInfoPopup(this, tile, tileCenter, zoom);
 		popupOverlay.ShowPopup(tileInfoPopup, PopupOverlay.PopupCategory.TileInfo);
 	}
@@ -1332,15 +1331,15 @@ public partial class Game : Node {
 		log.Debug($"Resolve movement intent: {info.intent}");
 
 		if (info.intent == Intent.NoticeUnit) {
-			new MsgShowTemporaryPopup($"Non-combat units may not attack.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"Non-combat units may not attack.", info.destinationTile).send();
 			return;
 		}
 		if (info.intent == Intent.NoticeCity) {
-			new MsgShowTemporaryPopup($"Only combat units can capture cities and improvements.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"Only combat units can capture cities and improvements.", info.destinationTile).send();
 			return;
 		}
 		if (info.intent == Intent.NoticeAlliance) {
-			new MsgShowTemporaryPopup($"No aggression against alliance.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"No aggression against alliance.", info.destinationTile).send();
 			return;
 		}
 

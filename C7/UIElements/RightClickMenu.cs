@@ -316,7 +316,7 @@ public partial class RightClickTileMenu : RightClickMenu {
 					if (!hasSelectedUnit && !isFortify) {
 						bool canMove = game.unitSelector.SetSelectedUnit(unit);
 						if (!canMove) {
-							new MsgShowTemporaryPopup("This unit has already moved.", tile).send();
+							new MsgShowTemporaryPopup(unit.owner.id, "This unit has already moved.", tile).send();
 						}
 					}
 				}

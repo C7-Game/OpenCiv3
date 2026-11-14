@@ -104,8 +104,7 @@ public partial class UnitButtons : VBoxContainer {
 			button.TooltipText = tooltipText;
 
 			var customTheme = new Theme();
-			customTheme.SetStylebox("panel", "TooltipPanel", TemporaryPopup.TooltipStyleBox());
-			customTheme.SetColor("font_color", "TooltipLabel", Colors.White);
+			customTheme.SetStylebox("panel", "TooltipPanel", TemporaryPopup.InfoStyleBox());
 			button.Theme = customTheme;
 		}
 
