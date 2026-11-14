@@ -77,7 +77,7 @@ public static class AudioLoader {
 		throw new ArgumentException($"Invalid audio config format: {entry?.GetType().Name ?? "null"}");
 	}
 
-	private static AudioStream LoadFromPath(string path) {
+	public static AudioStream LoadFromPath(string path) {
 		string ext = Path.GetExtension(path).ToLowerInvariant();
 
 		return ext switch {

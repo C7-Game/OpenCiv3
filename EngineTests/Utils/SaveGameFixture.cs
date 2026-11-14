@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using C7Engine;
 using C7Engine.Lua;
@@ -61,6 +62,20 @@ public class SaveGameFixture : IDisposable {
 		};
 
 		gameSetup.Populate(save);
+
+		var nonBarbCivs = save.Civilizations.Where(c => !c.isBarbarian).Select(c => c.name).ToList();
+
+		foreach (var player in save.Players) {
+			if (nonBarbCivs.Contains(player.civilization)) {
+				if (!save.History.ContainsKey(player.id.ToString()))
+					save.History[player.id.ToString()] = new List<HistTurnRecord>();
+			}
+		}
+
+		foreach (var mapBarbarianCamp in save.Map.barbarianCamps) {
+			save.Map.tiles.First(t => t.X == mapBarbarianCamp.X && t.Y == mapBarbarianCamp.Y).overlays.Add("barbarianCamp");
+			mapBarbarianCamp.overlays.Add("barbarianCamp");
+		}
 
 		return save;
 	}

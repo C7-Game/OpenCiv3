@@ -34,10 +34,15 @@ local function disband_reward(context)
     end
 
     local reward = math.floor(unit_shield_cost * rules().ShieldRateForDisbanding)
-    game_data().SendMessageToUiFromLua("Our " .. unit.name .. " has been converted to " .. reward .. " shields.",
+    game_data().SendMessageToUiFromLua(unit.owner.id, "Our " .. unit.name .. " has been converted to " .. reward .. " shields.",
       unit.location)
     city.SetStoredShields(reward, true)
   end
+end
+
+-- Barbarians that reach a city carry away a quarter of its owner's gold.
+local function ransack_gold(barbarian, city)
+  return math.floor(city.owner.gold / 4)
 end
 
 local function get_display_time_text(raw_time)
@@ -123,6 +128,13 @@ gameplay = {
     -- Context = MapUnit mapUnit
     disband = function(context)
       disband_reward(context)
+    end,
+  },
+  barbarians = {
+    -- Context = MapUnit barbarian, City city
+    -- Returns the gold the barbarian takes from the city's owner when it ransacks the city.
+    ransack_gold = function(barbarian, city)
+      return ransack_gold(barbarian, city)
     end,
   },
   time = {

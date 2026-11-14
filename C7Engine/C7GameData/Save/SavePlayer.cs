@@ -18,6 +18,7 @@ namespace C7GameData.Save {
 		public string civilization;
 
 		public List<TileLocation> tileKnowledge = new List<TileLocation>();
+		public Dictionary<string, List<string>> knownTerrainImprovements = new ();
 
 		// A map from player id to the relationship this player has with the other player.
 		public Dictionary<string, PlayerRelationship> playerRelationships = new();
@@ -30,6 +31,9 @@ namespace C7GameData.Save {
 
 		// The tech queue the player is currently researching.
 		public List<ID> researchQueue = new();
+
+		// How many free tech advances the player still has to spend.
+		public int freeTechsRemaining;
 
 		// The civilopedia name of the era this player is in.
 		//
@@ -98,6 +102,9 @@ namespace C7GameData.Save {
 			foreach (TileLocation tile in tileKnowledge) {
 				player.tileKnowledge.AddTileToKnown(map.tileAt(tile.X, tile.Y));
 			}
+
+			player.tileKnowledge.FromSerializedImprovementsData(knownTerrainImprovements);
+
 			foreach (ID techId in player.civilization.startingTechs) {
 				if (!player.knownTechs.Contains(techId)) {
 					player.knownTechs.Add(techId);
@@ -118,6 +125,8 @@ namespace C7GameData.Save {
 				Tech tech = techs.Find(x => x.id == techId);
 				player.AddTechItemToResearchQueue(tech);
 			}
+
+			player.freeTechsRemaining = freeTechsRemaining;
 
 			if (player.civilization.isBarbarian) {
 				player.canBePicked = false;
@@ -146,6 +155,7 @@ namespace C7GameData.Save {
 			knownTechs = player.knownTechs;
 			currentlyResearchedTech = player.currentlyResearchedTech;
 			researchQueue = new List<ID>(player.ResearchQueue.Select(t => t.id));
+			freeTechsRemaining = player.freeTechsRemaining;
 			eraCivilopediaName = player.eraCivilopediaName;
 			luxuryRate = player.luxuryRate;
 			scienceRate = player.scienceRate;
@@ -158,6 +168,15 @@ namespace C7GameData.Save {
 
 			foreach (KeyValuePair<ID, PlayerRelationship> keyValuePair in player.playerRelationships) {
 				playerRelationships.Add(keyValuePair.Key.ToString(), keyValuePair.Value);
+			}
+
+			foreach (var (tile, improvements) in player.tileKnowledge.KnownTerrainImprovements) {
+				if (!improvements.Any()) continue;
+
+				if (!knownTerrainImprovements.ContainsKey(tile.ToString()))
+					knownTerrainImprovements[tile.ToString()] = [];
+
+				knownTerrainImprovements[tile.ToString()].AddRange(improvements);
 			}
 		}
 

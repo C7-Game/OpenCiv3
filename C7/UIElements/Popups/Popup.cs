@@ -48,8 +48,8 @@ public partial class Popup : TextureRect {
 		button.SetPosition(new Vector2(HORIZONTAL_POSITION, verticalPosition));
 		AddChild(button);
 		button.Pressed += () => {
-			action();
 			ReleaseFocus();
+			action();
 		};
 	}
 

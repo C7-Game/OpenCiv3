@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://gnt0y3og7nk6"]
+[gd_scene load_steps=14 format=3 uid="uid://gnt0y3og7nk6"]
 
 [ext_resource type="Script" uid="uid://dgpuse88jc2hc" path="res://UIElements/MainMenu/MainMenu.cs" id="1_akneh"]
 [ext_resource type="Texture2D" uid="uid://s55xvcaini8h" path="res://title-screen.png" id="2_erxyj"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://ovwv08a53d7k" path="res://title.png" id="4_brea7"]
 [ext_resource type="PackedScene" uid="uid://bvncm1bgcii5e" path="res://UIElements/civ3_file_dialog.tscn" id="5_rw2g7"]
 [ext_resource type="Script" uid="uid://34cq5uvdrhkp" path="res://UIElements/MainMenu/Civ3MenuButton.cs" id="6_civ3btn"]
+[ext_resource type="PackedScene" uid="uid://dovuaki161yfi" path="res://UIElements/preferences.tscn" id="6_prefs"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbij8"]
 
@@ -22,14 +23,14 @@ font_size = 10
 font_color = Color(0, 0, 0, 1)
 shadow_color = Color(1, 1, 1, 0.533333)
 
-[node name="MainMenu" type="Node" node_paths=PackedStringArray("LoadDialog", "NoCiv3Options", "SetCiv3HomeDialog", "LoadScenarioDialog", "ButtonContainer", "player")]
+[node name="MainMenu" type="Node" node_paths=PackedStringArray("LoadDialog", "NoCiv3Options", "SetCiv3HomeDialog", "LoadScenarioDialog", "ButtonContainer", "preferences")]
 script = ExtResource("1_akneh")
 LoadDialog = NodePath("LoadDialog")
 NoCiv3Options = NodePath("Control/Background/PanelContainer/MarginContainer/NoCiv3Options")
 SetCiv3HomeDialog = NodePath("SetCiv3HomeDialog")
 LoadScenarioDialog = NodePath("LoadScenarioDialog")
 ButtonContainer = NodePath("Control/Background/PanelContainer/MarginContainer/MainMenuContainer")
-player = NodePath("SoundEffectPlayer")
+preferences = NodePath("Preferences")
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -278,8 +279,6 @@ horizontal_alignment = 1
 vertical_alignment = 2
 autowrap_mode = 3
 
-[node name="SoundEffectPlayer" type="AudioStreamPlayer" parent="."]
-
 [node name="SetCiv3HomeDialog" type="FileDialog" parent="."]
 mode = 3
 title = "Open a Directory"
@@ -293,6 +292,9 @@ access = 2
 visible = false
 
 [node name="LoadScenarioDialog" parent="." instance=ExtResource("5_rw2g7")]
+visible = false
+
+[node name="Preferences" parent="." instance=ExtResource("6_prefs")]
 visible = false
 
 [connection signal="pressed" from="Control/Background/PanelContainer/MarginContainer/NoCiv3Options/SetCiv3Home" to="." method="_on_SetCiv3Home_pressed"]

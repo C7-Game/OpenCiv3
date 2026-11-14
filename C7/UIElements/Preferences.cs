@@ -1,0 +1,103 @@
+using System;
+using C7.UIElements;
+using Godot;
+
+/**
+ * User preferences: settings that stay stable across games and scenarios, so
+ * they are stored in C7.ini rather than in the save file.
+ *
+ * Deliberately not a PopupOverlay child. Preferences is a main menu style view,
+ * not a lightweight in-game modal, so it is a full scene shown and hidden in
+ * place, like the advisors.
+ */
+[GlobalClass]
+public partial class Preferences : Control {
+	[Export] Civ3Checkbox promptForResearch;
+
+	// TODO: Make an audio volume control scene
+
+	[Export] Civ3HSlider masterVolume;
+	[Export] Civ3HSlider musicVolume;
+	[Export] Civ3HSlider sfxVolume;
+	[Export] Civ3HSlider uiVolume;
+	[Export] Civ3HSlider ambienceVolume;
+	[Export] Label masterVolumeLabel;
+	[Export] Label musicVolumeLabel;
+	[Export] Label sfxVolumeLabel;
+	[Export] Label uiVolumeLabel;
+	[Export] Label ambienceVolumeLabel;
+	[Export] Control masterVolumeRow;
+	[Export] Control musicVolumeRow;
+	[Export] Control sfxVolumeRow;
+	[Export] Control uiVolumeRow;
+	[Export] Control ambienceVolumeRow;
+	[Export] Civ3TextureButton close;
+	[Export] TextureRect background;
+
+	private AudioManager _audioManager;
+
+	public override void _Ready() {
+		_audioManager = GlobalAudio.manager;
+
+		// Match the advisor screens: the background texture is set on the
+		// TextureRect via textureConfigKey, and the title is drawn with the
+		// shared helper so the font and spacing match the other full-screen views.
+		AdvisorUtils.CreateAdvisorTitle(background, background.Texture.GetWidth(), "PREFERENCES");
+
+		promptForResearch.ButtonPressed = PreferencesSettings.GetPromptForResearch();
+		promptForResearch.Toggled += enabled => {
+			PreferencesSettings.SetPromptForResearch(enabled);
+		};
+
+		ConnectVolumeSlider(masterVolumeRow, masterVolume, masterVolumeLabel, AudioManager.MasterBus,
+			() => { }); // music is always playing (through master)
+
+		ConnectVolumeSlider(musicVolumeRow, musicVolume, musicVolumeLabel, AudioManager.MusicBus,
+			() => { }); // music is always playing
+
+		ConnectVolumeSlider(sfxVolumeRow, sfxVolume, sfxVolumeLabel, AudioManager.SfxAudioBus,
+			() => _audioManager.PlaySfxAudio("extra.warrior.victory"));
+
+		ConnectVolumeSlider(uiVolumeRow, uiVolume, uiVolumeLabel, AudioManager.UIAudioBus,
+			() => _audioManager.PlayUIAudio("buttons.button_1"));
+
+		ConnectVolumeSlider(ambienceVolumeRow, ambienceVolume, ambienceVolumeLabel, AudioManager.AmbienceAudioBus,
+			() => _audioManager.PlayAmbienceAudio("ambience.oriole"));
+
+		TextureLoader.SetButtonTextures(close, "ui.exit");
+		close.Pressed += HidePreferences;
+	}
+
+	private void ConnectVolumeSlider(Control row, Civ3HSlider slider, Label valueLabel, string bus,
+		Action callback) {
+		int volume = _audioManager.GetBusVolume(bus);
+		if (volume < 0) {
+			row.Visible = false;
+			return;
+		}
+
+		slider.Value = volume;
+		UpdateVolumeLabel(valueLabel, volume);
+
+		slider.ValueChanged += value => {
+			UpdateVolumeLabel(valueLabel, (int)value);
+			_audioManager.SetBusVolumePercent(bus, (int)value);
+		};
+		slider.DragEnded += changed => {
+			_audioManager.SetBusVolume(bus, (int)slider.Value);
+			callback?.Invoke();
+		};
+	}
+
+	private static void UpdateVolumeLabel(Label label, int volume) {
+		label.Text = volume == 0 ? "Off" : $"{volume}%";
+	}
+
+	public void ShowPreferences() {
+		Show();
+	}
+
+	public void HidePreferences() {
+		Hide();
+	}
+}

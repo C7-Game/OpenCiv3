@@ -4,10 +4,13 @@ using System.Diagnostics;
 using C7Engine;
 using C7GameData;
 using Serilog;
+using C7.UIElements;
 using C7Engine.Pathing;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using C7.UIElements.Popups;
+using static AdvisorHead;
 using static C7GameData.MapUnit;
 
 public class GotoInfo {
@@ -96,6 +99,7 @@ public partial class Game : Node {
 	[Signal] public delegate void PlayerTurnStartEventHandler();
 	[Signal] public delegate void PlayerTurnEndEventHandler();
 	[Signal] public delegate void GameInitializedEventHandler();
+	[Signal] public delegate void InteractivePopUpEventHandler();
 
 	[Signal] public delegate void UnitMovedEventHandler();
 
@@ -114,7 +118,10 @@ public partial class Game : Node {
 	private GameViews gameViews;
 	[Export]
 	private Diplomacy diplomacy;
-
+	[Export]
+	private Preferences preferences;
+	[Export]
+	private InteractablePopUpController interactablePopUpController;
 	[Export]
 	private DoubleClickHandler doubleClickHandler;
 	[Export]
@@ -171,6 +178,8 @@ public partial class Game : Node {
 		FileDialog.Canceled += OnResolved;
 		FileDialog.FileSelected += path => OnResolved();
 
+		advisor.VisibilityChanged += OnAdvisorVisibilityChanged;
+
 		try {
 			await InitializeGame();
 			await StartGame();
@@ -209,8 +218,7 @@ public partial class Game : Node {
 	}
 
 	private void InitializeAudio() {
-		AudioManager audio = GetNode<AudioManager>("/root/GlobalAudioManager");
-		audio.StopMusic();
+		GlobalAudio.manager.StopMusic();
 		// TODO: switch to in-game playlist / music logic
 	}
 
@@ -224,6 +232,11 @@ public partial class Game : Node {
 		log.Information("Game scene load time: " + Convert.ToInt32(stopwatchElapsed.TotalMilliseconds) + " ms");
 
 		EmitSignal(SignalName.GameInitialized);
+
+		if (Global.LoadGamePath == null) {
+			new MsgNewGame(controller.id).send();
+			await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
+		}
 
 		Global.ResetLoadGameFields();
 	}
@@ -247,6 +260,10 @@ public partial class Game : Node {
 				Util.setModPath(scenarioSearchPath);
 				log.Debug("RelativeModPath ", scenarioSearchPath);
 				return Util.Civ3MediaPath("Text/PediaIcons.txt");
+			},
+			GetCivilopediaTextPath = (scenarioSearchPath) => {
+				Util.setModPath(scenarioSearchPath);
+				return Util.Civ3MediaPath("Text/Civilopedia.txt");
 			},
 			GameModeLoader = (config) => {
 				Global.ActivateGameMode(config);
@@ -280,7 +297,7 @@ public partial class Game : Node {
 			AddChild(mapView);
 
 			mapView.cameraZoom = (float)1.0;
-			mapView.gridLayer.visible = false;
+			mapView.gridLayer.visible = PreferencesSettings.GetShowGrid();
 
 			if (!cameraLocation.HasValue) {
 				// Set initial camera location. If the UI controller has any cities, focus on their capital. Otherwise, focus on their
@@ -314,8 +331,20 @@ public partial class Game : Node {
 		GameData gameData = EngineStorage.gameData;
 
 		switch (msg) {
+			case MsgNewGame mNGP:
+				EmitDawnOfCivilizationSignal(mNGP);
+				break;
 			case MsgStartTurn mST:
 				OnPlayerStartTurn();
+				break;
+			case MsgGameMainMenu mMM:
+				EmitGameMainMenuSignal();
+				break;
+			case MsgDiplomacyPopUp mDP:
+				EmitDiplomacyPopUpSignal();
+				break;
+			case MsgScienceGuidance mSG:
+				EmitScienceGuidanceSignal();
 				break;
 			case MsgShowCityScreen mSCS:
 				ShowCityScreenForCity(gameData, mSCS.city);
@@ -324,21 +353,38 @@ public partial class Game : Node {
 				ShowCityScreenForCity(gameData, mCC.city);
 				break;
 			case MsgCityDestroyed mCD:
-				mapView.cityLayer.UpdateAfterCityDestruction(mCD.city);
+				if (mCD.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mCD.city.location);
+				this.mapView.cityLayer.UpdateAfterCityDestruction(mCD.city);
+				break;
+			case MsgCityRaised mCR:
+				if (mCR.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mCR.city.location);
+				this.mapView.cityLayer.UpdateAfterCityDestruction(mCR.city);
+				this.EmitCityRaisedSignal(mCR);
+				break;
+			case MsgCityRansacked mCRS:
+				if (mCRS.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mCRS.city.location);
+				this.EmitCityRansackedSignal(mCRS);
 				break;
 			case MsgCivilizationDestroyed mCivD:
-				popupOverlay.ShowPopup(new CivilizationDestroyed(mCivD.civilization), PopupOverlay.PopupCategory.Advisor);
+				this.EmitCivilizationDestroyedSignal(mCivD);
 				InterestingEvent();
 				break;
-			case MsgShowMilitaryAdvisorPopup mSMAP:
-				if (!popupOverlay.Visible) {
-					var mood = mSMAP.happy ? AdvisorHead.Mood.Happy : AdvisorHead.Mood.Angry;
-					var pop = new InformationalPopup(mSMAP.message, AdvisorHead.Advisor.Military, mood);
-					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Advisor);
-				}
+			case MsgBarbarianCampDispersed mBCD:
+				if (mBCD.controllerId == controller.id)
+					this.EmitBarbarianCampDispersedSignal(mBCD);
+				break;
+			case MsgPlayerDefeated mPD:
+				this.EmitDefeatSignal(mPD.playerId);
+				InterestingEvent();
 				break;
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
+				break;
+			case MsgPromptResearch:
+				PromptForResearchIfNeeded();
 				break;
 			case MsgUpdateUiAfterDomesticChange mUUASC:
 				// Ensure the citizen moods are correct before displaying them.
@@ -354,42 +400,54 @@ public partial class Game : Node {
 					humanWants: mSTO.aiGive);
 				break;
 			case MsgDisplayHurryProductionPopup mDHPP:
-				if (mDHPP.details.errorMessage != null) {
-					popupOverlay.ShowPopup(
-						new InformationalPopup(mDHPP.details.errorMessage),
-						PopupOverlay.PopupCategory.Advisor);
-				} else {
-					popupOverlay.ShowPopup(
-						new ConfirmationPopup(message: mDHPP.details.costMessage,
-												yesText: "Yes I'm sure!",
-												noText: "Maybe you're right. Nevermind.",
-												yesAction: () => {
-													new MsgDoHurryProduction(mDHPP.city).send();
-												}),
-						PopupOverlay.PopupCategory.Advisor);
-				}
+				EmitHurryProductionSignal(mDHPP);
 				break;
 			case MsgDisplayStopWorkerActionPopup mDSWA:
-				popupOverlay.ShowPopup(
-					new ConfirmationPopup(
-						$"This worker has been ordered to {C7Action.ToTooltip(mDSWA.workerJob.UIAction)} and will be done in {mDSWA.turnsLeft} turns." +
-						$"\nDo you want them to stop?",
-						"Yes, there is more important work to do!",
-						"No, carry on.",
-						() => {
-							new MsgDoStopWorkerAction(mDSWA.worker).send();
-						}),
-					PopupOverlay.PopupCategory.Advisor);
+				EmitConfirmStopWorkerActionSignal(mDSWA);
 				break;
-			case MsgWarDeclaration mWD:
-				popupOverlay.ShowPopup(
-					new InformationalPopup($"The {mWD.aggressor.civilization.noun} declared war on the {mWD.opponent.civilization.noun}"),
-					PopupOverlay.PopupCategory.Advisor);
+			// this should come before MsgWarDeclarationConfirmation
+			// as this message class inherits from it
+			// and otherwise MsgWarDeclarationConfirmation
+			// will catch both before reaching this
+			case MsgDiplomacyWarDeclarationConfirmation mDWDC:
+				EmitDiplomaticWarDeclarationConfirmationSignal(mDWDC);
 				InterestingEvent();
 				break;
+			case MsgWarDeclarationNotification mWDN:
+				EmitWarDeclarationNotificationSignal(mWDN);
+				InterestingEvent();
+				break;
+			case MsgWarDeclarationConfirmation mWD:
+				EmitWarDeclarationConfirmationSignal(mWD);
+				InterestingEvent();
+				break;
+			case MsgRefuseContact mRC:
+				EmitRefuseContactSignal(mRC);
+				break;
+			case MsgCityRiotWarning mRW:
+				if (mRW.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mRW.city.location);
+				EmitCityRiotWarningSignal(mRW);
+				break;
+			case MsgSelectGovernment mSG:
+				EmitSelectGovernmentSignal(mSG);
+				break;
+			case MsgSelectTransport mSelT:
+				EmitSelectTransportSignal(mSelT);
+				break;
+			case MsgConfirmStartRevolution mSR:
+				EmitStartARevolutionSignal(mSR);
+				break;
+			case MsgDescendIntoAnarchy mDIA:
+				EmitDescendIntoAnarchySignal(mDIA);
+				break;
+			case MsgAlreadyInRevolution mAIR:
+				EmitAlreadyInRevolutionSignal(mAIR);
+				break;
 			case MsgShowTemporaryPopup mSTP:
-				Vector2 pos = mapView.screenLocationOfTile(mSTP.location, true);
-				TemporaryPopup.Show(this, mSTP.message, pos);
+				if (mSTP.controllerId != this.controller.id) return;
+				if (EngineStorage.gameData.observerMode) return; // TODO: make configurable
+				TemporaryPopup.Show(this.mapView, this, mSTP.message, mSTP.location);
 				break;
 			case MsgUnitMoved mUUAAB:
 				EmitSignal(SignalName.UnitMoved, new ParameterWrapper<MapUnit>(mUUAAB.Unit));
@@ -399,31 +457,21 @@ public partial class Game : Node {
 				EmitSignal(SignalName.UnitMoved, new ParameterWrapper<MapUnit>(mTU.Unit));
 				break;
 			case MsgDisplayAbandonCityPopup mDACP:
-				popupOverlay.ShowPopup(
-					new ConfirmationPopup(
-						$"Are you sure you want to abandon {mDACP.city.name}?",
-						"Yes, we don't want it anymore.",
-						"No, sorry.",
-						() => {
-							CityInteractions.DestroyCity(mDACP.city);
-						}),
-					PopupOverlay.PopupCategory.Advisor);
+				if (mDACP.city.owner.id == controller.id)
+					this.ensureLocationIsInView(mDACP.city.location);
+				EmitConfirmAbandonCitySignal(mDACP);
+				break;
+			case MsgNameCity mNC:
+				EmitNameCitySignal(mNC);
+				break;
+			case MsgDisbandUnitConfirmation mDUC:
+				EmitDisbandUnitConfirmationSignal(mDUC);
+				break;
+			case MsgReplaceTerrainImprovementConfirmation mRTIC:
+				EmitTerrainImprovementReplacementConfirmationSignal(mRTIC);
 				break;
 			case MsgVictory mV:
-				var endMsg =
-					$"The {mV.winner.civilization.noun} have won a {mV.victory.Header()} victory!\n"
-					+ "This game is over: No further score will be entered.\n\n";
-
-				popupOverlay.ShowPopup(
-					new ConfirmationPopup(
-						endMsg,
-						"Good! I’m Done!",
-						"Wait, lemme just play a couple of more turns...",
-						() => {
-							OnRetire();
-						}),
-					PopupOverlay.PopupCategory.Advisor);
-
+				EmitVictorySignal(mV);
 				InterestingEvent();
 				break;
 		}
@@ -446,7 +494,9 @@ public partial class Game : Node {
 
 	// If "location" is not already near the center of the screen, moves the camera to bring it into view.
 	public void ensureLocationIsInView(Tile location) {
-		if (controller.tileKnowledge.isTileKnown(location) && location != Tile.NONE) {
+		if (EngineStorage.gameData.observerMode)
+			return;
+		if (controller.tileKnowledge.isActiveTile(location) && location != Tile.NONE) {
 			Vector2 relativeScreenLocation = mapView.screenLocationOfTile(location, true) / mapView.getVisibleAreaSize();
 			if (relativeScreenLocation.DistanceTo(new Vector2((float)0.5, (float)0.5)) > 0.30)
 				mapView.centerCameraOnTile(location);
@@ -458,6 +508,40 @@ public partial class Game : Node {
 			OnPlayerEndTurn();
 		} else {
 			log.Information("It's not your turn!");
+		}
+	}
+
+	// Runs any action a popup deferred until an advisor screen was closed.
+	private void OnAdvisorVisibilityChanged() {
+		if (!advisor.Visible) {
+			popupOverlay.OnAdvisorClosed();
+		}
+	}
+
+	// Prompts for a tech to research, or auto-picks one if prompts are disabled.
+	private void PromptForResearchIfNeeded() {
+		if (controller.cities.Count == 0 || popupOverlay.ShowingPopup) {
+			return;
+		}
+		if (controller.GetAvailableTechsToResearch(EngineStorage.gameData.techs).Count == 0) {
+			return;
+		}
+
+		if (controller.freeTechsRemaining > 0) {
+			popupOverlay.ShowPopup(new ScienceSelection(controller, claimingFreeTech: true), PopupOverlay.PopupCategory.Info);
+			return;
+		}
+
+		if (controller.currentlyResearchedTech != null) {
+			return;
+		}
+
+		bool promptForResearch = PreferencesSettings.GetPromptForResearch();
+
+		if (promptForResearch) {
+			popupOverlay.ShowPopup(new ScienceSelection(controller), PopupOverlay.PopupCategory.Info);
+		} else {
+			PlayerAI.MaybePickTechToResearch(controller, EngineStorage.gameData.techs);
 		}
 	}
 
@@ -475,24 +559,12 @@ public partial class Game : Node {
 			// ideal, but we don't yet have a general purpose "show a popup and
 			// wait for the player to acknowledge it" system.
 			if (controller.government.transitionType && TurnHandling.GetTurnNumber() >= controller.inAnarchyUntilTurn) {
-				popupOverlay.ShowPopup(
-					new GovernmentSelection(controller, controller.GetAvailableGovernments(gameData)),
-					PopupOverlay.PopupCategory.Info);
+				new MsgSelectGovernment(this.controller.id).send();
 			}
 
 			// If the player can pick a new tech to research, prompt them to do so
 			// once they have a city.
-			if (controller.cities.Count > 0
-					&& controller.currentlyResearchedTech == null
-					&& controller.GetAvailableTechsToResearch(gameData.techs).Count > 0) {
-				popupOverlay.ShowPopup(
-						new ScienceSelection(controller),
-						PopupOverlay.PopupCategory.Info);
-
-				if (controller.currentlyResearchedTech == null && controller.GetAvailableTechsToResearch(gameData.techs).Count > 0) {
-					PlayerAI.MaybePickTechToResearch(controller, gameData.techs);
-				}
-			}
+			PromptForResearchIfNeeded();
 
 			// Allow fast forwarding in observer mode.
 			if (gameData.observerMode && turnsLeftToFastForward > 0) {
@@ -515,24 +587,14 @@ public partial class Game : Node {
 		// Prompt the user if they would have a city riot when the turn ended.
 		bool doEndTurn = true;
 		EngineStorage.ReadGameData((GameData gameData) => {
-			foreach (City city in controller.cities) {
-				if (!controller.isHuman) {
-					continue;
-				}
-
-				City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
-				if (cityMood == City.Mood.Unhappy) {
-					popupOverlay.ShowPopup(
-						new ConfirmationPopup(
-							$"{city.name} will riot! Are you sure?",
-							"Yes, let them riot!",
-							"No. Maybe you are right, advisor.",
-							() => {
-								DoActualEndTurn();
-							}),
-						PopupOverlay.PopupCategory.Advisor);
-					doEndTurn = false;
-					return;
+			if (controller.isHuman) {
+				foreach (City city in controller.cities) {
+					City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
+					if (cityMood == City.Mood.Unhappy) {
+						new MsgCityRiotWarning(this.controller.id, city).send();
+						doEndTurn = false;
+						return;
+					}
 				}
 			}
 		});
@@ -556,11 +618,6 @@ public partial class Game : Node {
 	}
 
 	public void OnSaveGame() {
-		popupOverlay.OnHidePopup(); // hide game menu
-
-		// FileDialog is a Window, not a Control, so we have the popup overlay present a blank control
-		popupOverlay.ShowBlank();
-
 		// TODO: this should go to our own saves directory.
 		FileDialog.SetDirectoryForSaving(@"Conquests/Saves");
 
@@ -569,16 +626,20 @@ public partial class Game : Node {
 	}
 
 	public void OnLoadGame() {
-		popupOverlay.OnHidePopup(); // hide game menu
-
-		// FileDialog is a Window, not a Control, so we have the popup overlay present a blank control
-		popupOverlay.ShowBlank();
-
 		// TODO: this should go to our own saves directory.
 		FileDialog.SetDirectoryForLoading(@"Conquests/Saves");
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
+	}
+
+	public void OnOpenPreferences() {
+		popupOverlay.OnHidePopup();
+		if (preferences.Visible) {
+			preferences.HidePreferences();
+		} else {
+			preferences.ShowPreferences();
+		}
 	}
 
 	public void OnResolved() {
@@ -590,6 +651,10 @@ public partial class Game : Node {
 	}
 
 	public override void _Input(InputEvent @event) {
+		if ((HasVisibleModal() && !IsModalSwitchEvent(@event)) || CurrentState == GameState.ComputerTurn) {
+			return;
+		}
+
 		if (@event is InputEventKey e && e.Pressed && !e.IsAction(C7Action.UnitGoto)) {
 			this.SetGotoMode(false);
 		}
@@ -600,6 +665,14 @@ public partial class Game : Node {
 		if ((HasVisibleModal() && !IsModalSwitchEvent(@event)) || CurrentState == GameState.ComputerTurn) {
 			IsMovingCamera = false;
 			return;
+		}
+
+		// If a text input has focus, don't send keys/mouse actions to the game
+		if (@event is InputEventKey || @event is InputEventMouseButton) {
+			Control focusOwner = GetViewport().GuiGetFocusOwner();
+			if (focusOwner is LineEdit || focusOwner is TextEdit) {
+				return;
+			}
 		}
 
 		// Control node must not be in the way and/or have mouse pass enabled
@@ -628,6 +701,8 @@ public partial class Game : Node {
 	}
 
 	private void AdjustZoom(float delta) {
+		if (interactablePopUpController.Visible) return;
+
 		float newScale = mapView.cameraZoom + delta;
 		mapView.setCameraZoom(newScale, GetViewport().GetMousePosition());
 		GetViewport().SetInputAsHandled();
@@ -716,7 +791,7 @@ public partial class Game : Node {
 		Tile tile = PositionToTile(screenPosition);
 
 		if (!canMove) {
-			new MsgShowTemporaryPopup("This unit has already moved.", tile).send();
+			new MsgShowTemporaryPopup(controller.id, "This unit has already moved.", tile).send();
 		}
 	}
 
@@ -761,7 +836,7 @@ public partial class Game : Node {
 	public void ShowTileInfo(Tile tile) {
 		tileInfo = new TileInfo(tile);
 		var zoom = mapView.cameraZoom;
-		var tileCenter = mapView.screenLocationOfTile(tile, true);
+		var tileCenter = mapView.screenLocationOfTileAbsolute(tile, true);
 		var tileInfoPopup = new TileInfoPopup(this, tile, tileCenter, zoom);
 		popupOverlay.ShowPopup(tileInfoPopup, PopupOverlay.PopupCategory.TileInfo);
 	}
@@ -813,8 +888,25 @@ public partial class Game : Node {
 	}
 
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {
+		if (interactablePopUpController.Visible)
+			return;
+
 		if (eventKeyDown.Keycode == Godot.Key.O && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
 			ToggleObserverMode();
+		}
+
+		if (eventKeyDown.Keycode == Godot.Key.M && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
+			ToggleRevealMap();
+			return;
+		}
+
+		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
+			if (preferences.Visible) {
+				preferences.HidePreferences();
+			} else {
+				preferences.ShowPreferences();
+			}
+			return;
 		}
 
 		if (eventKeyDown.Keycode == Godot.Key.F1) {
@@ -900,7 +992,14 @@ public partial class Game : Node {
 		});
 	}
 
+	private void ToggleRevealMap() {
+		EngineStorage.ReadGameData((GameData gameData) => {
+			gameData.revealMap = !gameData.revealMap;
+		});
+	}
+
 	private void SetObserverModeOn(GameData gameData) {
+		gameData.revealMap = true;
 		foreach (Player player in gameData.players) {
 			player.isHuman = false;
 		}
@@ -914,6 +1013,7 @@ public partial class Game : Node {
 	}
 
 	private void SetObserverModeOff(GameData gameData) {
+		gameData.revealMap = false;
 		foreach (Player player in gameData.players) {
 			if (player.id == EngineStorage.uiControllerID) {
 				player.isHuman = true;
@@ -927,6 +1027,17 @@ public partial class Game : Node {
 		});
 	}
 
+	private void ToggleCameraZoom() {
+		if (mapView == null) {
+			return;
+		}
+		if (mapView.cameraZoom != 1) {
+			mapView.setCameraZoomFromMiddle(1.0f);
+		} else {
+			mapView.setCameraZoomFromMiddle(0.5f);
+		}
+	}
+
 	private void HandleMagnifyGesture(InputEventMagnifyGesture magnifyGesture) {
 		double newScale = mapView.cameraZoom * magnifyGesture.Factor;
 
@@ -937,7 +1048,7 @@ public partial class Game : Node {
 		Godot.Collections.Array<StringName> actions = InputMap.GetActions();
 
 		foreach (StringName action in actions) {
-			if (Input.IsActionJustPressed(action)) {
+			if (Input.IsActionJustPressed(action, exactMatch: true)) {
 				ProcessAction(action.ToString());
 			} else if (Input.IsActionJustReleased(action)) {
 				ProcessOnReleaseAction(action.ToString());
@@ -955,7 +1066,13 @@ public partial class Game : Node {
 		if (popupOverlay.Visible || cityScreen.Visible || diplomacy.Visible)
 			return true;
 
-		if (advisor.Visible || gameViews.Visible)
+		if (advisor.Visible || gameViews.Visible || preferences.Visible)
+			return true;
+
+		if (FileDialog != null && FileDialog.Visible)
+			return true;
+
+		if (interactablePopUpController != null && interactablePopUpController.Visible)
 			return true;
 
 		return false;
@@ -970,6 +1087,15 @@ public partial class Game : Node {
 	}
 
 	private void ProcessAction(string currentAction) {
+		if (currentAction == C7Action.Escape && interactablePopUpController.Visible) {
+			interactablePopUpController.Visible = false;
+			return;
+		}
+
+		if (interactablePopUpController.Visible) {
+			return;
+		}
+
 		if (currentAction == C7Action.Escape && tileInfo != null) {
 			HideTileInfo();
 			return;
@@ -986,7 +1112,21 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.Escape && advisor.Visible) {
-			advisor.Hide();
+			advisor.OnHide();
+			return;
+		}
+
+		if (currentAction == C7Action.OpenPreferences) {
+			if (preferences.Visible) {
+				preferences.HidePreferences();
+			} else {
+				preferences.ShowPreferences();
+			}
+			return;
+		}
+
+		if (currentAction == C7Action.Escape && preferences.Visible) {
+			preferences.HidePreferences();
 			return;
 		}
 
@@ -1010,6 +1150,26 @@ public partial class Game : Node {
 			return;
 		}
 
+		if (currentAction == C7Action.OpenGameMenu) {
+			EmitGameMainMenuSignal();
+			return;
+		}
+
+		if (currentAction == C7Action.SaveGame) {
+			OnSaveGame();
+			return;
+		}
+
+		if (currentAction == C7Action.LoadGame) {
+			OnLoadGame();
+			return;
+		}
+
+		if (currentAction == C7Action.Retire) {
+			EmitRetireConfirmationSignal();
+			return;
+		}
+
 		if (currentAction == C7Action.EndTurn && !this.HasCurrentlySelectedUnit()) {
 			log.Verbose("end_turn key pressed");
 			this.OnPlayerEndTurn();
@@ -1026,7 +1186,9 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.ToggleGrid) {
-			this.mapView.gridLayer.visible = !this.mapView.gridLayer.visible;
+			bool newValue = !this.mapView.gridLayer.visible;
+			this.mapView.gridLayer.visible = newValue;
+			PreferencesSettings.SetShowGrid(newValue);
 		}
 
 		if (currentAction == C7Action.ToggleCoordinates) {
@@ -1035,15 +1197,11 @@ public partial class Game : Node {
 
 		if (currentAction == C7Action.Escape && this.gotoInfo == null) {
 			log.Debug("Got request for escape/quit");
-			popupOverlay.ShowPopup(new EscapeQuitPopup(), PopupOverlay.PopupCategory.Info);
+			EmitQuitGameSignal();
 		}
 
 		if (currentAction == C7Action.ToggleZoom) {
-			if (mapView.cameraZoom != 1) {
-				mapView.setCameraZoomFromMiddle(1.0f);
-			} else {
-				mapView.setCameraZoomFromMiddle(0.5f);
-			}
+			ToggleCameraZoom();
 		}
 
 		if (currentAction == C7Action.ToggleAnimations) {
@@ -1076,15 +1234,7 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.UnitDisband) {
-			popupOverlay.ShowPopup(
-				new ConfirmationPopup(
-					$"Disband {CurrentlySelectedUnit.name}? Pardon me but these are OUR people.\nDo you really want to disband them?",
-					"Yes, we need to!",
-					"No. Maybe you are right, advisor.",
-					() => {
-						new ActionToEngineMsg(async () => await CurrentlySelectedUnit.Disband()).send();
-					}),
-				PopupOverlay.PopupCategory.Advisor);
+			new MsgDisbandUnitConfirmation(CurrentlySelectedUnit).send();
 		}
 
 		// unit_goto's behavior is more complicated than other actions - it
@@ -1114,10 +1264,7 @@ public partial class Game : Node {
 			EngineStorage.ReadGameData((GameData gameData) => {
 				MapUnit currentUnit = gameData.GetUnit(CurrentlySelectedUnit.id);
 				log.Debug(currentUnit.Describe());
-				if (currentUnit.canBuildCity()) {
-					popupOverlay.ShowPopup(new BuildCityDialog(controller.GetNextCityName()),
-						PopupOverlay.PopupCategory.Advisor);
-				}
+				new MsgNameCity(controller.id, controller.GetNextCityName()).send();
 			});
 		}
 
@@ -1132,8 +1279,7 @@ public partial class Game : Node {
 
 
 		if (currentAction == C7Action.UnitLoad) {
-			// TODO: Which transport?
-			new MsgLoadToTransport(CurrentlySelectedUnit.id).send();
+			new MsgSelectTransport(CurrentlySelectedUnit).send();
 		}
 		if (currentAction == C7Action.UnitUnload) {
 			new MsgUnloadTransport(CurrentlySelectedUnit.id).send();
@@ -1154,15 +1300,7 @@ public partial class Game : Node {
 
 		TerrainImprovement replacementTarget = CurrentlySelectedUnit.location.overlays.GetReplacementTarget(terraform);
 		if (replacementTarget != null) {
-			popupOverlay.ShowPopup(
-				new ConfirmationPopup(
-					$"A previous terrain enhancement ({replacementTarget.key.Capitalize()}) will be replaced \nby this operation. Do you wish to continue?",
-					"Continue.",
-					"Cancel action.",
-					() => {
-						new MsgStartWorkerJob(CurrentlySelectedUnit.id, terraform).send();
-					}),
-				PopupOverlay.PopupCategory.Advisor);
+			new MsgReplaceTerrainImprovementConfirmation(replacementTarget, terraform).send();
 			return;
 		}
 		new MsgStartWorkerJob(CurrentlySelectedUnit.id, terraform).send();
@@ -1191,15 +1329,15 @@ public partial class Game : Node {
 		log.Debug($"Resolve movement intent: {info.intent}");
 
 		if (info.intent == Intent.NoticeUnit) {
-			new MsgShowTemporaryPopup($"Non-combat units may not attack.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"Non-combat units may not attack.", info.destinationTile).send();
 			return;
 		}
 		if (info.intent == Intent.NoticeCity) {
-			new MsgShowTemporaryPopup($"Only combat units can capture cities and improvements.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"Only combat units can capture cities and improvements.", info.destinationTile).send();
 			return;
 		}
 		if (info.intent == Intent.NoticeAlliance) {
-			new MsgShowTemporaryPopup($"No aggression against alliance.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"No aggression against alliance.", info.destinationTile).send();
 			return;
 		}
 
@@ -1213,7 +1351,7 @@ public partial class Game : Node {
 			// war for them, clear out the player, and call this method again.
 			if (info.requiresWarDeclarationOnPlayer != null) {
 				GotoInfo stashed = info;
-				this.MaybeDeclareWar(stashed.requiresWarDeclarationOnPlayer, gameData.turn, () => {
+				this.MaybeDeclareWar(stashed.requiresWarDeclarationOnPlayer, () => {
 					stashed.requiresWarDeclarationOnPlayer = null;
 					this.ResolveMovement(stashed);
 					this.SetGotoMode(false);
@@ -1224,12 +1362,8 @@ public partial class Game : Node {
 		});
 	}
 
-	private void MaybeDeclareWar(Player player, int currentTurn, Action callback) {
-		popupOverlay.ShowPopup(new WarConfirmation(player,
-			() => {
-				controller.DeclareWarOn(player, currentTurn);
-				callback();
-			}), PopupOverlay.PopupCategory.Advisor);
+	private void MaybeDeclareWar(Player player, Action callback) {
+		new MsgWarDeclarationConfirmation(controller.id, player.id, callback).send();
 	}
 
 	private Tile lastTile = null;
@@ -1311,13 +1445,15 @@ public partial class Game : Node {
 			return;
 		}
 
+		Action bombard = () => {new MsgBombard(CurrentlySelectedUnit.id, tile).send();};
+
 		EngineStorage.ReadGameData((GameData gameData) => {
 			if (info.RequiresWarDeclaration(tile, out var player)) {
-				MaybeDeclareWar(player, gameData.turn, () => {
-					new MsgBombard(CurrentlySelectedUnit.id, tile).send();
+				MaybeDeclareWar(player, () => {
+					bombard.Invoke();
 				});
 			} else {
-				new MsgBombard(CurrentlySelectedUnit.id, tile).send();
+				bombard.Invoke();
 			}
 		});
 	}
@@ -1342,5 +1478,9 @@ public partial class Game : Node {
 
 	public void OnDiplomacySelected(ParameterWrapper<ID> opponentPlayer) {
 		diplomacy.ShowTalkScreenForPlayer(controller.id, opponentPlayer.Value);
+	}
+
+	public void ShowInteractivePopUp(ParameterWrapper<InteractablePopUp> interactablePopUp) {
+		interactablePopUpController.OnShowInteractablePopUp(interactablePopUp);
 	}
 }

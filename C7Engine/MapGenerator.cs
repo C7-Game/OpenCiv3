@@ -111,6 +111,12 @@ namespace C7Engine {
 			// points.
 			AddRivers(wc, gameMap);
 
+			// Step 7.5: Convert desert to flood plains. Civ3 does this after
+			// rivers are placed, so a flood plain always has a river running
+			// through it. Doing it here also means resources get placed on
+			// flood plains using the flood plain rules (e.g. only wheat).
+			AddFloodPlains(wc, gameMap);
+
 			// Step 8: Add resources (luxury/strategic/bonus).
 			AddResources(wc, gameMap);
 
@@ -390,7 +396,8 @@ namespace C7Engine {
 					continue;
 				}
 				if (height >= mountainLowerBound && height < mountainUpperBound) {
-					if (random.Next(100) < volcanoPercent) {
+					// prevent volcanoes from spawning next to each other
+					if (random.Next(100) < volcanoPercent && t.FindInRing(1, tile => tile.overlayTerrainType.isVolcano()) == null) {
 						t.overlayTerrainType = volcano;
 					} else {
 						t.overlayTerrainType = mountains;
@@ -725,15 +732,23 @@ namespace C7Engine {
 				double normalizedY = (double)t.YCoordinate / (m.numTilesTall - 1.0);
 				double latitude = Math.Abs(90.0 - (normalizedY * 180.0));
 
-				if (height >= forestLowerBound && height < forestUpperBound && rand.Next(100) < forestProbability) {
-					// Forests can go on any terrain type.
+				if (height >= forestLowerBound && height < forestUpperBound && rand.Next(100) < forestProbability
+						&& forest.allowedInTerrain.Contains(t.baseTerrainType.Key)) {
+					if (t.baseTerrainType.Key == "tundra") {
+						t.isPineForest = true;
+					} else {
+						// 40% probability to be pine. This is not an official value.
+						// TODO: this can probably be refined in order to get clusters of pine/broadleaf trees
+						// rather than randomly selecting them
+						if (rand.NextDouble() > 0.6)
+							t.isPineForest = true;
+					}
 					t.overlayTerrainType = forest;
-				} else if (height >= jungleLowerBound && height < jungleUpperBound
-							&& latitude < jungleLatitudeThreshold && t.overlayTerrainType.Key == "grassland") {
-					// We only put jungle on grassland.
+				} else if (height >= jungleLowerBound && height < jungleUpperBound && latitude < jungleLatitudeThreshold
+						   && jungle.allowedInTerrain.Contains(t.baseTerrainType.Key)) {
 					t.overlayTerrainType = jungle;
-				} else if (height >= marshLowerBound && height < marshUpperBound && t.overlayTerrainType.Key == "grassland") {
-					// We only put marsh on grassland.
+				} else if (height >= marshLowerBound && height < marshUpperBound
+							&& marsh.allowedInTerrain.Contains(t.baseTerrainType.Key)) {
 					t.overlayTerrainType = marsh;
 				}
 			}
@@ -955,6 +970,28 @@ namespace C7Engine {
 			}
 
 			return result;
+		}
+
+		// In Civ3, any desert tile with a river running along it becomes a
+		// flood plain. Only tiles whose terrain is fully desert convert - hills
+		// or vegetation on the tile make it a different terrain.
+		internal static void AddFloodPlains(WorldCharacteristics wc, GameMap m) {
+			TerrainType floodPlain = wc.terrainTypes.Find(x => x.Key == "flood plain");
+			if (floodPlain == null) {
+				log.Warning("Rules have no 'flood plain' terrain; skipping flood plain generation.");
+				return;
+			}
+
+			foreach (Tile t in m.tiles) {
+				if (!t.IsLand() || t.baseTerrainType.Key != "desert" || t.overlayTerrainType.Key != "desert") {
+					continue;
+				}
+
+				if (t.BordersRiver()) {
+					t.baseTerrainType = floodPlain;
+					t.overlayTerrainType = floodPlain;
+				}
+			}
 		}
 
 		private static void FixContinentalShelf(WorldCharacteristics wc, GameMap m) {
@@ -1335,7 +1372,6 @@ namespace C7Engine {
 				Tile t = m.tiles[tileIndicies[i]];
 				if (IsValidForBarbarianCamp(wc, m, t)) {
 					m.barbarianCamps.Add(t);
-					t.hasBarbarianCamp = true;
 					++numCamps;
 				}
 			}
@@ -1386,7 +1422,7 @@ namespace C7Engine {
 
 			// No barbarian camps within the big fat cross of another camp.
 			foreach (Tile n in t.GetTilesWithinRankDistance(wc.maxRankOfBarbarianCampTiles)) {
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					return false;
 				}
 			}
@@ -1415,7 +1451,7 @@ namespace C7Engine {
 			// Find all viable city locations.
 			Dictionary<Tile, int> scoredTiles = new();
 			foreach (Tile t in m.tiles) {
-				int score = ScorePossibleCityLocation(wc, t);
+				int score = ScorePossibleCityLocation(wc, m, t);
 				if (score > 0) {
 					scoredTiles[t] = score;
 				}
@@ -1521,7 +1557,7 @@ namespace C7Engine {
 		}
 
 		// TODO: merge this with the ai logic
-		private static int ScorePossibleCityLocation(WorldCharacteristics wc, Tile t) {
+		private static int ScorePossibleCityLocation(WorldCharacteristics wc, GameMap m, Tile t) {
 			if (!t.IsAllowCities()) {
 				return int.MinValue;
 			}
@@ -1543,7 +1579,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 
@@ -1558,7 +1594,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 			}

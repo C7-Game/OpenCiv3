@@ -7,9 +7,7 @@ using QueryCiv3;
 using QueryCiv3.Biq;
 using C7GameData.Save;
 using System.Reflection;
-using C7Engine;
 using static C7GameData.Tile.TileOverlays;
-using GAME = QueryCiv3.Sav.GAME;
 using Util = QueryCiv3.Util;
 
 /*
@@ -71,6 +69,7 @@ namespace C7GameData {
 			ImportTerraforms();
 			ImportUnitPrototypes();
 			ImportUnitUpgrades();
+			ImportGovernments(); // Before buildings, which can require a government
 			ImportBuildings();
 			ImportCiv3TerrainTypes();
 			ImportCiv3ExperienceLevels();
@@ -82,22 +81,22 @@ namespace C7GameData {
 			save.ScenarioSearchPath = biq?.Game[0].ScenarioSearchFolders;
 			ImportBarbarianInfo();
 			ImportCitizenTypes();
-			ImportGovernments();
 			ImportDifficulties();
 			ImportRules();
 		}
 
-		public static SaveGame ImportSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath) {
+		public static SaveGame ImportSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			ImportCiv3 importer = new ImportCiv3();
-			return importer.importSav(savePath, defaultBicPath, getPediaIconsPath);
+			return importer.importSav(savePath, defaultBicPath, getPediaIconsPath, getCivilopediaTextPath);
 		}
 
-		private SaveGame importSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath) {
+		private SaveGame importSav(string savePath, string defaultBicPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			// Get save data reader
 			byte[] defaultBicBytes = Util.ReadFile(defaultBicPath);
 			savData = new SavData(Util.ReadFile(savePath), defaultBicBytes);
 			biq = savData.Bic;
 			pediaIcons = new(getPediaIconsPath(biq.Game[0].ScenarioSearchFolders));
+			save.Codex = new Codex(getCivilopediaTextPath(biq.Game[0].ScenarioSearchFolders));
 			save.TurnNumber = savData.Game.TurnNumber;
 			save.Seed = savData.Wrld.WorldSeed;
 
@@ -135,8 +134,8 @@ namespace C7GameData {
 					baseTerrain = save.TerrainTypes[civ3Tile.BaseTerrain].Key,
 					overlayTerrain = save.TerrainTypes[civ3Tile.OverlayTerrain].Key,
 				};
-				if (civ3Tile.BarbarianCamp >= 0) {
-					tile.features.Add(BARBARIAN_CAMP);
+				if (civ3Tile.BarbarianCamp) {
+					tile.overlays.Add(BARBARIAN_CAMP);
 				}
 				if (civ3Tile.HasRuins) {
 					tile.overlays.Add(RUINS);
@@ -200,6 +199,18 @@ namespace C7GameData {
 					if (civ3Tile.ExploredBy[playerIndex]) {
 						SavePlayer player = save.Players[playerIndex];
 						player.tileKnowledge.Add(new TileLocation(X, Y));
+
+						var knownImprovements = new List<string>();
+						if (civ3Tile.OverlayKnowledge[playerIndex, 0]) knownImprovements.Add(ROAD);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 1]) knownImprovements.Add(RAILROAD);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 2]) knownImprovements.Add(MINE);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 3]) knownImprovements.Add(IRRIGATION);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 4]) knownImprovements.Add(FORTRESS);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 5]) knownImprovements.Add(GOODY_HUT);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 6]) knownImprovements.Add(POLLUTION);
+						if (civ3Tile.OverlayKnowledge[playerIndex, 7]) knownImprovements.Add(BARBARIAN_CAMP);
+
+						player.knownTerrainImprovements.Add(tile.id.ToString(), knownImprovements);
 					}
 				}
 				i++;
@@ -253,15 +264,16 @@ namespace C7GameData {
 		 * defaultBiqPath is used in case some sections (map, rules, player data) are not
 		 * present.
 		 */
-		public static SaveGame ImportBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath) {
+		public static SaveGame ImportBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			ImportCiv3 importer = new ImportCiv3();
-			return importer.importBiq(biqPath, defaultBiqPath, getPediaIconsPath);
+			return importer.importBiq(biqPath, defaultBiqPath, getPediaIconsPath, getCivilopediaTextPath);
 		}
 
-		private SaveGame importBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath) {
+		private SaveGame importBiq(string biqPath, string defaultBiqPath, Func<string, string> getPediaIconsPath, Func<string, string> getCivilopediaTextPath) {
 			biq = BiqData.LoadFile(biqPath);
 			defaultBiq = BiqData.LoadFile(defaultBiqPath);
 			pediaIcons = new(getPediaIconsPath(biq.Game[0].ScenarioSearchFolders));
+			save.Codex = new Codex(getCivilopediaTextPath(biq.Game[0].ScenarioSearchFolders));
 			save.Seed = biq.Wmap[0].MapSeed;
 
 			ImportSharedBiqData();
@@ -292,17 +304,38 @@ namespace C7GameData {
 					baseTerrain = save.TerrainTypes[civ3Tile.BaseTerrain].Key,
 					overlayTerrain = save.TerrainTypes[civ3Tile.OverlayTerrain].Key,
 				};
+				var knownImprovements = new List<string>();
+				if (civ3Tile.Road) {
+					tile.overlays.Add(ROAD);
+					knownImprovements.Add(ROAD);
+				}
+				if (civ3Tile.Railroad) {
+					tile.overlays.Add(RAILROAD);
+					knownImprovements.Add(RAILROAD);
+				}
+				if (civ3Tile.Mine) {
+					tile.overlays.Add(MINE);
+					knownImprovements.Add(MINE);
+				}
+				if (civ3Tile.Irrigation) {
+					tile.overlays.Add(IRRIGATION);
+					knownImprovements.Add(IRRIGATION);
+				}
 				if (civ3Tile.BarbarianCamp) {
-					tile.features.Add(BARBARIAN_CAMP);
+					tile.overlays.Add(BARBARIAN_CAMP);
+					knownImprovements.Add(BARBARIAN_CAMP);
 				}
 				if (civ3Tile.Ruin > 0) {
 					tile.overlays.Add(RUINS);
+					knownImprovements.Add(RUINS);
 				}
 				if (civ3Tile.Pollution) {
 					tile.overlays.Add(POLLUTION);
+					knownImprovements.Add(POLLUTION);
 				}
 				if (civ3Tile.Craters) {
 					tile.overlays.Add(CRATERS);
+					knownImprovements.Add(CRATERS);
 				}
 				if (civ3Tile.BonusGrassland) {
 					tile.features.Add("bonusShield");
@@ -337,18 +370,6 @@ namespace C7GameData {
 				if (civ3Tile.RiverConnectionNorthwest) {
 					tile.features.Add("riverNorthwest");
 				}
-				if (civ3Tile.Road) {
-					tile.overlays.Add(ROAD);
-				}
-				if (civ3Tile.Railroad) {
-					tile.overlays.Add(RAILROAD);
-				}
-				if (civ3Tile.Mine) {
-					tile.overlays.Add(MINE);
-				}
-				if (civ3Tile.Irrigation) {
-					tile.overlays.Add(IRRIGATION);
-				}
 				if (civ3Tile.Resource != -1) {
 					tile.resource = save.Resources[civ3Tile.Resource].Key;
 				}
@@ -361,6 +382,7 @@ namespace C7GameData {
 					for (int playerIndex = 0; playerIndex < save.Players.Count; playerIndex++) {
 						SavePlayer player = save.Players[playerIndex];
 						player.tileKnowledge.Add(new TileLocation(X, Y));
+						player.knownTerrainImprovements.Add(tile.id.ToString(), knownImprovements);
 					}
 				}
 
@@ -526,6 +548,7 @@ namespace C7GameData {
 			foreach (RACE race in theBiq.Race) {
 				Civilization civ = new Civilization{
 					name = race.Name,
+					civilopediaEntry = race.CivilopediaEntry,
 					noun = race.Noun,
 					adjective = race.Adjective,
 					leader = race.LeaderName,
@@ -1412,6 +1435,7 @@ namespace C7GameData {
 				}
 
 				prototype.name = prto.Name;
+				prototype.civilopediaEntry = prto.CivilopediaEntry;
 
 				Art unitArt = new Art();
 				unitArt.mainArt = pediaIcons.GetUnitMainArt(prto.CivilopediaEntry);
@@ -1438,6 +1462,7 @@ namespace C7GameData {
 				if (prto.LethalLandBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalLandBombardment);
 				if (prto.LethalSeaBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalSeaBombardment);
 				if (prto.Radar) prototype.flags.Add(SaveUnitPrototype.Flag.Radar);
+				if (prto.Wheeled) prototype.flags.Add(SaveUnitPrototype.Flag.Wheeled);
 
 				prototype.actions.UnionWith(GetUnitActions(prto));
 				prototype.terraformActions.UnionWith(GetUnitTerraforms(prto).Select(tfKey => terraformIdByCiv3Key[tfKey]));
@@ -1587,12 +1612,13 @@ namespace C7GameData {
 
 		private void ImportBuildings() {
 			BLDG[] Bldg = biq.Bldg ?? defaultBiq.Bldg;
+			PRTO[] Prto = biq.Prto ?? defaultBiq.Prto;
 
 			foreach (BLDG bldg in Bldg) {
 				if (bldg.Name == "Wealth") {
 					SaveInflow inflow = new () {
 						name = bldg.Name,
-						iconRowIndex = pediaIcons.buildingToRowNumberMapping[bldg.CivilopediaEntry],
+						iconRowIndex = pediaIcons.GetBuildingRowNumber(bldg.CivilopediaEntry),
 						localYield = [
 							new SaveLocalYield(InflowYield.commerce, "inflows.result.wealth.commerce"),
 						],
@@ -1603,14 +1629,26 @@ namespace C7GameData {
 
 				SaveBuilding building = new() {
 					name=bldg.Name,
+					civilopediaEntry=bldg.CivilopediaEntry,
 					shieldCost=bldg.Cost * 10, // In Civ3 files, building costs are stored at 1/10th of their actual value
 					populationCost=0, // In Civ3, a building cannot have a population cost
 					isSmallWonder=bldg.SmallWonder,
 					greatWonderProperties=bldg.Wonder ? new SaveBuilding.GreatWonderProperties() : null,
 					culturePerTurn=bldg.Culture,
 					contentFacesInCity=bldg.ContentFaces - bldg.UnhappyFaces,
-					iconRowIndex=pediaIcons.buildingToRowNumberMapping[bldg.CivilopediaEntry],
+					contentFacesInAllCities=bldg.ContentFacesAllCities - bldg.UnhappyFacesAllCities,
+					iconRowIndex=pediaIcons.GetBuildingRowNumber(bldg.CivilopediaEntry),
 					combatDefenseBonus=bldg.DefenseBonus / 100.0,
+					navalDefenseBonus=bldg.NavalDefenseBonus / 100.0,
+					navalBombardDefense=bldg.NavalBombardDefense,
+					navalPower=bldg.NavalPower,
+					airPower=bldg.AirPower,
+					productionBonus=bldg.Production * 0.25, // In Civ3 files, the production bonus is stored as a multiple of 25%
+					researchBonus=(bldg.Plus50PercentResearch ? 0.5 : 0) + (bldg.DoublesResearchOutput ? 1.0 : 0),
+					luxuryBonus=bldg.Plus50PercentLuxury ? 0.5 : 0,
+					commerceBonus=bldg.Plus50PercentCommerce ? 0.5 : 0,
+					pollution=bldg.Pollution,
+					numberOfArmiesRequired=bldg.NumberOfArmiesRequired,
 					maintenanceCost=bldg.MaintenanceCost,
 				};
 
@@ -1620,6 +1658,22 @@ namespace C7GameData {
 
 				if (bldg.RequiredBuilding != -1) {
 					building.requiredBuilding = Bldg[bldg.RequiredBuilding].Name;
+					if (bldg.NumberOfRequiredBuildings > 1) {
+						building.numberOfRequiredBuildings = bldg.NumberOfRequiredBuildings;
+					}
+				}
+
+				if (bldg.RequiredGovernment != -1) {
+					building.requiredGovernment = save.Governments[bldg.RequiredGovernment].id;
+				}
+
+				if (bldg.SpaceshipPart != -1) {
+					building.spaceshipPart = bldg.SpaceshipPart;
+				}
+
+				if (bldg.UnitProduced != -1) {
+					building.unitProduced = Prto[bldg.UnitProduced].Name;
+					building.unitFrequency = bldg.UnitFrequency;
 				}
 
 				if (bldg.RequiredResource1 != -1) {
@@ -1640,8 +1694,12 @@ namespace C7GameData {
 				if (bldg.GainInEveryCityOnContinent >= 0) {
 					building.greatWonderProperties.buildingGainedInEveryCityOnContinent = Bldg[bldg.GainInEveryCityOnContinent].Name;
 				}
+				if (bldg.DoublesHappiness >= 0 && building.greatWonderProperties != null) {
+					building.greatWonderProperties.buildingWithDoubledHappiness = Bldg[bldg.DoublesHappiness].Name;
+				}
 
 				building.flags = LoadBuildingFlags(bldg).ToHashSet();
+				building.wonderFlags = LoadWonderFlags(bldg).ToHashSet();
 				building.traits = LoadBuildingTraits(bldg).ToHashSet();
 
 				// Buildings with bombard defense are treated as walls in civ3.
@@ -1663,16 +1721,62 @@ namespace C7GameData {
 				(bldg.MustBeNearRiver, SaveBuilding.Flag.MustBeNearRiver),
 				(bldg.VeteranGroundUnits, SaveBuilding.Flag.VeteranGroundUnits),
 				(bldg.VeteranSeaUnits, SaveBuilding.Flag.VeteranSeaUnits),
+				(bldg.VeteranAirUnits, SaveBuilding.Flag.VeteranAirUnits),
 				(bldg.IncreasesLuxuryTrade, SaveBuilding.Flag.IncreasesLuxuryTrade),
 				(bldg.ReducesCorruption, SaveBuilding.Flag.ReducesCorruption),
-				(bldg.ForbiddenPalace, SaveBuilding.Flag.ForbiddenPalace),
 				(bldg.IncreasesShieldsInWater, SaveBuilding.Flag.IncreasesShieldsInWater),
 				(bldg.IncreasesFoodInWater, SaveBuilding.Flag.IncreasesFoodInWater),
 				(bldg.IncreasesTradeInWater, SaveBuilding.Flag.IncreasesTradeInWater),
 				(bldg.AllowsCitySize2, SaveBuilding.Flag.AllowsCitySize2),
 				(bldg.AllowsCitySize3, SaveBuilding.Flag.AllowsCitySize3),
 				(bldg.DoublesCityGrowthRate, SaveBuilding.Flag.DoublesCityGrowthRate),
-				(bldg.TreasuryEarnsInterest, SaveBuilding.Flag.TreasuryEarnsInterest),
+				(bldg.GoodsMustBeInCityRadius, SaveBuilding.Flag.GoodsMustBeInCityRadius),
+				(bldg.ReplacesOtherBuildings, SaveBuilding.Flag.ReplacesOtherBuildings),
+				(bldg.MustBeNearWater, SaveBuilding.Flag.MustBeNearWater),
+				(bldg.CanMeltdown, SaveBuilding.Flag.CanMeltdown),
+				(bldg.RemovesPopulationPollution, SaveBuilding.Flag.RemovesPopulationPollution),
+				(bldg.ReducesBuildingPollution, SaveBuilding.Flag.ReducesBuildingPollution),
+				(bldg.ResistantToBribery, SaveBuilding.Flag.ResistantToPropaganda),
+				(bldg.AllowsWaterTrade, SaveBuilding.Flag.AllowsWaterTrade),
+				(bldg.AllowsAirTrade, SaveBuilding.Flag.AllowsAirTrade),
+				(bldg.ReducesWarWeariness, SaveBuilding.Flag.ReducesWarWeariness),
+				(bldg.DoublesSacrifice, SaveBuilding.Flag.DoublesSacrifice),
+				(bldg.ContinentalMoodEffects, SaveBuilding.Flag.ContinentalMoodEffects),
+			}
+			.Where(t => t.Item1)
+			.Select(t => t.Item2);
+		}
+
+		private static IEnumerable<SaveBuilding.WonderFlag> LoadWonderFlags(BLDG bldg) {
+			return new[] {
+				(bldg.IncreasesLeaderChance, SaveBuilding.WonderFlag.IncreasesLeaderChance),
+				(bldg.AllowsBuildArmy, SaveBuilding.WonderFlag.AllowsBuildArmy),
+				(bldg.AllowsLargerArmies, SaveBuilding.WonderFlag.AllowsLargerArmies),
+				(bldg.TreasuryEarnsInterest, SaveBuilding.WonderFlag.TreasuryEarnsInterest),
+				(bldg.BuildSpaceshipParts, SaveBuilding.WonderFlag.BuildSpaceshipParts),
+				(bldg.ForbiddenPalace, SaveBuilding.WonderFlag.ReducesCorruption),
+				(bldg.DecreasesMissileSuccess, SaveBuilding.WonderFlag.DecreasesMissileSuccess),
+				(bldg.AllowsSpyMissions, SaveBuilding.WonderFlag.AllowsSpyMissions),
+				(bldg.AllowsEnemyTerritoryHealing, SaveBuilding.WonderFlag.AllowsEnemyTerritoryHealing),
+				(bldg.RequiresVictoriousArmy, SaveBuilding.WonderFlag.RequiresVictoriousArmy),
+				(bldg.RequiresEliteShip, SaveBuilding.WonderFlag.RequiresEliteShip),
+				(bldg.SafeSeaTravel, SaveBuilding.WonderFlag.SafeSeaTravel),
+				(bldg.GainAnyTechKnownByTwoCivs, SaveBuilding.WonderFlag.GainAnyTechKnownByTwoCivs),
+				(bldg.DoubleCombatVsBarbarians, SaveBuilding.WonderFlag.DoubleCombatVsBarbarians),
+				(bldg.IncreasedShipMovement, SaveBuilding.WonderFlag.IncreasedShipMovement),
+				(bldg.DoublesResearchOutput, SaveBuilding.WonderFlag.DoublesResearchOutput),
+				(bldg.IncreasedTrade, SaveBuilding.WonderFlag.IncreasedTradeInTilesProducingCommerce),
+				(bldg.CheaperUpgrades, SaveBuilding.WonderFlag.CheaperUpgrades),
+				(bldg.PaysTradeMaintenance, SaveBuilding.WonderFlag.PaysTradeMaintenance),
+				(bldg.AllowsNuclearWeapons, SaveBuilding.WonderFlag.AllowsNuclearWeapons),
+				(bldg.DoubleCityGrowth, SaveBuilding.WonderFlag.CityGrowthPlusTwoCitizens),
+				(bldg.TwoFreeAdvances, SaveBuilding.WonderFlag.TwoFreeAdvances),
+				(bldg.ReducedWarWeariness, SaveBuilding.WonderFlag.ReducesWarWearinessAllCities),
+				(bldg.DoubleCityDefenses, SaveBuilding.WonderFlag.DoubleCityDefenses),
+				(bldg.AllowDiplomaticVictory, SaveBuilding.WonderFlag.AllowDiplomaticVictory),
+				(bldg.PlusTwoShipMovement, SaveBuilding.WonderFlag.PlusTwoShipMovement),
+				(bldg.IncreasedArmyValue, SaveBuilding.WonderFlag.IncreasedArmyValue),
+				(bldg.TouristAttraction, SaveBuilding.WonderFlag.TouristAttraction),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);
@@ -1698,6 +1802,7 @@ namespace C7GameData {
 			{
 				{ SaveBuilding.Flag.MustBeCoastal, "must_be_coastal" },
 				{ SaveBuilding.Flag.MustBeNearRiver, "must_be_near_river" },
+				{ SaveBuilding.Flag.MustBeNearWater, "must_be_near_water" },
 				{ SaveBuilding.Flag.AllowsCitySize2, "allows_city_size_2" },
 				{ SaveBuilding.Flag.AllowsCitySize3, "allows_city_size_3" },
 				{ SaveBuilding.Flag.CanOnlyBeBuiltInTowns, "can_only_be_built_in_towns"}
@@ -1707,6 +1812,7 @@ namespace C7GameData {
 			{
 				{ SaveBuilding.Flag.VeteranGroundUnits, "veteran_ground_units" },
 				{ SaveBuilding.Flag.VeteranSeaUnits, "veteran_sea_units" },
+				{ SaveBuilding.Flag.VeteranAirUnits, "veteran_air_units" },
 			};
 
 			var flagToTileModifier = new Dictionary<SaveBuilding.Flag, string>
@@ -1728,6 +1834,19 @@ namespace C7GameData {
 				if (flagToTileModifier.TryGetValue(flag, out var tileModifier)) {
 					building.tileModifiers.Add($"buildings.tile_modifiers.{tileModifier}");
 				}
+			}
+
+			// Buildings that act as an extra palace for corruption all share one
+			// wonder flag, but each can have its own production rule. Any other
+			// building with the flag uses the Forbidden Palace rule.
+			if (building.wonderFlags.Contains(SaveBuilding.WonderFlag.ReducesCorruption)) {
+				var civilopediaEntryToProductionRule = new Dictionary<string, string>
+				{
+					{ "BLDG_Forbidden_Palace", "forbidden_palace" },
+					{ "BLDG_Secret_Police_HQ", "secret_police_hq" },
+				};
+				string productionRule = civilopediaEntryToProductionRule.GetValueOrDefault(building.civilopediaEntry ?? "", "forbidden_palace");
+				building.productionPrerequisites.Add($"buildings.production_rules.{productionRule}");
 			}
 		}
 
@@ -1832,7 +1951,7 @@ namespace C7GameData {
 					Cost = t.Cost,
 					RequiredForEraAdvancement = !t.NotRequiredForEraAdvancement,
 					EraCivilopediaName = t.Era == -1 ? "Hidden" : theBiq.Eras[t.Era].CivilopediaEntry,
-					SmallIconPath = t.Era == -1 ? "" : pediaIcons.GetTechIconPath(t.CivilopediaEntry),
+					SmallIconPath = t.Era == -1 ? "" : pediaIcons.GetTechIconPath(t.CivilopediaEntry) ?? "",
 					X = t.X,
 					Y = t.Y,
 					flags = LoadTechFlags(t).ToHashSet(),

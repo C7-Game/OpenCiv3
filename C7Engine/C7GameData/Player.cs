@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using C7Engine.AI.StrategicAI;
 using C7Engine;
+using C7GameData.Save;
 using MoonSharp.Interpreter;
 using Serilog;
 using static C7GameData.EraUtils;
@@ -216,18 +217,6 @@ namespace C7GameData {
 		}
 
 		public void SetCurrentlyResearchedTech(ID id) {
-			// Award a free tech if the player has one.
-			if (id != null && freeTechsRemaining > 0) {
-				--freeTechsRemaining;
-				beakers = 0;
-				turnsResearched = 0;
-
-				Tech tech = EngineStorage.gameData.techs.Find(x => x.id == id);
-				log.Information($"Awarding {tech.Name} to player {this}");
-				CompleteResearchAndBeginNew(EngineStorage.gameData, tech);
-				return;
-			}
-
 			currentlyResearchedTech = id;
 
 			// Clear out previous progress.
@@ -309,7 +298,7 @@ namespace C7GameData {
 			// use a higher upper bound.
 			int refuseContactUntilTurn = currentTurn + new Random().Next(5, isSneakAttack ? 16 : 12);
 
-			DeclareWar(this, other, isSneakAttack, refuseContactUntilTurn);
+			DeclareWar(this, other, isSneakAttack, currentTurn, refuseContactUntilTurn);
 
 			// Whenever war is declared, re-evaluate priorities.
 			turnsUntilPriorityReevaluation = 0;
@@ -438,7 +427,8 @@ namespace C7GameData {
 				result.maintenance += city.MaintenanceCosts();
 				result.wealthProduction += cityCommerce.wealth;
 
-				interestBuildings += city.constructed_buildings.Count(cb => cb.building.treasuryEarnsInterest);
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
+				interestBuildings += city.constructed_buildings.Count(cb => cb.building.HasWonderFlag(SaveBuilding.WonderFlag.TreasuryEarnsInterest));
 
 				foreach (CityResident cr in city.residents) {
 					// Split city income into "regular citizen" and "tax collector" buckets
@@ -501,8 +491,8 @@ namespace C7GameData {
 				other.gold -= theirOffer.gold.Value;
 			}
 
-			other.CompleteResearchAndBeginNew(gameData, ourOffer.techs);
-			this.CompleteResearchAndBeginNew(gameData, theirOffer.techs);
+			other.AcquireTechs(gameData, ourOffer.techs);
+			this.AcquireTechs(gameData, theirOffer.techs);
 		}
 
 		public int EstimateTurnsToResearch(GameData gameData, Tech tech) {
@@ -561,6 +551,11 @@ namespace C7GameData {
 					AddTechItemToResearchQueue(t);
 				}
 			}
+
+			// Queuing with nothing in progress starts the queue head, like a fresh pick.
+			if (currentlyResearchedTech == null && ResearchQueue.Count > 0) {
+				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
+			}
 		}
 
 		/// <summary>
@@ -577,10 +572,10 @@ namespace C7GameData {
 				return new Queue<Tech>();
 			}
 
-			List<Tech> requiredTechs = OrderTechs(tech.Prerequisites).ToList();
+			List<Tech> requiredTechs = OrderTechs(tech.Prerequisites);
 
 			// first, add the tech the user clicked
-			if (!tempQueue.Contains(tech)) {
+			if (!knownTechs.Contains(tech.id) && !tempQueue.Contains(tech)) {
 				tempQueue.Enqueue(tech);
 			}
 
@@ -609,8 +604,8 @@ namespace C7GameData {
 		/// </summary>
 		/// <param name="allTechs"></param>
 		/// <returns></returns>
-		public HashSet<Tech> GetAvailableTechsToResearch(List<Tech> allTechs) {
-			HashSet<Tech> result = new();
+		public List<Tech> GetAvailableTechsToResearch(List<Tech> allTechs) {
+			List<Tech> result = new();
 			foreach (Tech tech in allTechs) {
 				if (knownTechs.Contains(tech.id)) {
 					continue;
@@ -634,13 +629,13 @@ namespace C7GameData {
 		}
 
 		// Placeholder ordering of techs
-		private HashSet<Tech> OrderTechs(List<Tech> techs) {
+		private List<Tech> OrderTechs(List<Tech> techs) {
 			if (techs == null || techs.Count == 0) {
-				return new HashSet<Tech>();
+				return new List<Tech>();
 			}
 			// TODO: We would want to eventually order them based on how the AI would do it
 			// Details on how Civ3 does it: https://forums.civfanatics.com/threads/what-will-the-ai-research-next.45559/
-			return techs.OrderBy(t => t.Cost).ToHashSet();
+			return techs.OrderBy(t => t.Cost).ToList();
 		}
 
 		public List<Government> GetAvailableGovernments(GameData gameData) {
@@ -684,7 +679,8 @@ namespace C7GameData {
 				// supply small wonders like forbidden palaces, so we can avoid
 				// doing extra work for each city.
 				foreach (CityBuilding cb in c.constructed_buildings) {
-					if (cb.building.isForbiddenPalace) {
+					// TODO: Skip obsolete buildings (see Building.IsObsolete).
+					if (cb.building.HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption)) {
 						++numCorruptionReducingSmallWondersInEmpire;
 					}
 				}
@@ -720,7 +716,7 @@ namespace C7GameData {
 		//    civilizations, the formula is: 1 (2 for Conquests) + random number
 		//    between 1-4 + number between 0-3 depending on size of your empire.
 		public int GetTurnsOfAnarchyForTransition(GameData gameData) {
-			if (civilization.traits.Contains(Civilization.Trait.Religious)) {
+			if (IsReligious()) {
 				return 2;
 			}
 
@@ -805,6 +801,8 @@ namespace C7GameData {
 				if (c.UpdateCultureAndCheckForExpansion()) {
 					gameData.UpdateTileOwners();
 
+					new MsgShowTemporaryPopup(c.owner.id, "Our cultural influence is expanding!", c.location).send();
+
 					// Update the trade network if borders expanded, as a new
 					// resource may be part of the network.
 					EngineStorage.gameData.InvalidateCachedTradeNetwork();
@@ -835,18 +833,81 @@ namespace C7GameData {
 			CompleteResearchAndBeginNew(gameData, tech);
 		}
 
-		private void CompleteResearchAndBeginNew(GameData gameData, IEnumerable<Tech> techs) {
+		/// <summary>
+		/// Grants techs acquired via a trade, dropping only research they make obsolete.
+		/// </summary>
+		public void AcquireTechs(GameData gameData, IEnumerable<Tech> techs) {
 			foreach (Tech tech in techs) {
-				CompleteResearchingTech(gameData, tech);
+				if (tech == null || knownTechs.Contains(tech.id)) {
+					continue;
+				}
+				GrantTech(gameData, tech);
+			}
+
+			DropResearchThatIsNowKnown();
+
+			if (isHuman) {
+				return;
 			}
 			PlayerAI.MaybePickTechToResearch(this, gameData.techs);
 		}
+
+		private void DropResearchThatIsNowKnown() {
+			if (currentlyResearchedTech != null && knownTechs.Contains(currentlyResearchedTech)) {
+				SetCurrentlyResearchedTech(null);
+			}
+			RemoveTechsFromResearchQueue(t => knownTechs.Contains(t.id));
+
+			if (currentlyResearchedTech == null && ResearchQueue.Count > 0) {
+				SetCurrentlyResearchedTech(ResearchQueue.Peek().id);
+			}
+		}
+
 		private void CompleteResearchAndBeginNew(GameData gameData, Tech tech) {
 			CompleteResearchingTech(gameData, tech);
+			if (isHuman) {
+				return;
+			}
 			PlayerAI.MaybePickTechToResearch(this, gameData.techs);
 		}
 
+		/// <summary>
+		/// Grants a tech for free. Returns false if there was no advance to spend.
+		/// </summary>
+		public bool ClaimFreeTech(GameData gameData, Tech tech) {
+			if (freeTechsRemaining <= 0 || tech == null) {
+				return false;
+			}
+			if (knownTechs.Contains(tech.id) || GetEraIndex(tech.EraCivilopediaName) > EraIndex()) {
+				return false;
+			}
+
+			--freeTechsRemaining;
+			GrantTech(gameData, tech);
+			DropResearchThatIsNowKnown();
+			log.Information($"Awarded {tech.Name} to player {this}");
+			return true;
+		}
+
 		private void CompleteResearchingTech(GameData gameData, Tech tech) {
+			GrantTech(gameData, tech);
+
+			SetCurrentlyResearchedTech(null);
+
+			RemoveTechsFromResearchQueue(t => t.id == tech.id);
+		}
+
+		private void RemoveTechsFromResearchQueue(Func<Tech, bool> shouldRemove) {
+			int queued = ResearchQueue.Count;
+			for (int i = 0; i < queued; ++i) {
+				Tech tech = ResearchQueue.Dequeue();
+				if (!shouldRemove(tech)) {
+					ResearchQueue.Enqueue(tech);
+				}
+			}
+		}
+
+		private void GrantTech(GameData gameData, Tech tech) {
 			// If this tech awards the first civ to research it a free tech and
 			// no other civs know about the tech, this player gets the bonus.
 			if (tech.BonusTechToFirstCivThatResearches) {
@@ -864,13 +925,6 @@ namespace C7GameData {
 			knownTechs.Add(tech.id);
 			// trigger callback for techs that enable improvements to redraw map
 			TechImprovementCallback(this, tech);
-
-			SetCurrentlyResearchedTech(null);
-
-			// remove completed tech from the current research queue
-			if (ResearchQueue.Count > 0) {
-				ResearchQueue.Dequeue();
-			}
 
 			if (CanAdvanceToNextEra(gameData)) {
 				eraCivilopediaName = GetNextEraNameByIndex(EraIndex());
@@ -1006,7 +1060,8 @@ namespace C7GameData {
 				// We use constructed_buildings here because great wonders can't
 				// supply small wonders like forbidden palaces, so we can avoid
 				// doing extra work for each city.
-				if (c.constructed_buildings.Any(x => x.building.isForbiddenPalace)) {
+				// TODO: Skip obsolete buildings (see Building.IsObsolete).
+				if (c.constructed_buildings.Any(x => x.building.HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption))) {
 					citiesWithCorruptionWonders.Add(c);
 				}
 			}
@@ -1043,6 +1098,35 @@ namespace C7GameData {
 				// TODO: Add drafting unhappiness decrement when implemented
 				c.turnsOfUnhappinessDueToPopRushing -= (c.turnsOfUnhappinessDueToPopRushing > 0) ? 1 : 0;
 			}
+		}
+
+		// The net number of unhappy faces that become content in the given city,
+		// from buildings with empire-wide effects in this player's other cities.
+		//
+		// The empire-wide effect of a building applies to every other city, so
+		// it doesn't stack with the building's own effect in the city that has
+		// it. Obsolete buildings have no effect, and buildings with continental
+		// mood effects only affect cities on the same continent.
+		//
+		// We use constructed_buildings rather than City.GetBuildings so that
+		// buildings granted by wonders aren't counted once per city.
+		public int GetNetContentFacesFromOtherCities(City city) {
+			int netContentFaces = 0;
+			foreach (City c in cities) {
+				if (c == city) {
+					continue;
+				}
+				foreach (CityBuilding cb in c.constructed_buildings) {
+					if (cb.building.IsObsolete(this)) {
+						continue;
+					}
+					if (cb.building.continentalMoodEffects && !c.IsOnSameContinentAs(city)) {
+						continue;
+					}
+					netContentFaces += cb.building.contentFacesInAllCities - cb.building.unhappyFacesInAllCities;
+				}
+			}
+			return netContentFaces;
 		}
 
 		public void RecalculateCitizenMoods(GameData gameData, bool goIntoDisorderIfUnhappy = false) {
@@ -1123,6 +1207,29 @@ namespace C7GameData {
 				   knownTechs.Contains(producible.requiredTech.id);
 		}
 
+		// Whether any of this player's cities has already constructed the given
+		// building.
+		public bool OwnsBuilding(Building building) {
+			return cities.Any(c => c.constructed_buildings.Any(cb => cb.building == building));
+		}
+
+		// The number of this player's cities that have the given building.
+		public int CountBuilding(Building building) {
+			return cities.Count(c => c.GetBuildings().Exists(cb => cb.building == building));
+		}
+
+		// Whether any of this player's cities has constructed a building that
+		// matches the predicate and isn't obsolete.
+		public bool OwnsBuilding(Func<Building, bool> predicate) {
+			return cities.Any(c => c.constructed_buildings.Any(cb => !cb.building.IsObsolete(this) && predicate(cb.building)));
+		}
+
+		// Whether any of this player's cities is currently producing the given
+		// item, optionally ignoring one city.
+		public bool IsProducing(IProducible item, City excludedCity = null) {
+			return cities.Any(c => c != excludedCity && c.itemBeingProduced != null && c.itemBeingProduced.name == item.name);
+		}
+
 		public bool CanBridgeRoads() {
 			ID engineeringTechId = EngineStorage.gameData.techs.FirstOrDefault(tech => tech.EnablesBridges)?.id;
 			return knownTechs?.FirstOrDefault(tech => tech == engineeringTechId) != null;
@@ -1136,7 +1243,11 @@ namespace C7GameData {
 			Difficulty difficulty = EngineStorage.gameData.gameDifficulty;
 			float costFactor = isHuman ? 1.0f : difficulty.AiCostFactor / (float)(difficulty.HumanCostFactor);
 
-			return producible.ShieldCost(civilization.traits, costFactor);
+			return producible.ShieldCost(this, costFactor);
+		}
+
+		public bool HasUnitsOnTile(Tile location) {
+			return location.unitsOnTile.Count > 0 && location.unitsOnTile.Any(u => u.owner == this);
 		}
 
 		public void UpdateHistory(GameData gameData) {
@@ -1174,6 +1285,17 @@ namespace C7GameData {
 				VP = 0 // TODO: victory points
 			});
 		}
+
+		public bool HasCivTrait(Civilization.Trait trait) => civilization?.traits?.Contains(trait) ?? false;
+
+		public bool IsMilitaristic() => HasCivTrait(Civilization.Trait.Militaristic);
+		public bool IsCommercial() => HasCivTrait(Civilization.Trait.Commercial);
+		public bool IsExpansionist() => HasCivTrait(Civilization.Trait.Expansionist);
+		public bool IsScientific() => HasCivTrait(Civilization.Trait.Scientific);
+		public bool IsReligious() => HasCivTrait(Civilization.Trait.Religious);
+		public bool IsIndustrious() => HasCivTrait(Civilization.Trait.Industrious);
+		public bool IsAgricultural() => HasCivTrait(Civilization.Trait.Agricultural);
+		public bool IsSeafaring() => HasCivTrait(Civilization.Trait.Seafaring);
 	}
 
 }

@@ -29,10 +29,20 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		this.fixture = fixture;
 	}
 
+	// be careful when using this, tests that use it might be using stale data,
+	// initialized from another unrelated test that ran before the test you are running now
 	private SaveGame GetSave(SaveType type) {
 		return type switch {
 			SaveType.basic => fixture.saveGame,
 			SaveType.standalone => fixture.standaloneSaveGame,
+			_ => throw new ArgumentOutOfRangeException()
+		};
+	}
+
+	private SaveGame GetFreshSave(SaveType type) {
+		return type switch {
+			SaveType.basic => new SaveGameFixture().saveGame,
+			SaveType.standalone => new SaveGameFixture().standaloneSaveGame,
 			_ => throw new ArgumentOutOfRangeException()
 		};
 	}
@@ -57,7 +67,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		// load SaveGame but convert to and from GameData before saving to file:
 		string outputWasGameDataPath = PathUtils.getDataPath($"output/static-save-was-game-data-{outputFilePostfix}.json");
 
-		SaveGame developerSave = GetSave(saveType);
+		SaveGame developerSave = GetFreshSave(saveType);
 		developerSave.Save(outputNeverGameDataPath);
 
 		C7GameData.GameData gameData = ToGameData(developerSave);
@@ -86,22 +96,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			EngineStorage.ProcessNextMessageToEngine();
 
 			while (EngineStorage.TryDequeueNextMessageToUI(out MessageToUI msg)) {
-				switch (msg) {
-					case MsgStartTurn mST:
-						return;
-					case MsgWarDeclaration mWD:
-						continue;
-					case MsgShowTemporaryPopup mSTP:
-						continue;
-					case MsgCityDestroyed mCD:
-						continue;
-					case MsgCivilizationDestroyed mCVD:
-						continue;
-					case MsgVictory mV:
-						continue;
-					default:
-						throw new Exception($"{msg}");
-				}
+				if (msg is MsgStartTurn)
+					return;
 			}
 		}
 	}
@@ -128,6 +124,40 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 	private C7GameData.GameData ToGameData(SaveGame game) {
 		return game.ToGameData(fixture.behaviors);
+	}
+
+	[Fact]
+	public void BaseRulesetBuildings_HaveNavalAndAirData() {
+		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
+
+		Building coastalFortress = buildings["Coastal Fortress"];
+		Assert.Equal(8, coastalFortress.navalBombardDefense);
+		Assert.Equal(8, coastalFortress.navalPower);
+		Assert.Equal(0, coastalFortress.airPower);
+		Assert.Equal(8, buildings["SAM Missile Battery"].airPower);
+		Assert.NotNull(coastalFortress.navalDefenseBonus);
+
+		Building walls = buildings["Walls"];
+		Assert.Equal(0, walls.navalBombardDefense);
+		Assert.Equal(0, walls.navalPower);
+		Assert.Null(walls.navalDefenseBonus);
+	}
+
+	[Fact]
+	public void BaseRulesetBuildings_HaveWonderData() {
+		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
+
+		Assert.Equal(buildings["Temple"], buildings["The Oracle"].greatWonderProperties.buildingWithDoubledHappiness);
+		Assert.Equal(buildings["Cathedral"], buildings["Sistine Chapel"].greatWonderProperties.buildingWithDoubledHappiness);
+		Assert.Null(buildings["The Pyramids"].greatWonderProperties.buildingWithDoubledHappiness);
+
+		Assert.True(buildings["Wall Street"].HasWonderFlag(SaveBuilding.WonderFlag.TreasuryEarnsInterest));
+		Assert.True(buildings["Forbidden Palace"].HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption));
+		Assert.True(buildings["Secret Police HQ"].HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption));
+		Assert.Equal("Communism", buildings["Secret Police HQ"].requiredGovernment.name);
+		Assert.Null(buildings["Forbidden Palace"].requiredGovernment);
+		Assert.True(buildings["Iron Works"].goodsMustBeInCityRadius);
+		Assert.Equal(1, buildings["The Hanging Gardens"].contentFacesInAllCities);
 	}
 
 	private void CheckAiInvariants() {
@@ -170,7 +200,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			.MinimumLevel.Information()
 			.CreateLogger();
 
-		SaveGame developerSave = GetSave(saveType);
+		SaveGame developerSave = GetFreshSave(saveType);
 
 		new MsgSetAnimationsEnabled(false).send();
 
@@ -206,7 +236,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 		// Load the saved game and save it again.
 		string roundTrippedSavePath = PathUtils.getDataPath($"output/headless-game-round-tripped-save-{outputFilePostfix}.json");
-		C7GameData.GameData roundTrippedGameData = ToGameData(SaveGame.Load(outputDirectSavePath, (string unused) => { return unused; }));
+		C7GameData.GameData roundTrippedGameData = ToGameData(SaveGame.Load(outputDirectSavePath, (string unused) => { return unused; }, (string unused) => { return unused; }));
 		SaveGame.FromGameData(roundTrippedGameData).Save(roundTrippedSavePath);
 
 		string[] directSaveLines = File.ReadAllLines(outputDirectSavePath);
@@ -218,6 +248,33 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 		// And they should be the same, despite round-tripping through the GameData format.
 		Assert.Equal(directSaveLines, roundTrippedSaveLines);
+	}
+
+	[Fact]
+	public async Task SaveInObserverModeIsLoadable() {
+		Player human = await CreateHeadlessGame(fixture.saveGame);
+		WaitForStartTurnMessage();
+
+		// Mimic the UI's observer mode: no player is human, but the engine remembers who the human was.
+		C7GameData.GameData game = null;
+		EngineStorage.ReadGameData((C7GameData.GameData gameData) => { game = gameData; });
+		foreach (Player p in game.players) {
+			p.isHuman = false;
+		}
+		game.observerMode = true;
+
+		string observerSavePath = PathUtils.getDataPath("output/observer-mode-save.json");
+		SaveGame.FromGameData(game).Save(observerSavePath);
+
+		// The save should load again and have the original human player.
+		SaveGame loaded = SaveGame.Load(observerSavePath, (string unused) => { return unused; }, (string unused) => { return unused; });
+		Player loadedHuman = await CreateGame.createGame(loaded, (_) => { return fixture.behaviors; });
+		Assert.Equal(human.id, loadedHuman.id);
+		Assert.Equal(1, EngineStorage.gameData.players.Count(p => p.isHuman));
+
+		// Saving must not alter the running game.
+		Assert.True(game.observerMode);
+		Assert.DoesNotContain(game.players, p => p.isHuman);
 	}
 
 	[Fact]
@@ -402,6 +459,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			Exception ex = Record.Exception(() => {
 				game = ImportCiv3.ImportSav(saveFileInfo.FullName, PathUtils.defaultBicPath, (relativeModePath) => {
 					return PathUtils.defaultPediaIconsPath;
+				}, (relativeModePath) => {
+					return PathUtils.defaultCivilopediaTextPath;
 				});
 			});
 			Assert.Null(ex);
@@ -489,10 +548,14 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 				return Path.GetFullPath(Path.Combine(Civ3Location.GetCiv3Path(), subfolder, relativeModPath, "Text", "PediaIcons.txt"));
 			};
 
+			Func<string, string> getCivilopediaTextPath = (relativeModPath) => {
+				return Path.Combine(Civ3Location.GetCiv3Path(), subfolder, "Conquests", "Text", "Civilopedia.txt");
+			};
+
 			EngineStorage.animationsEnabled = false;
 
 			Exception ex = Record.Exception(() => {
-				game = ImportCiv3.ImportBiq(saveFileInfo.FullName, PathUtils.defaultBicPath, getPediaIconsPath);
+				game = ImportCiv3.ImportBiq(saveFileInfo.FullName, PathUtils.defaultBicPath, getPediaIconsPath, getCivilopediaTextPath);
 			});
 			Assert.True(ex == null, name + ": " + ex?.ToString());
 			ex = Record.Exception(() => {
@@ -596,7 +659,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			foreach (var gameUnit in game.Units) {
 				// there is a horseman barb + barb camp unit in this location
 				if (gameUnit.currentLocation is { X: 7, Y: 103 }) {
-					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).features);
+					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).overlays);
 					Assert.True(game.Players.Find(p => p.id == gameUnit.owner).civilization == "A Barbarian Chiefdom");
 				}
 			}

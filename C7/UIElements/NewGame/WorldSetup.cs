@@ -88,144 +88,117 @@ public partial class WorldSetup : Control {
 		pangaea80.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Pangaea;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_80;
-			ResetLandformGraphics();
-			pangaea80Large.Visible = true;
-			pangaeaLabel.Text = "Pangaea (80% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(pangaea70, "world_setup.pangaea70");
 		pangaea70.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Pangaea;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_70;
-			ResetLandformGraphics();
-			pangaea70Large.Visible = true;
-			pangaeaLabel.Text = "Pangaea (70% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(pangaea60, "world_setup.pangaea60");
 		pangaea60.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Pangaea;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_60;
-			ResetLandformGraphics();
-			pangaea60Large.Visible = true;
-			pangaeaLabel.Text = "Pangaea (60% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(continents80, "world_setup.continents80");
 		continents80.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Continents;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_80;
-			ResetLandformGraphics();
-			continents80Large.Visible = true;
-			continentsLabel.Text = "Continents (80% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(continents70, "world_setup.continents70");
 		continents70.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Continents;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_70;
-			ResetLandformGraphics();
-			continents70Large.Visible = true;
-			continentsLabel.Text = "Continents (70% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(continents60, "world_setup.continents60");
 		continents60.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Continents;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_60;
-			ResetLandformGraphics();
-			continents60Large.Visible = true;
-			continentsLabel.Text = "Continents (60% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(archipelago80, "world_setup.archipelago80");
 		archipelago80.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Archipelago;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_80;
-			ResetLandformGraphics();
-			archipelago80Large.Visible = true;
-			archipelagoLabel.Text = "Archipelago (80% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(archipelago70, "world_setup.archipelago70");
 		archipelago70.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Archipelago;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_70;
-			ResetLandformGraphics();
-			archipelago70Large.Visible = true;
-			archipelagoLabel.Text = "Archipelago (70% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(archipelago60, "world_setup.archipelago60");
 		archipelago60.Pressed += () => {
 			landform = WorldCharacteristics.Landform.Archipelago;
 			ocean = WorldCharacteristics.OceanCoverage.Percent_60;
-			ResetLandformGraphics();
-			archipelago60Large.Visible = true;
-			archipelagoLabel.Text = "Archipelago (60% water)";
+			SelectLandform();
 		};
 
 		TextureLoader.SetButtonTextures(arid, "world_setup.arid");
 		arid.Pressed += () => {
 			clim = WorldCharacteristics.Climate.Arid;
-			ResetClimateGraphics();
-			aridLarge.Visible = true;
+			SelectClimate();
 		};
 
 		TextureLoader.SetButtonTextures(normal, "world_setup.normal");
 		normal.Pressed += () => {
 			clim = WorldCharacteristics.Climate.Normal;
-			ResetClimateGraphics();
-			normalLarge.Visible = true;
+			SelectClimate();
 		};
 
 		TextureLoader.SetButtonTextures(wet, "world_setup.wet");
 		wet.Pressed += () => {
 			clim = WorldCharacteristics.Climate.Wet;
-			ResetClimateGraphics();
-			wetLarge.Visible = true;
+			SelectClimate();
 		};
 
 		TextureLoader.SetButtonTextures(warm, "world_setup.warm");
 		warm.Pressed += () => {
 			temp = WorldCharacteristics.Temperature.Warm;
-			ResetTemperatureGraphics();
-			warmLarge.Visible = true;
+			SelectTemperature();
 		};
 
 		TextureLoader.SetButtonTextures(temperate, "world_setup.temperate");
 		temperate.Pressed += () => {
 			temp = WorldCharacteristics.Temperature.Temperate;
-			ResetTemperatureGraphics();
-			temperateLarge.Visible = true;
+			SelectTemperature();
 		};
 
 		TextureLoader.SetButtonTextures(cool, "world_setup.cool");
 		cool.Pressed += () => {
 			temp = WorldCharacteristics.Temperature.Cool;
-			ResetTemperatureGraphics();
-			coolLarge.Visible = true;
+			SelectTemperature();
 		};
 
 		TextureLoader.SetButtonTextures(billion3, "world_setup.billion3");
 		billion3.Pressed += () => {
 			age = WorldCharacteristics.Age.Billion_3;
-			ResetAgeGraphics();
-			billion3Large.Visible = true;
+			SelectAge();
 		};
 
 		TextureLoader.SetButtonTextures(billion4, "world_setup.billion4");
 		billion4.Pressed += () => {
 			age = WorldCharacteristics.Age.Billion_4;
-			ResetAgeGraphics();
-			billion4Large.Visible = true;
+			SelectAge();
 		};
 
 		TextureLoader.SetButtonTextures(billion5, "world_setup.billion5");
 		billion5.Pressed += () => {
 			age = WorldCharacteristics.Age.Billion_5;
-			ResetAgeGraphics();
-			billion5Large.Visible = true;
+			SelectAge();
 		};
 
 		TextureLoader.SetButtonTextures(confirm, "ui.confirm");
@@ -254,22 +227,19 @@ public partial class WorldSetup : Control {
 		billion4Large.Texture = TextureLoader.Load("world_setup.large.billion4");
 		billion5Large.Texture = TextureLoader.Load("world_setup.large.billion5");
 
-		ResetLandformGraphics();
-		pangaea70Large.Visible = true;
-		pangaea70.ButtonPressed = true;
-		pangaeaLabel.Text = "Pangaea (70% water)";
+		// Restore the last game's world settings.
+		landform = GameSetup.LandformFromSettings();
+		ocean = GameSetup.OceanCoverageFromSettings();
+		SelectLandform();
 
-		ResetClimateGraphics();
-		normalLarge.Visible = true;
-		normal.ButtonPressed = true;
+		clim = GameSetup.ClimateFromSettings();
+		SelectClimate();
 
-		ResetTemperatureGraphics();
-		temperateLarge.Visible = true;
-		temperate.ButtonPressed = true;
+		temp = GameSetup.TemperatureFromSettings();
+		SelectTemperature();
 
-		ResetAgeGraphics();
-		billion4Large.Visible = true;
-		billion4.ButtonPressed = true;
+		age = GameSetup.AgeFromSettings();
+		SelectAge();
 
 		var game = GameMode.Load(GamePaths.GameModesDir, GamePaths.GameMode);
 		_saveGame = game.GetSave();
@@ -280,8 +250,9 @@ public partial class WorldSetup : Control {
 
 	private void InitBarbarianActivityOptions() {
 		var barbRandom = new Random();
-		var barbDefault = BarbarianActivity.Roaming;
+		BarbarianActivity barbDefault = GameSetup.BarbarianActivityFromSettings();
 		var barbOptions = Enum.GetValues<BarbarianActivity>().OrderBy(x => x).ToList();
+		_barbarianActivity = barbDefault;
 
 		var barbActivityButtonGroup = new ButtonGroup() { ResourceName = "BarbActivityButtonGroup" };
 		var randomSizeButton = new Civ3MenuButton
@@ -317,6 +288,8 @@ public partial class WorldSetup : Control {
 
 	private void InitMapSizes() {
 		var sizeRandom = new Random();
+		WorldSize selectedSize = GameSetup.WorldSizeFromSettings(_saveGame.WorldSizes);
+		_worldSize = selectedSize;
 
 		var worldSizeButtonGroup = new ButtonGroup() { ResourceName = "WorldSizeButtonGroup" };
 		var randomSizeButton = new Civ3MenuButton
@@ -343,14 +316,10 @@ public partial class WorldSetup : Control {
 					FontSize = 0,
 					ButtonGroup = worldSizeButtonGroup,
 					ToggleMode = true,
-					ButtonPressed = ws.isDefault
+					ButtonPressed = ws == selectedSize
 				};
 				worldSizeButton.Pressed += () => _worldSize = ws;
 				worldSizeButtonsContainer.AddChild(worldSizeButton);
-
-				// apply the default immediately (last isDefault=true wins)
-				if (ws.isDefault)
-					_worldSize = ws;
 			}
 
 			// Append random as last in the list 
@@ -358,6 +327,67 @@ public partial class WorldSetup : Control {
 		} catch (Exception ex) {
 			log.Warning(ex, "Failed to load map sizes from game mode.");
 		}
+	}
+
+	private void SelectLandform() {
+		(TextureButton button, TextureRect large) = (landform, ocean) switch {
+			(WorldCharacteristics.Landform.Pangaea, WorldCharacteristics.OceanCoverage.Percent_60) => (pangaea60, pangaea60Large),
+			(WorldCharacteristics.Landform.Pangaea, WorldCharacteristics.OceanCoverage.Percent_70) => (pangaea70, pangaea70Large),
+			(WorldCharacteristics.Landform.Pangaea, _) => (pangaea80, pangaea80Large),
+			(WorldCharacteristics.Landform.Continents, WorldCharacteristics.OceanCoverage.Percent_60) => (continents60, continents60Large),
+			(WorldCharacteristics.Landform.Continents, WorldCharacteristics.OceanCoverage.Percent_70) => (continents70, continents70Large),
+			(WorldCharacteristics.Landform.Continents, _) => (continents80, continents80Large),
+			(_, WorldCharacteristics.OceanCoverage.Percent_60) => (archipelago60, archipelago60Large),
+			(_, WorldCharacteristics.OceanCoverage.Percent_70) => (archipelago70, archipelago70Large),
+			_ => (archipelago80, archipelago80Large),
+		};
+
+		Label label = landform switch {
+			WorldCharacteristics.Landform.Pangaea => pangaeaLabel,
+			WorldCharacteristics.Landform.Continents => continentsLabel,
+			_ => archipelagoLabel
+		};
+
+		ResetLandformGraphics();
+		large.Visible = true;
+		button.ButtonPressed = true;
+		label.Text = $"{landform} ({(int)ocean}% water)";
+	}
+
+	private void SelectClimate() {
+		(TextureButton button, TextureRect large) = clim switch {
+			WorldCharacteristics.Climate.Arid => (arid, aridLarge),
+			WorldCharacteristics.Climate.Wet => (wet, wetLarge),
+			_ => (normal, normalLarge),
+		};
+
+		ResetClimateGraphics();
+		large.Visible = true;
+		button.ButtonPressed = true;
+	}
+
+	private void SelectTemperature() {
+		(TextureButton button, TextureRect large) = temp switch {
+			WorldCharacteristics.Temperature.Cool => (cool, coolLarge),
+			WorldCharacteristics.Temperature.Warm => (warm, warmLarge),
+			_ => (temperate, temperateLarge),
+		};
+
+		ResetTemperatureGraphics();
+		large.Visible = true;
+		button.ButtonPressed = true;
+	}
+
+	private void SelectAge() {
+		(TextureButton button, TextureRect large) = age switch {
+			WorldCharacteristics.Age.Billion_3 => (billion3, billion3Large),
+			WorldCharacteristics.Age.Billion_5 => (billion5, billion5Large),
+			_ => (billion4, billion4Large),
+		};
+
+		ResetAgeGraphics();
+		large.Visible = true;
+		button.ButtonPressed = true;
 	}
 
 	private void ResetLandformGraphics() {

@@ -92,7 +92,10 @@ public partial class UnitButtons : VBoxContainer {
 		TextureButton button = new();
 		button.Hide();
 		TextureLoader.SetButtonTextures(button, "ui.unit_control." + action);
-		button.Pressed += () => { EmitSignal(SignalName.ActionRequested, action); };
+		button.Pressed += () => {
+			EmitSignal(SignalName.ActionRequested, action);
+			button.ReleaseFocus();
+		};
 
 		// Add a tooltip to the button to explain what it does, and ensure that
 		// the tooltip is readable.
@@ -101,8 +104,7 @@ public partial class UnitButtons : VBoxContainer {
 			button.TooltipText = tooltipText;
 
 			var customTheme = new Theme();
-			customTheme.SetStylebox("panel", "TooltipPanel", TemporaryPopup.TooltipStyleBox());
-			customTheme.SetColor("font_color", "TooltipLabel", Colors.White);
+			customTheme.SetStylebox("panel", "TooltipPanel", TemporaryPopup.InfoStyleBox());
 			button.Theme = customTheme;
 		}
 

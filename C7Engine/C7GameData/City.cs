@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Serilog;
 using C7Engine;
+using C7GameData.Save;
 using MoonSharp.Interpreter;
 
 namespace C7GameData {
@@ -77,6 +78,7 @@ namespace C7GameData {
 		public int turnsOfUnhappinessDueToPopRushing = 0;
 
 		public bool isInCivilDisorder = false;
+		public bool hasFreshwaterAccess => location.BordersRiver() || location.NeighborsFreshWater();
 
 		public static City NONE = new City(Tile.NONE, null, "Dummy City", ID.None("city"));
 
@@ -105,6 +107,12 @@ namespace C7GameData {
 
 		public bool IsCapital() {
 			return capital;
+		}
+
+		// Whether the two cities are on the same continent, i.e., a land unit
+		// could get from one to the other without a boat.
+		public bool IsOnSameContinentAs(City other) {
+			return location.continent == other.location.continent;
 		}
 
 		/// <summary>
@@ -143,7 +151,7 @@ namespace C7GameData {
 					});
 				}
 				if (b.greatWonderProperties.buildingGainedInEveryCityOnContinent != null
-					&& c.location.continent == location.continent
+					&& c.IsOnSameContinentAs(this)
 					&& !buildingsSeen.Contains(b.greatWonderProperties.buildingGainedInEveryCityOnContinent)) {
 					result.Add(new CityBuilding() {
 						building = b.greatWonderProperties.buildingGainedInEveryCityOnContinent,
@@ -169,6 +177,18 @@ namespace C7GameData {
 
 		private HashSet<Resource> GetAccessibleResources(GameData gameData) {
 			return gameData.GetTradeNetwork().GetResourcesAvailableToCity(owner, this).Keys.ToHashSet();
+		}
+
+		// 1 for a town, 2 for a city, 3 for a metropolis, by the rules' size limits.
+		public int SizeLevel() {
+			Rules rules = owner.rules;
+			if (residents.Count <= rules.MaximumLevel1CitySize) {
+				return 1;
+			} else if (residents.Count <= rules.MaximumLevel2CitySize) {
+				return 2;
+			} else {
+				return 3;
+			}
 		}
 
 		public int FoodNeededToGrow() {
@@ -229,6 +249,7 @@ namespace C7GameData {
 		public class HurryProductionDetails {
 			public string? errorMessage;
 			public string? costMessage;
+			public Government.HurryProductionType hurryProductionType = Government.HurryProductionType.CannotHurry;
 
 			public int popCost = -1;
 			public int goldCost = -1;
@@ -241,6 +262,12 @@ namespace C7GameData {
 				return new HurryProductionDetails() { errorMessage = "The city is in disorder and cannot hurry production." };
 			}
 
+			if (this.itemBeingProduced is Building building) {
+				// TODO: expose rules and make configurable
+				if (building.greatWonderProperties != null || building.isSmallWonder)
+					return new HurryProductionDetails() { errorMessage = $"We cannot hurry {building.name}" };
+			}
+
 			switch (owner.government.hurryingType) {
 				case Government.HurryProductionType.CannotHurry:
 					return new HurryProductionDetails() { errorMessage = "We cannot hurry production with this government." };
@@ -248,21 +275,23 @@ namespace C7GameData {
 				case Government.HurryProductionType.ForcedLabor:
 					int popCost = (int)Math.Ceiling((float)shieldCost / rules.CitizenValueInShields);
 					if (popCost > residents.Count / 2f) {
-						return new HurryProductionDetails() { errorMessage = $"Hurrying production would take the lives of too many citizens ({popCost})." };
+						return new HurryProductionDetails() { errorMessage = $"Rushing this project would cost the lives of too many citizens ({popCost})." };
 					}
 					return new HurryProductionDetails() {
-						costMessage = $"Hurrying production will take the lives of {popCost} citizen(s), are you sure?",
+						costMessage = $"Are you sure? Hurrying {this.itemBeingProduced.name} will take the lives of {popCost} citizen(s).",
 						popCost = popCost,
+						hurryProductionType = Government.HurryProductionType.ForcedLabor,
 					};
 
 				case Government.HurryProductionType.PaidLabor:
 					int goldCost = shieldCost * rules.ShieldValueInGold;
 					if (goldCost > owner.gold) {
-						return new HurryProductionDetails() { errorMessage = $"Hurrying production would cost too much gold! ({goldCost})." };
+						return new HurryProductionDetails() { errorMessage = $"Ummm.. sir. We would need at least {goldCost} gold to do that.." };
 					}
 					return new HurryProductionDetails() {
-						costMessage = $"Hurrying production will cost {goldCost} gold, are you sure?",
+						costMessage = $"Hurrying {this.itemBeingProduced.name} will cost {goldCost} gold... Are you sure?",
 						goldCost = goldCost,
+						hurryProductionType = Government.HurryProductionType.PaidLabor,
 					};
 			}
 			throw new Exception($"Unknown hurrying type: {owner.government.hurryingType}");
@@ -304,6 +333,7 @@ namespace C7GameData {
 			log.Debug($"Produced {producedItem} in {this}");
 			if (producedItem is UnitPrototype prototype) {
 				AddUnit(prototype, gameData);
+				new MsgShowTemporaryPopup(this.owner.id, $"{this.name} built {prototype.name}.", this.location).send();
 			} else if (producedItem is Building building) {
 				AddBuilding(building);
 
@@ -393,25 +423,11 @@ namespace C7GameData {
 
 			// If the city doesn't have fresh water and doesn't have an aqueduct
 			// then it can't grow into a city.
-			//
-			// TODO: lakes are bodies of water under 20 tiles (https://civilization.fandom.com/wiki/Fresh_Water_Lake_(Civ3))
-			bool hasFreshwaterAccess = location.BordersRiver();
-			foreach (Tile t in location.neighbors.Values) {
-				if (!t.IsLand() && t.isFreshWater) {
-					hasFreshwaterAccess = true;
-					break;
-				}
-			}
 
-			bool canGrowIntoCity = hasFreshwaterAccess;
-			if (!hasFreshwaterAccess) {
-				foreach (CityBuilding cb in GetBuildings()) {
-					if (cb.building.allowsCitySize2 || cb.building.allowsCitySize3) {
-						canGrowIntoCity = true;
-						break;
-					}
-				}
-			}
+			bool canGrowIntoCity = hasFreshwaterAccess || GetBuildings()
+				.Select(cb => cb.building)
+				.Where(bldg => !bldg.IsObsolete(this.owner))
+				.Any(bldg => bldg.allowsCitySize2 || bldg.allowsCitySize3);
 
 			if (!canGrowIntoCity) {
 				return false;
@@ -424,8 +440,10 @@ namespace C7GameData {
 
 			// If we're a city trying to grow into a metropolis, we need a
 			// hospital.
-			foreach (CityBuilding cb in GetBuildings()) {
-				if (cb.building.allowsCitySize3) {
+			foreach (Building b in GetBuildings()
+				.Select(cb => cb.building)
+				.Where(bldg => !bldg.IsObsolete(this.owner))) {
+				if (b.allowsCitySize3) {
 					return true;
 				}
 			}
@@ -433,6 +451,7 @@ namespace C7GameData {
 		}
 
 		public bool HasGranary() {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.doublesCityGrowthRate) {
 					return true;
@@ -442,6 +461,7 @@ namespace C7GameData {
 		}
 
 		public bool HasWalls() {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.providesWalls) {
 					return true;
@@ -465,6 +485,7 @@ namespace C7GameData {
 			bool isTown = residents.Count <= gD.rules.MaximumLevel1CitySize;
 
 			// Buildings, such as walls, can also give bonuses.
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				if (cb.building.combatDefenseBonus is not StrengthBonus defenseBonus) {
 					continue;
@@ -552,12 +573,35 @@ namespace C7GameData {
 				commerce.corrupt = uncorruptedCommerce;
 			}
 
+			// We use constructed_buildings rather than GetBuildings because the
+			// bonuses only come from buildings in this city, including wonders
+			// built here, and it avoids the cost of collecting every wonder in
+			// the empire each time.
+			List<Building> activeBuildings = constructed_buildings
+				.Select(cb => cb.building)
+				.Where(b => !b.IsObsolete(owner))
+				.ToList();
+			double researchMultiplier = 1 + activeBuildings.Sum(b => b.researchBonus);
+			double luxuryMultiplier = 1 + activeBuildings.Sum(b => b.luxuryBonus);
+			double taxMultiplier = 1 + activeBuildings.Sum(b => b.commerceBonus);
+
+			// Split the commerce first, then apply the building bonuses to each part.
+			int baseBeakers = (commerce.useful * owner.scienceRate + 5) / 10;
+			int baseHappiness = (commerce.useful * owner.luxuryRate + 5) / 10;
+
+			// If the total exceeds available commerce, truncate luxury spending
+			if (baseBeakers + baseHappiness > commerce.useful) {
+				baseHappiness = commerce.useful - baseBeakers;
+			}
+
+			int baseTaxes = commerce.useful - baseBeakers - baseHappiness;
+
 			// TODO: Science/Luxury commerce doesn't seem to be tabulating correctly, can be negative in some cases with specialists, might be ImportCiv3 issue?
 			CommerceBreakdown result = new();
 			result.corrupted = commerce.corrupt;
-			result.beakers = (int)Math.Floor(commerce.useful * owner.scienceRate / 10.0);
-			result.happiness = (int)Math.Floor(commerce.useful * owner.luxuryRate / 10.0);
-			result.taxes = commerce.useful - result.beakers - result.happiness;
+			result.beakers = (int)Math.Floor(baseBeakers * researchMultiplier);
+			result.happiness = (int)Math.Floor(baseHappiness * luxuryMultiplier);
+			result.taxes = (int)Math.Floor(baseTaxes * taxMultiplier);
 
 			foreach (CityResident cr in residents) {
 				result.beakers += cr.citizenType.Research;
@@ -601,6 +645,7 @@ namespace C7GameData {
 
 		public int MaintenanceCostsRaw() {
 			int result = 0;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in constructed_buildings) {
 				result += cb.building.maintenanceCost;
 			}
@@ -681,6 +726,7 @@ namespace C7GameData {
 
 		public int GetCulturePerTurnRaw() {
 			int result = 0;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				var multiplier = AgeMultiplier(cb);
 				result += cb.building.culturePerTurn * multiplier;
@@ -743,6 +789,7 @@ namespace C7GameData {
 			gameData.mapUnits.Add(newUnit);
 			owner.AddUnit(newUnit);
 
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			GetBuildings().ForEach(b => b.building.onFinishedUnitProduction?.Invoke(newUnit));
 		}
 
@@ -838,11 +885,12 @@ namespace C7GameData {
 		}
 
 		public void CalculateCorruption(GameData gameData) {
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			List<CityBuilding> buildings = GetBuildings();
 			int numAntiCorruptionBuildings = buildings.Count(x => x.building.reducesCorruption);
 
 			// TODO: Handle the SPHQ.
-			int numCorruptionReducingSmallWondersInCity = buildings.Count(x => x.building.isForbiddenPalace);
+			int numCorruptionReducingSmallWondersInCity = buildings.Count(x => x.building.HasWonderFlag(SaveBuilding.WonderFlag.ReducesCorruption));
 
 			corruption = CalculateDistanceCorruption(numAntiCorruptionBuildings)
 					+ CalculateRankCorruption(gameData, numAntiCorruptionBuildings);
@@ -861,6 +909,7 @@ namespace C7GameData {
 		// the borders need to be updated.
 		public bool UpdateCultureAndCheckForExpansion() {
 			int start = GetBorderExpansionLevel();
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			foreach (CityBuilding cb in GetBuildings()) {
 				cb.totalCulture += cb.building.culturePerTurn;
 			}
@@ -973,12 +1022,16 @@ namespace C7GameData {
 
 			// Building happiness/unhappiness, which only affects the unhappy to
 			// content transition, nothing with happy faces.
-			//
-			// TODO: account for wonders and buildings with global/continental effects.
 			foreach (CityBuilding cb in GetBuildings()) {
+				if (cb.building.IsObsolete(owner)) {
+					continue;
+				}
 				unhappyToContentMoves -= cb.building.unhappyFacesInCity;
 				unhappyToContentMoves += cb.building.contentFacesInCity;
 			}
+
+			// Buildings in our other cities with an empire-wide effect.
+			unhappyToContentMoves += owner.GetNetContentFacesFromOtherCities(this);
 
 			// Depending on the government type, land defensive units can serve
 			// as military police.
@@ -994,6 +1047,7 @@ namespace C7GameData {
 
 			// As do luxury resources, which can be boosted by marketplaces.
 			int effectiveLux = GetLuxuries(gameData).Keys.Count;
+			// TODO: Skip obsolete buildings (see Building.IsObsolete).
 			if (GetBuildings().Any(x => x.building.increasesLuxuryTrade)) {
 				effectiveLux = (int)(Math.Floor(effectiveLux / 2f) * Math.Ceiling(effectiveLux / 2f) + Math.Ceiling(effectiveLux / 2f));
 			}
@@ -1057,7 +1111,9 @@ namespace C7GameData {
 
 			int happyCount = 0;
 			int unhappyCount = 0;
-			foreach (CityResident cr in residents) {
+			// Only loop through default citizens
+			// Specialists retain their mood in CityResident data which we don't want to count here
+			foreach (CityResident cr in residents.Where(c => c.citizenType.IsDefaultCitizen)) {
 				if (cr.mood == CityResident.Mood.Happy) { ++happyCount; }
 				if (cr.mood == CityResident.Mood.Unhappy) { ++unhappyCount; }
 			}

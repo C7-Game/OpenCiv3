@@ -30,6 +30,8 @@ namespace BuildDevSave {
 			string outputPath = Path.Combine(C7DefaultSaveDir, "c7-static-map-save.json");
 			SaveGame output = ImportCiv3.ImportSav(fullSavePath, GetCiv3Path + @"/Conquests/conquests.biq", (scenarioSearchPath) => {
 				return GetCiv3Path + @"/Conquests/Text/PediaIcons.txt";
+			}, (scenarioSearchPath) => {
+				return GetCiv3Path + @"/Conquests/Text/Civilopedia.txt";
 			});
 			output.Save(outputPath);
 			DateTime stop = DateTime.Now;

@@ -15,7 +15,6 @@ public partial class MenuButtonContainer : VBoxContainer {
 	[Export] public Civ3MenuButton HallOfFame;
 	[Export] public Civ3MenuButton ToggleGraphics;
 	[Export] public Civ3MenuButton Preferences;
-	[Export] public Civ3MenuButton AudioPreferences;
 	[Export] public Civ3MenuButton Credits;
 	[Export] public Civ3MenuButton Exit;
 }

@@ -141,6 +141,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 3,
       "allowCities": false,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Mountains",
         "amount": 1
@@ -179,7 +185,12 @@
         "Game"
       ],
       "height": 1,
-      "allowedFoliageAction": "clearForest"
+      "allowedFoliageAction": "clearForest",
+      "allowedInTerrain": [
+        "plains",
+        "grassland",
+        "tundra"
+      ]
     },
     {
       "key": "jungle",
@@ -189,6 +200,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 3,
       "allowCities": true,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Jungle",
         "amount": 0.25
@@ -203,7 +220,10 @@
         "Tropical Fruit"
       ],
       "height": 1,
-      "allowedFoliageAction": "clearWetlands"
+      "allowedFoliageAction": "clearWetlands",
+      "allowedInTerrain": [
+        "grassland"
+      ]
     },
     {
       "key": "marsh",
@@ -213,6 +233,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 2,
       "allowCities": false,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Marsh",
         "amount": 0.2
@@ -224,7 +250,10 @@
         "Fish"
       ],
       "height": -2,
-      "allowedFoliageAction": "clearWetlands"
+      "allowedFoliageAction": "clearWetlands",
+      "allowedInTerrain": [
+        "grassland"
+      ]
     },
     {
       "key": "volcano",
@@ -234,6 +263,12 @@
       "baseCommerceProduction": 0,
       "movementCost": 3,
       "allowCities": false,
+      "impassableTo": {
+        "wheeled": [
+          "road",
+          "railroad"
+        ]
+      },
       "defenseBonus": {
         "description": "Volcano",
         "amount": 0.8
@@ -456,6 +491,12 @@
       "key": "craters",
       "layer": "craters",
       "zIndex": 5,
+      "movementCost": -1
+    },
+    {
+      "key": "barbarianCamp",
+      "layer": "barbarianCamp",
+      "zIndex": 8,
       "movementCost": -1
     }
   ],
@@ -1584,6 +1625,9 @@
         "Mounted Warrior"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -2507,6 +2551,9 @@
         "Trebuchet"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -2584,6 +2631,9 @@
         "Hwach'a"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -4860,6 +4910,9 @@
         "Knight"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -5743,6 +5796,7 @@
       ],
       "unproducible": false,
       "flags": [
+        "wheeled",
         "lethalLandBombardment",
         "lethalSeaBombardment"
       ],
@@ -6913,6 +6967,9 @@
         "Knight"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -7235,6 +7292,9 @@
         "Cannon"
       ],
       "unproducible": false,
+      "flags": [
+        "wheeled"
+      ],
       "categories": [
         "Land"
       ],
@@ -8111,6 +8171,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 1,
+      "commerceBonus": 0.5,
       "iconRowIndex": 4,
       "flags": [
         "increasesLuxuryTrade"
@@ -8129,6 +8190,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 1,
+      "researchBonus": 0.5,
       "iconRowIndex": 5,
       "traits": [
         "scientific"
@@ -8146,7 +8208,8 @@
       "maintenanceCost": 1,
       "iconRowIndex": 6,
       "flags": [
-        "reducesCorruption"
+        "reducesCorruption",
+        "resistantToPropaganda"
       ]
     },
     {
@@ -8203,6 +8266,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 1,
+      "commerceBonus": 0.5,
       "iconRowIndex": 9,
       "traits": [
         "commercial"
@@ -8235,6 +8299,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 2,
+      "researchBonus": 0.5,
       "iconRowIndex": 11,
       "traits": [
         "scientific"
@@ -8262,6 +8327,8 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "pollution": 2,
+      "productionBonus": 0.5,
       "iconRowIndex": 13,
       "requiredResources": [
         "Iron"
@@ -8278,6 +8345,8 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "pollution": 2,
+      "productionBonus": 0.5,
       "iconRowIndex": 14
     },
     {
@@ -8291,6 +8360,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 2,
       "iconRowIndex": 15,
+      "flags": [
+        "reducesBuildingPollution"
+      ],
       "traits": [
         "agricultural"
       ]
@@ -8306,7 +8378,12 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "pollution": 2,
+      "productionBonus": 0.5,
       "iconRowIndex": 16,
+      "flags": [
+        "replacesOtherBuildings"
+      ],
       "requiredResources": [
         "Coal"
       ]
@@ -8322,9 +8399,11 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "productionBonus": 0.5,
       "iconRowIndex": 17,
       "flags": [
-        "mustBeNearRiver"
+        "mustBeNearRiver",
+        "replacesOtherBuildings"
       ],
       "productionPrerequisites": [
         "buildings.production_rules.must_be_near_river"
@@ -8341,9 +8420,18 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "productionBonus": 1.0,
       "iconRowIndex": 18,
+      "flags": [
+        "replacesOtherBuildings",
+        "mustBeNearWater",
+        "canMeltdown"
+      ],
       "requiredResources": [
         "Uranium"
+      ],
+      "productionPrerequisites": [
+        "buildings.production_rules.must_be_near_water"
       ]
     },
     {
@@ -8375,6 +8463,8 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 2,
+      "researchBonus": 0.5,
+      "pollution": 1,
       "iconRowIndex": 20,
       "traits": [
         "scientific"
@@ -8391,6 +8481,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 2,
       "iconRowIndex": 21,
+      "flags": [
+        "removesPopulationPollution"
+      ],
       "requiredResources": [
         "Rubber"
       ]
@@ -8404,6 +8497,7 @@
       "culturePerTurn": 0,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
+      "airPower": 8,
       "maintenanceCost": 2,
       "iconRowIndex": 22,
       "traits": [
@@ -8422,6 +8516,9 @@
       "culturePerTurn": 0,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
+      "navalDefenseBonus": 0.5,
+      "navalBombardDefense": 8,
+      "navalPower": 8,
       "maintenanceCost": 0,
       "iconRowIndex": 23,
       "flags": [
@@ -8450,7 +8547,11 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "productionBonus": 0.5,
       "iconRowIndex": 24,
+      "flags": [
+        "replacesOtherBuildings"
+      ],
       "traits": [
         "agricultural"
       ]
@@ -8469,7 +8570,8 @@
       "flags": [
         "mustBeCoastal",
         "veteranSeaUnits",
-        "increasesFoodInWater"
+        "increasesFoodInWater",
+        "allowsWaterTrade"
       ],
       "traits": [
         "militaristic",
@@ -8496,6 +8598,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "pollution": 2,
       "iconRowIndex": 26,
       "flags": [
         "mustBeCoastal",
@@ -8521,10 +8624,18 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 2,
+      "pollution": 1,
       "iconRowIndex": 27,
+      "flags": [
+        "veteranAirUnits",
+        "allowsAirTrade"
+      ],
       "traits": [
         "militaristic",
         "commercial"
+      ],
+      "onFinishedUnitProduction": [
+        "buildings.unit_production_effects.veteran_air_units"
       ]
     },
     {
@@ -8539,7 +8650,8 @@
       "maintenanceCost": 2,
       "iconRowIndex": 28,
       "flags": [
-        "reducesCorruption"
+        "reducesCorruption",
+        "reducesWarWeariness"
       ]
     },
     {
@@ -8556,6 +8668,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 30,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "religious",
         "industrious",
@@ -8571,9 +8686,13 @@
       "isSmallWonder": false,
       "culturePerTurn": 4,
       "contentFacesInCity": 3,
+      "contentFacesInAllCities": 1,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 31,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-45",
       "traits": [
         "industrious",
@@ -8595,6 +8714,10 @@
       "renderedObsoleteBy": "tech-59",
       "flags": [
         "mustBeCoastal"
+      ],
+      "wonderFlags": [
+        "increasedTradeInTilesProducingCommerce",
+        "touristAttraction"
       ],
       "traits": [
         "commercial",
@@ -8621,6 +8744,11 @@
       "flags": [
         "mustBeCoastal"
       ],
+      "wonderFlags": [
+        "safeSeaTravel",
+        "increasedShipMovement",
+        "touristAttraction"
+      ],
       "traits": [
         "commercial",
         "expansionist",
@@ -8642,6 +8770,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 34,
+      "wonderFlags": [
+        "gainAnyTechKnownByTwoCivs",
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-30",
       "traits": [
         "scientific"
@@ -8652,13 +8784,18 @@
       "shieldCost": 300,
       "populationCost": 0,
       "requiredTech": "tech-10",
-      "greatWonderProperties": {},
+      "greatWonderProperties": {
+        "buildingWithDoubledHappiness": "Temple"
+      },
       "isSmallWonder": false,
       "culturePerTurn": 4,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 35,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-25",
       "traits": [
         "religious"
@@ -8678,6 +8815,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 36,
+      "wonderFlags": [
+        "doubleCombatVsBarbarians",
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-39",
       "traits": [
         "militaristic",
@@ -8707,13 +8848,18 @@
       "shieldCost": 600,
       "populationCost": 0,
       "requiredTech": "tech-25",
-      "greatWonderProperties": {},
+      "greatWonderProperties": {
+        "buildingWithDoubledHappiness": "Cathedral"
+      },
       "isSmallWonder": false,
       "culturePerTurn": 6,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 38,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "religious"
       ]
@@ -8732,6 +8878,9 @@
       "iconRowIndex": 39,
       "flags": [
         "mustBeCoastal"
+      ],
+      "wonderFlags": [
+        "increasedShipMovement"
       ],
       "traits": [
         "commercial",
@@ -8753,7 +8902,12 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "researchBonus": 1.0,
       "iconRowIndex": 40,
+      "wonderFlags": [
+        "doublesResearchOutput",
+        "touristAttraction"
+      ],
       "traits": [
         "expansionist"
       ]
@@ -8773,6 +8927,9 @@
       "flags": [
         "allowsCitySize3"
       ],
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "productionPrerequisites": [
         "buildings.production_rules.allows_city_size_3"
       ]
@@ -8789,6 +8946,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 42,
+      "wonderFlags": [
+        "cheaperUpgrades",
+        "touristAttraction"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -8802,9 +8963,16 @@
       "isSmallWonder": false,
       "culturePerTurn": 6,
       "contentFacesInCity": 2,
+      "contentFacesInAllCities": 2,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 43,
+      "flags": [
+        "continentalMoodEffects"
+      ],
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "religious"
       ]
@@ -8820,7 +8988,12 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "researchBonus": 1.0,
       "iconRowIndex": 44,
+      "wonderFlags": [
+        "doublesResearchOutput",
+        "touristAttraction"
+      ],
       "traits": [
         "scientific"
       ]
@@ -8837,6 +9010,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 45,
+      "wonderFlags": [
+        "paysTradeMaintenance"
+      ],
       "traits": [
         "commercial",
         "seafaring"
@@ -8854,6 +9030,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 46,
+      "wonderFlags": [
+        "reducesWarWearinessAllCities"
+      ],
       "traits": [
         "agricultural"
       ]
@@ -8875,6 +9054,9 @@
       "flags": [
         "mustBeNearRiver"
       ],
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "industrious",
         "agricultural"
@@ -8895,6 +9077,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 48,
+      "wonderFlags": [
+        "twoFreeAdvances"
+      ],
       "traits": [
         "scientific"
       ]
@@ -8911,6 +9096,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 49,
+      "wonderFlags": [
+        "allowDiplomaticVictory",
+        "touristAttraction"
+      ],
       "traits": [
         "commercial"
       ]
@@ -8927,6 +9116,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 50,
+      "wonderFlags": [
+        "allowsNuclearWeapons"
+      ],
       "traits": [
         "militaristic",
         "industrious"
@@ -8944,6 +9136,7 @@
       "isSmallWonder": false,
       "culturePerTurn": 3,
       "contentFacesInCity": 1,
+      "contentFacesInAllCities": 1,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 51,
@@ -8964,6 +9157,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 52,
+      "wonderFlags": [
+        "cityGrowthPlusTwoCitizens"
+      ],
       "traits": [
         "scientific"
       ]
@@ -8979,7 +9175,11 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "researchBonus": 1.0,
       "iconRowIndex": 53,
+      "wonderFlags": [
+        "doublesResearchOutput"
+      ],
       "traits": [
         "expansionist"
       ]
@@ -8994,6 +9194,10 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 54,
+      "wonderFlags": [
+        "increasesLeaderChance",
+        "requiresVictoriousArmy"
+      ],
       "traits": [
         "religious",
         "seafaring"
@@ -9008,7 +9212,12 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "pollution": 4,
+      "productionBonus": 1.0,
       "iconRowIndex": 55,
+      "flags": [
+        "goodsMustBeInCityRadius"
+      ],
       "requiredResources": [
         "Iron",
         "Coal"
@@ -9024,11 +9233,14 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 56,
-      "flags": [
-        "forbiddenPalace"
+      "wonderFlags": [
+        "reducesCorruption"
       ],
       "traits": [
         "religious"
+      ],
+      "productionPrerequisites": [
+        "buildings.production_rules.forbidden_palace"
       ]
     },
     {
@@ -9042,6 +9254,11 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 57,
+      "wonderFlags": [
+        "allowsBuildArmy",
+        "requiresVictoriousArmy",
+        "increasedArmyValue"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9050,12 +9267,16 @@
       "name": "The Pentagon",
       "shieldCost": 400,
       "populationCost": 0,
+      "numberOfArmiesRequired": 3,
       "isSmallWonder": true,
       "culturePerTurn": 1,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 58,
+      "wonderFlags": [
+        "allowsLargerArmies"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9065,12 +9286,16 @@
       "shieldCost": 300,
       "populationCost": 0,
       "requiredBuilding": "Stock Exchange",
+      "numberOfRequiredBuildings": 5,
       "isSmallWonder": true,
       "culturePerTurn": 2,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
-      "iconRowIndex": 59
+      "iconRowIndex": 59,
+      "wonderFlags": [
+        "treasuryEarnsInterest"
+      ]
     },
     {
       "name": "Apollo Program",
@@ -9083,6 +9308,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 60,
+      "wonderFlags": [
+        "buildSpaceshipParts"
+      ],
       "traits": [
         "scientific"
       ],
@@ -9096,12 +9324,16 @@
       "populationCost": 0,
       "requiredTech": "tech-81",
       "requiredBuilding": "SAM Missile Battery",
+      "numberOfRequiredBuildings": 5,
       "isSmallWonder": true,
       "culturePerTurn": 1,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 61,
+      "wonderFlags": [
+        "decreasesMissileSuccess"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9117,6 +9349,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 62,
+      "wonderFlags": [
+        "allowsSpyMissions"
+      ],
       "traits": [
         "militaristic",
         "scientific"
@@ -9127,12 +9362,16 @@
       "shieldCost": 500,
       "populationCost": 0,
       "requiredBuilding": "Hospital",
+      "numberOfRequiredBuildings": 5,
       "isSmallWonder": true,
       "culturePerTurn": 1,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 63,
+      "wonderFlags": [
+        "allowsEnemyTerritoryHealing"
+      ],
       "traits": [
         "militaristic"
       ]
@@ -9147,6 +9386,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 0,
       "iconRowIndex": 64,
       "requiredResources": [
         "Aluminum"
@@ -9162,6 +9402,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 1,
       "iconRowIndex": 65,
       "requiredResources": [
         "Aluminum"
@@ -9177,6 +9418,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 2,
       "iconRowIndex": 66,
       "requiredResources": [
         "Aluminum"
@@ -9192,6 +9434,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 3,
       "iconRowIndex": 67,
       "requiredResources": [
         "Aluminum"
@@ -9207,6 +9450,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 4,
       "iconRowIndex": 68,
       "requiredResources": [
         "Uranium"
@@ -9222,6 +9466,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 5,
       "iconRowIndex": 69,
       "requiredResources": [
         "Aluminum"
@@ -9237,6 +9482,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 6,
       "iconRowIndex": 70,
       "requiredResources": [
         "Aluminum",
@@ -9253,6 +9499,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 7,
       "iconRowIndex": 71,
       "requiredResources": [
         "Aluminum"
@@ -9268,6 +9515,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 8,
       "iconRowIndex": 72,
       "requiredResources": [
         "Aluminum"
@@ -9283,6 +9531,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "spaceshipPart": 9,
       "iconRowIndex": 73,
       "requiredResources": [
         "Aluminum",
@@ -9341,6 +9590,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 3,
+      "commerceBonus": 0.5,
       "iconRowIndex": 76,
       "traits": [
         "commercial"
@@ -9357,6 +9607,7 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 2,
+      "pollution": 1,
       "iconRowIndex": 77,
       "flags": [
         "increasesTradeInWater"
@@ -9383,6 +9634,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 78,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-30",
       "traits": [
         "religious"
@@ -9399,7 +9653,12 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "unitProduced": "Ancient Cavalry",
+      "unitFrequency": 5,
       "iconRowIndex": 79,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "renderedObsoleteBy": "tech-39",
       "traits": [
         "militaristic",
@@ -9421,6 +9680,9 @@
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 80,
+      "wonderFlags": [
+        "touristAttraction"
+      ],
       "traits": [
         "scientific",
         "seafaring"
@@ -9437,6 +9699,8 @@
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
+      "unitProduced": "Crusader",
+      "unitFrequency": 5,
       "iconRowIndex": 81,
       "renderedObsoleteBy": "tech-45",
       "traits": [
@@ -9449,14 +9713,18 @@
       "shieldCost": 200,
       "populationCost": 0,
       "requiredTech": "tech-52",
+      "requiredGovernment": "Government-4",
       "isSmallWonder": true,
       "culturePerTurn": 0,
       "contentFacesInCity": 0,
       "combatDefenseBonus": 0,
       "maintenanceCost": 0,
       "iconRowIndex": 56,
-      "flags": [
-        "forbiddenPalace"
+      "wonderFlags": [
+        "reducesCorruption"
+      ],
+      "productionPrerequisites": [
+        "buildings.production_rules.secret_police_hq"
       ]
     }
   ],
@@ -11218,6 +11486,7 @@
     "turnPenaltyForEachHurrySacrifice": 20,
     "maximumLevel1CitySize": 6,
     "maximumLevel2CitySize": 12,
+    "capitalNeighborDistance": 8,
     "foodNeededToGrowForLevel1Cities": 20,
     "foodNeededToGrowForLevel2Cities": 40,
     "foodNeededToGrowForLevel3Cities": 60,
@@ -11227,6 +11496,7 @@
     "scoutUnitType": "Scout",
     "maxRankOfWorkableTiles": 2,
     "maxRankOfBarbarianCampTiles": 2,
+    "barbarianCampGold": 25,
     "defaultDealDuration": 20,
     "treasuryInterestRate": 0.05,
     "maxInterest": 50,
