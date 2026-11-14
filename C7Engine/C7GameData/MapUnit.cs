@@ -538,24 +538,23 @@ namespace C7GameData {
 			return IsLoadable() && IsLoaded() && tile.IsLand();
 		}
 
-		private MapUnit SelectTransportToBoard(Tile tile) {
-			// TODO: Let human player choose via UI which transport to load unit in
-
-			var availableTransports = tile.unitsOnTile
-				.Where(u => u.CanTransport())
-				.Where(u => !u.IsFull());
-
+		/// <summary>
+		/// The transports on the tile that this unit can board, best candidate first.
+		/// </summary>
+		public List<MapUnit> GetTransportsToBoard(Tile tile) {
 			// Sort candidates by free capacity, but prefer transports that already have units
-			availableTransports = availableTransports
-				.OrderBy(t => !t.IsEmpty())
-				.ThenByDescending(t => t.FreeCapacity());
+			return tile.unitsOnTile
+				.Where(u => u.owner == this.owner)
+				.Where(u => u.CanTransport() && u.CanLoad(this))
+				.OrderBy(t => t.IsEmpty())                             // 1. fill non-empty first
+				.ThenByDescending(t => t.unitType.capacity)            // 2. then by overall capacity
+				.ThenBy(t => t.FreeCapacity() - t.unitType.capacity)   // 3. then by #loaded
+				.ToList();
+		}
 
-			foreach (var transport in availableTransports) {
-				if (transport.CanLoad(this))
-					return transport;
-			}
-
-			return null;
+		private MapUnit SelectTransportToBoard(Tile tile) {
+			// TODO: Let the human player choose when moving onto a tile with several transports
+			return GetTransportsToBoard(tile).FirstOrDefault();
 		}
 
 		private MapUnit FindTransportToUnboard(Tile tile, ID transport) {
@@ -592,8 +591,8 @@ namespace C7GameData {
 			return this.unitType.capacity - loaded.Count;
 		}
 
-		private bool IsEmpty() => unitType.capacity > 0 && FreeCapacity() == unitType.capacity;
-		private bool IsFull() => unitType.capacity > 0 && FreeCapacity() == 0;
+		public bool IsEmpty() => unitType.capacity > 0 && FreeCapacity() == unitType.capacity;
+		public bool IsFull() => unitType.capacity > 0 && FreeCapacity() == 0;
 
 		private static bool HasHostileUnits(Tile tile, Player player) {
 			foreach (MapUnit other in tile.unitsOnTile) {

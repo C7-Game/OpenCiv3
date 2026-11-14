@@ -1,6 +1,7 @@
 namespace C7Engine {
 	using C7GameData;
 	using System;
+	using System.Collections.Generic;
 
 	public interface IMessageToUI {
 		public void send();
@@ -291,6 +292,13 @@ namespace C7Engine {
 		public MapUnit Unit;
 		public MsgUnitMoved(MapUnit unit) {
 			this.Unit = unit;
+		}
+	}
+
+	public class MsgSelectTransport : MessageToUI {
+		public MapUnit unit;
+		public MsgSelectTransport(MapUnit unit) {
+			this.unit = unit;
 		}
 	}
 
