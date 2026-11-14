@@ -396,7 +396,8 @@ namespace C7Engine {
 					continue;
 				}
 				if (height >= mountainLowerBound && height < mountainUpperBound) {
-					if (random.Next(100) < volcanoPercent) {
+					// prevent volcanoes from spawning next to each other
+					if (random.Next(100) < volcanoPercent && t.FindInRing(1, tile => tile.overlayTerrainType.isVolcano()) == null) {
 						t.overlayTerrainType = volcano;
 					} else {
 						t.overlayTerrainType = mountains;

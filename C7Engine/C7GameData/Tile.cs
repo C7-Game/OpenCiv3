@@ -282,6 +282,22 @@ namespace C7GameData {
 			return baseTerrainType.isSea();
 		}
 
+		public bool IsFlatLand() {
+			return IsLand() && !overlayTerrainType.isHilly();
+		}
+
+		public bool HasJungle() {
+			return overlayTerrainType.isJungle();
+		}
+
+		public bool HasForest() {
+			return overlayTerrainType.isForest();
+		}
+
+		public bool HasMarsh() {
+			return overlayTerrainType.isMarsh();
+		}
+
 		public bool IsCountedForDomination() {
 			return IsLand() || IsCoast();
 		}
@@ -296,6 +312,14 @@ namespace C7GameData {
 
 		public bool HasBarbarianCamp() {
 			return overlays.terrainImprovementByLayer.ContainsKey(Layer.BarbarianCamp);
+		}
+
+		public bool IsMountains() {
+			return overlayTerrainType.isMountain();
+		}
+
+		public bool IsHills() {
+			return overlayTerrainType.isHills();
 		}
 
 		public bool IsVolcano() {

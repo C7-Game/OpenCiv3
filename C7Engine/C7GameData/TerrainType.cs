@@ -53,6 +53,14 @@ namespace C7GameData {
 			return false;
 		}
 
+		public bool isHills() {
+			return Key.Equals("hills");
+		}
+
+		public bool isMountain() {
+			return Key.Equals("mountains");
+		}
+
 		public bool isVolcano() {
 			return Key.Equals("volcano");
 		}
@@ -69,6 +77,22 @@ namespace C7GameData {
 
 		public bool isSea() {
 			return Key.Equals("sea");
+		}
+
+		public bool isOcean() {
+			return Key.Equals("ocean");
+		}
+
+		public bool isJungle() {
+			return Key.Equals("jungle");
+		}
+
+		public bool isForest() {
+			return Key.Equals("forest");
+		}
+
+		public bool isMarsh() {
+			return Key.Equals("marsh");
 		}
 
 		public override string ToString() {
@@ -101,13 +125,13 @@ namespace C7GameData {
 			if (civ3Terrain.ImpassableByWheeled != 0)
 				c7Terrain.impassableTo[SaveUnitPrototype.Flag.Wheeled] = [Tile.TileOverlays.ROAD, Tile.TileOverlays.RAILROAD];
 
-			if (c7Terrain.Key == "mountains" || c7Terrain.Key == "volcano") {
+			if (c7Terrain.isMountain() || c7Terrain.isVolcano()) {
 				c7Terrain.height = 4;
-			} else if (c7Terrain.Key == "hills") {
+			} else if (c7Terrain.isHills()) {
 				c7Terrain.height = 2;
-			} else if (c7Terrain.Key == "ocean" || c7Terrain.Key == "sea" || c7Terrain.Key == "coast" || c7Terrain.Key == "marsh") {
+			} else if (c7Terrain.isOcean() || c7Terrain.isSea() || c7Terrain.isCoast() || c7Terrain.isMarsh()) {
 				c7Terrain.height = -2;
-			} else if (c7Terrain.Key == "forest" || c7Terrain.Key == "jungle") {
+			} else if (c7Terrain.isForest() || c7Terrain.isJungle()) {
 				c7Terrain.height = 1;
 			} else {
 				c7Terrain.height = 0;

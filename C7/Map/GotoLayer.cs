@@ -4,9 +4,10 @@ using C7GameData;
 using Godot;
 using static C7GameData.MapUnit;
 
+namespace C7.Map;
 // The layer responsible for drawing the cursor when the player is selecting a
 // move via the "goto" command.
-public partial class GotoLayer : LooseLayer {
+public class GotoLayer : LooseLayer {
 	public GotoLayer() {
 		// Load the font we'll use for the goto move counter.
 		//
