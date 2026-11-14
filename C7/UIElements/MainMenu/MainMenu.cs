@@ -82,10 +82,6 @@ public partial class MainMenu : Node {
 		NoCiv3Options.Visible = false;
 	}
 
-	// The menu buttons live in main_menu.tscn, so their signals only need to be
-	// connected once. DisplayTitleScreen() runs again when the graphics mode or
-	// the location of the Civ3 files changes, and connecting twice would make
-	// every button fire twice.
 	private void ConnectButtonSignals() {
 		ButtonContainer.NewGame.Pressed += GoToWorldSetup;
 		ButtonContainer.QuickStart.Pressed += QuickStartGame;
@@ -93,7 +89,6 @@ public partial class MainMenu : Node {
 		ButtonContainer.LoadGame.Pressed += LoadGame;
 		ButtonContainer.LoadScenario.Pressed += LoadScenario;
 		ButtonContainer.HallOfFame.Pressed += HallOfFame;
-		ButtonContainer.HallOfFame.Visible = false;
 		ButtonContainer.Preferences.Pressed += ShowPreferences;
 		ButtonContainer.Credits.Pressed += showCredits;
 		ButtonContainer.Exit.Pressed += _on_Exit_pressed;

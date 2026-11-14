@@ -145,7 +145,7 @@ theme_override_font_sizes/font_size = 11
 text = "Notice: standalone mode makes use of AI placeholder art"
 horizontal_alignment = 1
 
-[node name="MainMenuContainer" type="VBoxContainer" parent="Control/Background/PanelContainer/MarginContainer" node_paths=PackedStringArray("NewGame", "QuickStart", "Tutorial", "LoadGame", "LoadScenario", "HallOfFame", "ToggleGraphics", "Preferences", "AudioPreferences", "Credits", "Exit")]
+[node name="MainMenuContainer" type="VBoxContainer" parent="Control/Background/PanelContainer/MarginContainer" node_paths=PackedStringArray("NewGame", "QuickStart", "Tutorial", "LoadGame", "LoadScenario", "HallOfFame", "ToggleGraphics", "Preferences", "Credits", "Exit")]
 layout_mode = 2
 theme_override_constants/separation = 15
 script = ExtResource("3_t1nuq")
@@ -157,7 +157,6 @@ LoadScenario = NodePath("LoadScenario")
 HallOfFame = NodePath("HallOfFame")
 ToggleGraphics = NodePath("ToggleGraphics")
 Preferences = NodePath("Preferences")
-AudioPreferences = NodePath("AudioPreferences")
 Credits = NodePath("Credits")
 Exit = NodePath("Exit")
 
@@ -200,11 +199,6 @@ Text = "Use OpenCiv3 Graphics"
 layout_mode = 2
 script = ExtResource("6_civ3btn")
 Text = "Preferences"
-
-[node name="AudioPreferences" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
-layout_mode = 2
-script = ExtResource("6_civ3btn")
-Text = "Audio Preferences"
 
 [node name="Credits" type="BaseButton" parent="Control/Background/PanelContainer/MarginContainer/MainMenuContainer"]
 layout_mode = 2
