@@ -23,19 +23,19 @@ public class TileOverlayLayer : LooseLayer {
 
 	private readonly Vector2 tileSize;
 
-		private int rng = 0;
-		private Dictionary<string, int> rngs = new();
+	private int rng = 0;
+	private Dictionary<string, int> rngs = new();
 
-		private List<TerrainImprovement> terrainImprovements;
+	private List<TerrainImprovement> terrainImprovements;
 
-		FontFile debugFont = new();
+	FontFile debugFont = new();
 
-		public TileOverlayLayer() {
-			roadTexture = TextureLoader.Load("terrain_improvements.road");
-			railroadTexture = TextureLoader.Load("terrain_improvements.railroad");
-			tileSize = roadTexture.GetSize() / 16;
-			// grid 16x16 tiles
-			// assume that roads and railroads textures have the same size
+	public TileOverlayLayer() {
+		roadTexture = TextureLoader.Load("terrain_improvements.road");
+		railroadTexture = TextureLoader.Load("terrain_improvements.railroad");
+		tileSize = roadTexture.GetSize() / 16;
+		// grid 16x16 tiles
+		// assume that roads and railroads textures have the same size
 
 		// Each irrigation.pcx has a 4x4 grid of irrigation tiles, with
 		// each tile being 128x64 pixels.
@@ -57,10 +57,10 @@ public class TileOverlayLayer : LooseLayer {
 		debugFont.FixedSize = 12;
 	}
 
-		public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
-			Rect2 screenTarget = new Rect2(tileCenter - tileSize / 2, tileSize);
+	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
+		Rect2 screenTarget = new Rect2(tileCenter - tileSize / 2, tileSize);
 
-			var improvements = RenderableTerrainImprovements(tile);
+		var improvements = RenderableTerrainImprovements(tile);
 
 		foreach (TerrainImprovement ti in improvements.OrderBy(ti => ti.zIndex)) {
 			switch (ti.key) {
@@ -92,20 +92,20 @@ public class TileOverlayLayer : LooseLayer {
 		}
 	}
 
-		private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {
-			if (EngineStorage.gameData.observerMode) return tile.overlays.GetImprovements().ToList();
+	private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {
+		if (EngineStorage.gameData.observerMode) return tile.overlays.GetImprovements().ToList();
 
-			var knownTerrainImprovements = new List<TerrainImprovement>();
-			var knownImprovements = player.tileKnowledge.KnownTerrainImprovements;
+		var knownTerrainImprovements = new List<TerrainImprovement>();
+		var knownImprovements = player.tileKnowledge.KnownTerrainImprovements;
 
-			if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {
-				foreach (var improvement in terrainImprovements) {
-					if (imprs.Contains(improvement.key))
-						knownTerrainImprovements.Add(improvement);
-				}
+		if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {
+			foreach (var improvement in terrainImprovements) {
+				if (imprs.Contains(improvement.key))
+					knownTerrainImprovements.Add(improvement);
 			}
-			return knownTerrainImprovements;
 		}
+		return knownTerrainImprovements;
+	}
 
 	private void DrawIrrigation(LooseView looseView, Tile tile, Rect2 screenTarget) {
 		// Figure out which index into the irrigation texture to use for
@@ -212,49 +212,49 @@ public class TileOverlayLayer : LooseLayer {
 		looseView.DrawTextureRect(barbarianCampTexture, screenRect, tile: false);
 	}
 
-		private int GetRadomTextureIndex(ID id, int variations, string layer, int offset) {
-			int randomTextureIndex = 0;
-			var identifier = $"{id}_{layer}";
+	private int GetRadomTextureIndex(ID id, int variations, string layer, int offset) {
+		int randomTextureIndex = 0;
+		var identifier = $"{id}_{layer}";
 
-			if (rngs.TryGetValue(identifier, out var index)) {
-				randomTextureIndex = index;
-			} else {
-				var rand = new Random(Math.Clamp(int.Parse(id.ToString().Replace("tile-", "")) + offset, int.MinValue, int.MaxValue));
-				var customRng = rng + rand.Next() + rand.Next(0, variations);
+		if (rngs.TryGetValue(identifier, out var index)) {
+			randomTextureIndex = index;
+		} else {
+			var rand = new Random(Math.Clamp(int.Parse(id.ToString().Replace("tile-", "")) + offset, int.MinValue, int.MaxValue));
+			var customRng = rng + rand.Next() + rand.Next(0, variations);
 
-				randomTextureIndex = rngs[identifier] = customRng % variations;
+			randomTextureIndex = rngs[identifier] = customRng % variations;
+		}
+
+		return randomTextureIndex;
+	}
+
+	// Returns the rectangle within the road texture for a given index,
+	// where the index has been constructed by OR'ing together the direction
+	// flags for adjacent roads.
+	private Rect2 GetRoadRect(int index) {
+		int row = index >> 4;
+		int column = index & 0xF;
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
+
+	// Railroad textures have an extra row compared to road textures
+	// which it's used for 8x8 connections, so we choose one randomly to add variation
+	// private Rect2 GetRailRoadRect(ID id, int index) {
+	private Rect2 GetRailRoadRect(Tile tile, int index) {
+		int row = index >> 4;
+		int column = index & 0xF;
+		// Row 7 & Column 3 has the wrong graphic in the base game too, where it has a connection to SE that shouldn't be there
+		if (index == 0xFF) { // 255 => 16th row - 16th column => connected to all other tiles
+			var railroadIndex = GetRandomInt(tile.Id, gameSeed, 17, 0x31c);
+			// 16 in 17 to render from the 17th(16th in 0-16) row
+			if (railroadIndex > 0) {
+				// need to decrement railroadIndex by one, because it's range at this point is 1-16, we want 0-15
+				return new Rect2((railroadIndex - 1) * tileSize.X, (row + 1) * tileSize.Y, tileSize);
 			}
-
-			return randomTextureIndex;
 		}
-
-		// Returns the rectangle within the road texture for a given index,
-		// where the index has been constructed by OR'ing together the direction
-		// flags for adjacent roads.
-		private Rect2 GetRoadRect(int index) {
-			int row = index >> 4;
-			int column = index & 0xF;
-			return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
-		}
-
-		// Railroad textures have an extra row compared to road textures
-		// which it's used for 8x8 connections, so we choose one randomly to add variation
-		// private Rect2 GetRailRoadRect(ID id, int index) {
-		private Rect2 GetRailRoadRect(Tile tile, int index) {
-			int row = index >> 4;
-			int column = index & 0xF;
-			// Row 7 & Column 3 has the wrong graphic in the base game too, where it has a connection to SE that shouldn't be there
-			if (index == 0xFF) { // 255 => 16th row - 16th column => connected to all other tiles
-				var railroadIndex = GetRandomInt(tile.Id, gameSeed, 17, 0x31c);
-				// 16 in 17 to render from the 17th(16th in 0-16) row
-				if (railroadIndex > 0) {
-					// need to decrement railroadIndex by one, because it's range at this point is 1-16, we want 0-15
-					return new Rect2((railroadIndex - 1) * tileSize.X, (row + 1) * tileSize.Y, tileSize);
-				}
-			}
-			// 1 in 17 to render from the 16th(15th in 0-16) row
-			return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
-		}
+		// 1 in 17 to render from the 16th(15th in 0-16) row
+		return new Rect2(column * tileSize.X, row * tileSize.Y, tileSize);
+	}
 
 	// Like above, but for irrigation.
 	private Rect2 GetIrrigationRect(int index) {
