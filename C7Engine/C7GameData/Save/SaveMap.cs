@@ -40,6 +40,7 @@ namespace C7GameData.Save {
 				gameMap.barbarianCamps.Add(gameMap.tiles.Find(t => t.XCoordinate == st.X && t.YCoordinate == st.Y));
 			}
 			gameMap.computeNeighbors();
+			gameMap.computeCardinalRiverFlags();
 			return gameMap;
 		}
 	}
