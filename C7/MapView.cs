@@ -472,6 +472,15 @@ public partial class BuildingLayer : LooseLayer {
 			Rect2 screenRect = new(tileCenter - 0.5f * barbCamp.GetSize(), barbCamp.GetSize());
 			looseView.DrawTextureRect(barbCamp, screenRect, tile: false);
 		}
+
+		if (tile.hasGoodyHut) {
+			// Loaded on demand rather than in the constructor: standalone mode
+			// has no hut art yet (see the TODO in standalone/textures.lua), so
+			// only maps that actually have huts should touch it.
+			ImageTexture goodyHut = TextureLoader.Load("terrain.goody_hut", tile, useCache: true);
+			Rect2 screenRect = new(tileCenter - 0.5f * goodyHut.GetSize(), goodyHut.GetSize());
+			looseView.DrawTextureRect(goodyHut, screenRect, tile: false);
+		}
 	}
 }
 

@@ -28,6 +28,7 @@ public partial class QuickStartSetup : Node {
 			temperature = GameSetup.TemperatureFromSettings(),
 			worldSize = worldSize,
 			mapSeed = new Random().Next(),
+			behaviors = game.behaviors,
 		};
 
 		global.SaveGame = save;

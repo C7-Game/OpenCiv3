@@ -77,6 +77,7 @@ public partial class WorldSetup : Control {
 
 	private WorldSize _worldSize = WorldSize.Generic();
 	private SaveGame _saveGame;
+	private BehaviorEngine _behaviors;
 
 	private int GameSeed => int.Parse(seedInput.Text);
 
@@ -243,6 +244,7 @@ public partial class WorldSetup : Control {
 
 		var game = GameMode.Load(GamePaths.GameModesDir, GamePaths.GameMode);
 		_saveGame = game.GetSave();
+		_behaviors = game.behaviors;
 
 		InitBarbarianActivityOptions();
 		InitMapSizes();
@@ -437,6 +439,7 @@ public partial class WorldSetup : Control {
 			worldSize = _worldSize,
 			barbarianActivity = _barbarianActivity,
 			mapSeed = GameSeed,
+			behaviors = _behaviors,
 		};
 
 		Global.SaveGame = _saveGame;

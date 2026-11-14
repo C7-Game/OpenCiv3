@@ -35,7 +35,10 @@ namespace C7GameData.Save {
 				}
 			}
 			if (tile.hasBarbarianCamp) {
-				features.Add("barbarianCamp");
+				features.Add(Tile.TileOverlays.BARBARIAN_CAMP);
+			}
+			if (tile.hasGoodyHut) {
+				features.Add(Tile.TileOverlays.GOODY_HUT);
 			}
 			if (tile.hasHadForestCleared) {
 				features.Add("hasHadForestCleared");
@@ -54,7 +57,8 @@ namespace C7GameData.Save {
 				isFreshWater = isFreshWater,
 				baseTerrainType = terrainTypes.Find(tt => tt.Key == baseTerrain),
 				overlayTerrainType = terrainTypes.Find(tt => tt.Key == overlayTerrain),
-				hasBarbarianCamp = features.Contains("barbarianCamp"),
+				hasBarbarianCamp = features.Contains(Tile.TileOverlays.BARBARIAN_CAMP),
+				hasGoodyHut = features.Contains(Tile.TileOverlays.GOODY_HUT),
 				hasHadForestCleared = features.Contains("hasHadForestCleared"),
 				// TODO: load working tile
 				ResourceKey = resource is null ? Resource.NONE.Key : resource,

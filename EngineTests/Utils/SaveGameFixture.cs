@@ -31,7 +31,8 @@ public class SaveGameFixture : IDisposable {
 	}
 
 	private static SaveGame LoadSave(GameMode.Config gameModeConfig) {
-		SaveGame save = LoadGameMode(gameModeConfig).GetSave();
+		GameMode gameMode = LoadGameMode(gameModeConfig);
+		SaveGame save = gameMode.GetSave();
 
 		WorldSize worldSize = new() {
 			width = 100,
@@ -51,6 +52,7 @@ public class SaveGameFixture : IDisposable {
 			barbarianActivity = BarbarianActivity.Roaming,
 			worldSize = worldSize,
 			mapSeed = TestSeed,
+			behaviors = gameMode.behaviors,
 		};
 
 		GameSetup gameSetup = new() {
