@@ -77,10 +77,12 @@ override_font_color = false
 font_color = Color(1, 1, 1, 1)
 draw_horizontal_rule = false
 
-[node name="Credits" type="Node2D" node_paths=PackedStringArray("background", "creditsLabel", "exitButton")]
+[node name="Credits" type="Node2D" node_paths=PackedStringArray("background", "creditsScrollContainer", "creditsContainer", "creditsLabel", "exitButton")]
 script = ExtResource("1_credits")
 background = NodePath("Background")
-creditsLabel = NodePath("Background/CreditsLabel")
+creditsScrollContainer = NodePath("CreditsScrollContainer")
+creditsContainer = NodePath("CreditsScrollContainer/CreditsContainer")
+creditsLabel = NodePath("CreditsScrollContainer/CreditsContainer/CreditsLabel")
 exitButton = NodePath("ExitButton")
 
 [node name="Background" type="TextureRect" parent="."]
@@ -90,8 +92,25 @@ script = ExtResource("9_mght3")
 textureConfigKey = "credits.background"
 metadata/_custom_type_script = "uid://doqipc4rnaotx"
 
-[node name="CreditsLabel" type="RichTextLabel" parent="Background"]
+[node name="CreditsScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 59.0
+offset_top = 91.0
+offset_right = 963.0
+offset_bottom = 676.0
+vertical_scroll_mode = 2
+
+[node name="CreditsContainer" type="VBoxContainer" parent="CreditsScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CreditsLabel" type="RichTextLabel" parent="CreditsScrollContainer/CreditsContainer"]
+clip_contents = false
+layout_mode = 2
+size_flags_vertical = 3
 bbcode_enabled = true
+fit_content = true
+scroll_active = false
 script = ExtResource("2_6hb5c")
 markdown_text = "# CREDITS LABEL"
 h1 = SubResource("Resource_nnoy8")

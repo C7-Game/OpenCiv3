@@ -10,6 +10,8 @@ public partial class Credits : Node2D {
 	private static ILogger log = Log.ForContext<Credits>();
 
 	[Export] private TextureRect background;
+	[Export] private ScrollContainer creditsScrollContainer;
+	[Export] private VBoxContainer creditsContainer;
 	[Export] private RichTextLabel creditsLabel;
 	[Export] private TextureButton exitButton;
 
@@ -19,6 +21,7 @@ public partial class Credits : Node2D {
 	private string specialText = "Could not load special text file";
 
 	private Theme theme;
+	private AutoScroller _autoScroller;
 
 	public override void _Ready() {
 		log.Information("Now rolling the credits!");
@@ -30,6 +33,8 @@ public partial class Credits : Node2D {
 		background.Texture = TextureLoader.Load("credits.background");
 		TextureLoader.SetButtonTextures(exitButton, "ui.exit");
 		exitButton.Pressed += ReturnToMenu;
+
+		_autoScroller = new AutoScroller(creditsScrollContainer, creditsContainer);
 	}
 
 	private void LoadCreditsText() {
@@ -74,7 +79,7 @@ public partial class Credits : Node2D {
 	}
 
 	public override void _Process(double delta) {
-		// TODO: AutoScroller ScrollByDelta(delta);
+		_autoScroller.ScrollByDelta(delta);
 	}
 
 	private void GenerateCreditsTheme() {
@@ -100,54 +105,5 @@ public partial class Credits : Node2D {
 	public void ReturnToMenu() {
 		log.Information("Returning to main menu");
 		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
-	}
-}
-
-
-public class AutoScroller() {
-	// How fast the credits scroll on their own, in pixels per second. Slow
-	// enough to read at a relaxed pace.
-	private const float AutoScrollSpeed = 24.0f;
-
-	// After the player scrolls the credits themselves, leave the column alone
-	// for a moment so we don't fight them.
-	private const float PauseAfterManualScroll = 3.0f;
-
-	private float autoScrollPause;
-	private float scrollRemainder;
-	private int lastScrollPosition;
-
-	private void ScrollByDelta(ScrollContainer scrollContainer, VBoxContainer box, double delta) {
-		int current = scrollContainer.ScrollVertical;
-
-		// Scrolling up means the player wants to read something, so give them
-		// a few seconds before we resume.
-		if (current < lastScrollPosition) {
-			autoScrollPause = PauseAfterManualScroll;
-		}
-		lastScrollPosition = current;
-
-		if (autoScrollPause > 0) {
-			autoScrollPause -= (float)delta;
-			return;
-		}
-
-		int maxScroll = Mathf.Max(0, (int)(box.Size.Y - scrollContainer.Size.Y));
-		if (current >= maxScroll) {
-			return;
-		}
-
-		// Accumulate the fractional pixels so the scroll still advances when
-		// the speed is lower than one pixel per frame.
-		scrollRemainder += AutoScrollSpeed * (float)delta;
-		int wholePixels = (int)scrollRemainder;
-		if (wholePixels == 0) {
-			return;
-		}
-		scrollRemainder -= wholePixels;
-
-		int target = Mathf.Min(current + wholePixels, maxScroll);
-		scrollContainer.ScrollVertical = target;
-		lastScrollPosition = target;
 	}
 }
