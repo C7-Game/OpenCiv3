@@ -24,15 +24,16 @@ public class GameSetupTests {
 			optimalNumberOfCities = 20,
 		};
 
-		WorldCharacteristics wc = new(save) {
+		save.Seed = 42;
+		save.BarbarianInfo.barbarianActivity = BarbarianActivity.Roaming;
+
+		WorldCharacteristics wc = new() {
 			landform = WorldCharacteristics.Landform.Pangaea,
 			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
 			age = WorldCharacteristics.Age.Billion_4,
 			climate = WorldCharacteristics.Climate.Normal,
 			temperature = WorldCharacteristics.Temperature.Temperate,
-			barbarianActivity = BarbarianActivity.Roaming,
 			worldSize = worldSize,
-			mapSeed = 42,
 		};
 
 		return (save, wc);
@@ -90,6 +91,40 @@ public class GameSetupTests {
 
 		// Starts are generated for the map's maximum civ count.
 		Assert.Equal(wc.worldSize.numberOfCivs, save.Map.startingLocations.Count);
+	}
+
+	[Fact]
+	public void PopulateResolvesSeedAndStoresWorldCharacteristics() {
+		(SaveGame save, WorldCharacteristics wc) = CreateTestWorld();
+		save.Seed = -1;
+
+		GameSetup gameSetup = new() {
+			playerCivilization = save.Civilizations.First(c => !c.isBarbarian),
+			difficulty = save.Difficulties.First(),
+			worldCharacteristics = wc,
+			opponents = [new SelectedOpponent { isNone = true }],
+			victoryConditions = new VictoryConditions()
+		};
+
+		gameSetup.Populate(save);
+
+		// A random seed is generated when none is specified.
+		Assert.NotEqual(-1, save.Seed);
+
+		// The requested settings are stored for later display and saving.
+		Assert.Equal(wc.worldSize.name, save.WorldCharacteristics.worldSize.name);
+		Assert.Equal(wc.worldSize.width, save.WorldCharacteristics.worldSize.width);
+		Assert.Equal(wc.worldSize.height, save.WorldCharacteristics.worldSize.height);
+		Assert.Equal(wc.landform, save.WorldCharacteristics.landform);
+		Assert.Equal(wc.oceanCoverage, save.WorldCharacteristics.oceanCoverage);
+		Assert.Equal(wc.climate, save.WorldCharacteristics.climate);
+		Assert.Equal(wc.temperature, save.WorldCharacteristics.temperature);
+		Assert.Equal(wc.age, save.WorldCharacteristics.age);
+
+		// The stored dimensions match the generated map, so the size displays
+		// as its name rather than "Custom".
+		Assert.Equal(save.Map.tilesWide, save.WorldCharacteristics.worldSize.width);
+		Assert.Equal(save.Map.tilesTall, save.WorldCharacteristics.worldSize.height);
 	}
 
 	private static readonly List<Civilization> availableCivs = [

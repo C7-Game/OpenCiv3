@@ -127,6 +127,39 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
+	public void WorldCharacteristicsSurviveSaveRoundTrip() {
+		SaveGame save = SaveGame.FromGameData(ToGameData(GetSave(SaveType.basic)));
+		save.WorldCharacteristics = new WorldCharacteristics {
+			worldSize = new WorldSize { name = "Standard", width = 100, height = 100 },
+			landform = WorldCharacteristics.Landform.Continents,
+			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
+			climate = WorldCharacteristics.Climate.Normal,
+			temperature = WorldCharacteristics.Temperature.Temperate,
+			age = WorldCharacteristics.Age.Billion_4,
+		};
+
+		WorldCharacteristics roundTripped = save.Clone().WorldCharacteristics;
+
+		Assert.Equal(save.WorldCharacteristics.worldSize.name, roundTripped.worldSize.name);
+		Assert.Equal(save.WorldCharacteristics.worldSize.width, roundTripped.worldSize.width);
+		Assert.Equal(save.WorldCharacteristics.worldSize.height, roundTripped.worldSize.height);
+		Assert.Equal(save.WorldCharacteristics.landform, roundTripped.landform);
+		Assert.Equal(save.WorldCharacteristics.oceanCoverage, roundTripped.oceanCoverage);
+		Assert.Equal(save.WorldCharacteristics.climate, roundTripped.climate);
+		Assert.Equal(save.WorldCharacteristics.temperature, roundTripped.temperature);
+		Assert.Equal(save.WorldCharacteristics.age, roundTripped.age);
+	}
+
+	// Saves made before world characteristics were persisted must still load,
+	// leaving the settings unset rather than defaulting to valid-looking values.
+	[Fact]
+	public void SaveWithoutWorldCharacteristicsLoadsWithThemUnset() {
+		SaveGame save = SaveGame.LoadFromJSON("{}");
+
+		Assert.Null(save.WorldCharacteristics);
+	}
+
+	[Fact]
 	public void BaseRulesetBuildings_HaveNavalAndAirData() {
 		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
 
@@ -470,6 +503,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			Assert.Null(ex);
 			Assert.NotNull(game);
 			Assert.NotNull(gd);
+			Assert.NotNull(game.WorldCharacteristics);
+			Assert.NotNull(game.WorldCharacteristics.worldSize);
 			game.Save(Path.Combine(PathUtils.testDirectory, "data", "output", $"gotm_save_{i}.json"));
 			i++;
 		}
@@ -565,6 +600,19 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			Assert.NotNull(game);
 			Assert.NotNull(gd);
 			Assert.NotEqual(-1, gd.seed);
+
+			// The world characteristics are imported from the scenario and
+			// survive conversion to game data.
+			Assert.NotNull(game.WorldCharacteristics);
+			Assert.NotNull(game.WorldCharacteristics.worldSize);
+			Assert.Equal(game.WorldCharacteristics.worldSize.name, gd.worldCharacteristics.worldSize.name);
+			Assert.Equal(game.WorldCharacteristics.worldSize.width, gd.worldCharacteristics.worldSize.width);
+			Assert.Equal(game.WorldCharacteristics.worldSize.height, gd.worldCharacteristics.worldSize.height);
+			Assert.Equal(game.WorldCharacteristics.landform, gd.worldCharacteristics.landform);
+			Assert.Equal(game.WorldCharacteristics.oceanCoverage, gd.worldCharacteristics.oceanCoverage);
+			Assert.Equal(game.WorldCharacteristics.climate, gd.worldCharacteristics.climate);
+			Assert.Equal(game.WorldCharacteristics.temperature, gd.worldCharacteristics.temperature);
+			Assert.Equal(game.WorldCharacteristics.age, gd.worldCharacteristics.age);
 
 			CheckPlayableCivs(name, game);
 			CheckAlliances(name, gd);
