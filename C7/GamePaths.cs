@@ -1,5 +1,7 @@
 using Godot;
+using System;
 using System.IO;
+using C7Engine;
 using C7Engine.Lua;
 
 public static class GamePaths {
@@ -34,7 +36,7 @@ public static class GamePaths {
 	private static string _writableDir;
 
 	/// <summary>
-	/// A directory we can write user-specific files (C7.ini, log.txt) to.
+	/// A directory we can write user-specific files (C7.ini, the log files) to.
 	///
 	/// We prefer the directory holding the game so that portable installs keep
 	/// their settings and logs together with the game. If that directory isn't
@@ -75,7 +77,22 @@ public static class GamePaths {
 		}
 	}
 
-	public static string LogFilePath => Path.Combine(WritableDir, "log.txt");
+	private static string _logFilePath;
+
+	/// <summary>
+	/// The log file for this session. Each run gets its own timestamped
+	/// file (see C7Engine.LogFiles), so a bug report can ask for the log of
+	/// an earlier run and not just the current one. Computed once: every
+	/// reader in this process must agree on the same file.
+	/// </summary>
+	public static string LogFilePath {
+		get {
+			if (_logFilePath == null) {
+				_logFilePath = LogFiles.SessionLogPath(WritableDir, DateTime.Now);
+			}
+			return _logFilePath;
+		}
+	}
 
 	public static string GameModesDir => Path.Combine(BaseDir, "Lua");
 	public static GameMode.Config basic = new("civ3");
