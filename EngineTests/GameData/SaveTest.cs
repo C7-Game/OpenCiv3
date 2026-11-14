@@ -659,7 +659,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			foreach (var gameUnit in game.Units) {
 				// there is a horseman barb + barb camp unit in this location
 				if (gameUnit.currentLocation is { X: 7, Y: 103 }) {
-					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).features);
+					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).overlays);
 					Assert.True(game.Players.Find(p => p.id == gameUnit.owner).civilization == "A Barbarian Chiefdom");
 				}
 			}

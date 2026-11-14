@@ -32,17 +32,23 @@ public partial class MapUnit {
 		owner.tileKnowledge.AddTilesToKnown(tile);
 
 		// Disperse barb camp
-		if (tile.hasBarbarianCamp && !owner.isBarbarians) {
-			EngineStorage.gameData.map.barbarianCamps.Remove(tile);
-			tile.hasBarbarianCamp = false;
-			animate(MapUnit.AnimatedAction.VICTORY);
+		EngineStorage.ReadGameData((gameData) => {
+			if (tile.HasBarbarianCamp() && !owner.isBarbarians) {
+				gameData.map.barbarianCamps.Remove(tile);
+				animate(MapUnit.AnimatedAction.VICTORY);
 
-			int gold = owner.rules.BarbarianCampGold;
-			owner.gold += gold;
-			if (owner.isHuman) {
-				new MsgBarbarianCampDispersed(owner.id, gold).send();
+				int gold = owner.rules.BarbarianCampGold;
+				owner.gold += gold;
+				if (owner.isHuman) {
+					new MsgBarbarianCampDispersed(owner.id, gold).send();
+				}
+
+				tile.overlays.Remove(gameData.terrainImprovements.First(t => t.layer == TerrainImprovement.Layer.BarbarianCamp));
+				foreach (var p in gameData.players) {
+					p.tileKnowledge.MaybeRemoveTerrainImprovement(tile.Id, Tile.TileOverlays.BARBARIAN_CAMP);
+				}
 			}
-		}
+		});
 
 		// Destroy the enemy city on the tile unless we're the barbarians,
 		// in which case we'll just take some gold.
@@ -275,12 +281,13 @@ public partial class MapUnit {
 		// Make sure the unit is on the new location before claiming we have entered the tile
 		newLoc.unitsOnTile.Add(this);
 		location = newLoc;
-		OnEnterTile(newLoc);
 
 		if (wait)
 			await animateAsync(MapUnit.AnimatedAction.RUN);
 		else
 			animate(MapUnit.AnimatedAction.RUN);
+
+		OnEnterTile(newLoc);
 
 		movementPoints.onUnitMove(movementCost);
 

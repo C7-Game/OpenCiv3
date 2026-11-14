@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using C7Engine;
 using C7GameData;
 using Godot;
 using static C7GameData.Tile.TileOverlays;
@@ -16,11 +17,14 @@ namespace C7.Map {
 		private readonly ImageTexture ruinsTexture;
 		private readonly ImageTexture pollutionTexture;
 		private readonly ImageTexture cratersTexture;
+		private readonly ImageTexture barbarianCampTexture;
 
 		private readonly Vector2 tileSize;
 
 		private int rng = 0;
 		private Dictionary<string, int> rngs = new();
+
+		private List<TerrainImprovement> terrainImprovements;
 
 		FontFile debugFont = new();
 
@@ -41,8 +45,11 @@ namespace C7.Map {
 			ruinsTexture = TextureLoader.Load("terrain_improvements.ruins");
 			pollutionTexture = TextureLoader.Load("terrain_improvements.pollution");
 			cratersTexture = TextureLoader.Load("terrain_improvements.craters");
+			barbarianCampTexture = TextureLoader.Load("terrain.barbarian_camp");
 
 			rng = GameData.rng.Next(0, 5000) * 2 + 1;
+
+			terrainImprovements = EngineStorage.gameData.terrainImprovements.ToList();
 
 			debugFont = ResourceLoader.Load<FontFile>("res://Fonts/NotoSans-Regular.ttf", null, ResourceLoader.CacheMode.Ignore);
 			debugFont.FixedSize = 12;
@@ -51,7 +58,7 @@ namespace C7.Map {
 		public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
 			Rect2 screenTarget = new Rect2(tileCenter - tileSize / 2, tileSize);
 
-			var improvements = tile.overlays.GetImprovements();
+			var improvements = RenderableTerrainImprovements(tile);
 
 			foreach (TerrainImprovement ti in improvements.OrderBy(ti => ti.zIndex)) {
 				switch (ti.key) {
@@ -73,11 +80,29 @@ namespace C7.Map {
 					case CRATERS:
 						DrawCraters(looseView, tile, screenTarget);
 						break;
+					case BARBARIAN_CAMP:
+						DrawBarbarianCamp(looseView, tile, tileCenter);
+						break;
 					default:
 						looseView.DrawTexture(TextureLoader.Load($"terrain_improvements.{ti.key}"), screenTarget.Position);
 						break;
 				}
 			}
+		}
+
+		private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {
+			if (EngineStorage.gameData.observerMode) return tile.overlays.GetImprovements().ToList();
+
+			var knownTerrainImprovements = new List<TerrainImprovement>();
+			var knownImprovements = player.tileKnowledge.KnownTerrainImprovements;
+
+			if (knownImprovements.TryGetValue(tile.Id, out var imprs)) {
+				foreach (var improvement in terrainImprovements) {
+					if (imprs.Contains(improvement.key))
+						knownTerrainImprovements.Add(improvement);
+				}
+			}
+			return knownTerrainImprovements;
 		}
 
 		private void DrawIrrigation(LooseView looseView, Tile tile, Rect2 screenTarget) {
@@ -86,7 +111,7 @@ namespace C7.Map {
 			int irrigationIndex = 0;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasIrrigation()) {
+				if (neighbour.HasIrrigationGraphics()) {
 					irrigationIndex |= GetIrrigationFlag(dirToTile.Key);
 				}
 			}
@@ -106,9 +131,10 @@ namespace C7.Map {
 
 		private void DrawRoad(LooseView looseView, Tile tile, Rect2 screenTarget) {
 			int roadIndex = 0;
+			if (tile.HasRailroadGraphics()) return;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasRoad() || neighbour.HasRailroad()) {
+				if (neighbour.HasRoadGraphics() || neighbour.HasRailroadGraphics()) {
 					roadIndex |= GetRoadFlag(dirToTile.Key);
 				}
 			}
@@ -120,9 +146,9 @@ namespace C7.Map {
 			int railroadIndex = 0;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasRailroad()) {
+				if (neighbour.HasRailroadGraphics()) {
 					railroadIndex |= GetRoadFlag(dirToTile.Key);
-				} else if (dirToTile.Value.HasRoad()) {
+				} else if (dirToTile.Value.HasRoadGraphics()) {
 					roadIndex |= GetRoadFlag(dirToTile.Key);
 				}
 			}
@@ -145,7 +171,7 @@ namespace C7.Map {
 			int pollutionIndex = 0;
 			foreach (KeyValuePair<TileDirection, Tile> dirToTile in tile.neighbors) {
 				var neighbour = dirToTile.Value;
-				if (neighbour.HasPollution()) {
+				if (neighbour.HasPollutionGraphics()) {
 					pollutionIndex |= GetPollutionIndex(dirToTile.Key);
 				}
 			}
@@ -180,6 +206,12 @@ namespace C7.Map {
 			} else {
 				looseView.DrawTextureRectRegion(cratersTexture, screenTarget, GetCratersRect(cratersIndex - 1, 2));
 			}
+		}
+
+		private void DrawBarbarianCamp(LooseView looseView, Tile tile, Vector2 tileCenter) {
+			if (!tile.HasBarbarianCamp()) return;
+			Rect2 screenRect = new(tileCenter - 0.5f * barbarianCampTexture.GetSize(), barbarianCampTexture.GetSize());
+			looseView.DrawTextureRect(barbarianCampTexture, screenRect, tile: false);
 		}
 
 		private int GetRadomTextureIndex(ID id, int variations, string layer, int offset) {
@@ -224,7 +256,7 @@ namespace C7.Map {
 			// The index is set up so that the layout looks like
 			//
 			//  0  1  2  3  4
-			//  5  6  7  8  9  
+			//  5  6  7  8  9
 			//  ...
 			int row = index / 5 + offset;
 			int column = index % 5;
@@ -236,7 +268,7 @@ namespace C7.Map {
 			// The index is set up so that the layout looks like
 			//
 			//  0  1  2  3  4
-			//  5  6  7  8  9  
+			//  5  6  7  8  9
 			//  ...
 			int row = index / 5 + offset;
 			int column = index % 5;

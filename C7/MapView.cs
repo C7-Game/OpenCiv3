@@ -13,6 +13,9 @@ using System.Diagnostics;
 // approach.) LooseLayer is effectively the standard map layer. The MapView contains a list of loose layers, inside a LooseView object. Right now to
 // add a new layer you must modify the MapView constructor to add it to the list, but (TODO) eventually that will be made moddable.
 public abstract class LooseLayer {
+	// The player that controls the UI
+	protected Player player = EngineStorage.GetUIController();
+
 	// drawObject draws the things this layer is supposed to draw that are associated with the given tile. Its parameters are:
 	//   looseView: The Node2D to actually draw to, e.g., use looseView.DrawCircle(...) to draw a circle. This object also contains a reference to
 	//     the MapView in case you need it.
@@ -460,21 +463,6 @@ public partial class GridLayer : LooseLayer {
 	}
 }
 
-public partial class BuildingLayer : LooseLayer {
-	private ImageTexture barbCamp;
-
-	public BuildingLayer() {
-		barbCamp = TextureLoader.Load("terrain.barbarian_camp");
-	}
-
-	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
-		if (tile.hasBarbarianCamp) {
-			Rect2 screenRect = new(tileCenter - 0.5f * barbCamp.GetSize(), barbCamp.GetSize());
-			looseView.DrawTextureRect(barbCamp, screenRect, tile: false);
-		}
-	}
-}
-
 public partial class LooseView : Node2D {
 	public MapView mapView;
 	public List<LooseLayer> layers = new List<LooseLayer>();
@@ -709,7 +697,6 @@ public partial class MapView : Node2D {
 		terrainView.layers.Add(new ResourceLayer());
 		this.gridLayer = new GridLayer();
 		terrainView.layers.Add(this.gridLayer);
-		terrainView.layers.Add(new BuildingLayer());
 		terrainView.layers.Add(new BorderLayer());
 
 		LooseView cityView = new(this);

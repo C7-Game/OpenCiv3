@@ -144,6 +144,7 @@ namespace C7GameData.Save {
 			EngineStorage.gameData = data;
 
 			ConvertMapAndPlayers(data);
+			ConvertBarbarianCamps(data);
 			ConvertBuildings(data);
 			ConvertUnits(data);
 			ConvertCities(data);
@@ -269,6 +270,12 @@ namespace C7GameData.Save {
 
 			// players need game map to populate tile knowledge
 			data.players = Players.ConvertAll(player => player.ToPlayer(data.map, Civilizations, data.governments, data.techs, data.rules, data.alliances));
+		}
+
+		private void ConvertBarbarianCamps(GameData data) {
+			foreach (var mapBarbarianCamp in data.map.barbarianCamps) {
+				mapBarbarianCamp.overlays.Add(data.terrainImprovements.First(w => w.layer == TerrainImprovement.Layer.BarbarianCamp));
+			}
 		}
 
 		private void ConvertTerrainImprovements(GameData gameData) {

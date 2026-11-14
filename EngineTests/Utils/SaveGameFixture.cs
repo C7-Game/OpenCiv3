@@ -72,6 +72,11 @@ public class SaveGameFixture : IDisposable {
 			}
 		}
 
+		foreach (var mapBarbarianCamp in save.Map.barbarianCamps) {
+			save.Map.tiles.First(t => t.X == mapBarbarianCamp.X && t.Y == mapBarbarianCamp.Y).overlays.Add("barbarianCamp");
+			mapBarbarianCamp.overlays.Add("barbarianCamp");
+		}
+
 		return save;
 	}
 
