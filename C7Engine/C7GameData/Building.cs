@@ -371,7 +371,7 @@ namespace C7GameData {
 
 			// Adjust cost if civilization has building trait exactly once
 			foreach (Civilization.Trait trait in dataSource.traits) {
-				if (player.civilization.traits.Contains(trait)) {
+				if (player.HasCivTrait(trait)) {
 					costAdj *= EngineStorage.gameData.rules.BuildingDiscountForCivTraits;
 					break;
 				}

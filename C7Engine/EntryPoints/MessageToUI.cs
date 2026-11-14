@@ -1,6 +1,7 @@
 namespace C7Engine {
 	using C7GameData;
 	using System;
+	using System.Collections.Generic;
 
 	public interface IMessageToUI {
 		public void send();
@@ -264,10 +265,12 @@ namespace C7Engine {
 	}
 
 	public class MsgShowTemporaryPopup : MessageToUI {
+		public ID controllerId;
 		public string message;
 		public Tile location;
 
-		public MsgShowTemporaryPopup(string message, Tile location) {
+		public MsgShowTemporaryPopup(ID receiver, string message, Tile location) {
+			this.controllerId = receiver;
 			this.message = message;
 			this.location = location;
 		}
@@ -291,6 +294,13 @@ namespace C7Engine {
 		public MapUnit Unit;
 		public MsgUnitMoved(MapUnit unit) {
 			this.Unit = unit;
+		}
+	}
+
+	public class MsgSelectTransport : MessageToUI {
+		public MapUnit unit;
+		public MsgSelectTransport(MapUnit unit) {
+			this.unit = unit;
 		}
 	}
 

@@ -29,10 +29,20 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		this.fixture = fixture;
 	}
 
+	// be careful when using this, tests that use it might be using stale data,
+	// initialized from another unrelated test that ran before the test you are running now
 	private SaveGame GetSave(SaveType type) {
 		return type switch {
 			SaveType.basic => fixture.saveGame,
 			SaveType.standalone => fixture.standaloneSaveGame,
+			_ => throw new ArgumentOutOfRangeException()
+		};
+	}
+
+	private SaveGame GetFreshSave(SaveType type) {
+		return type switch {
+			SaveType.basic => new SaveGameFixture().saveGame,
+			SaveType.standalone => new SaveGameFixture().standaloneSaveGame,
 			_ => throw new ArgumentOutOfRangeException()
 		};
 	}
@@ -57,7 +67,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		// load SaveGame but convert to and from GameData before saving to file:
 		string outputWasGameDataPath = PathUtils.getDataPath($"output/static-save-was-game-data-{outputFilePostfix}.json");
 
-		SaveGame developerSave = GetSave(saveType);
+		SaveGame developerSave = GetFreshSave(saveType);
 		developerSave.Save(outputNeverGameDataPath);
 
 		C7GameData.GameData gameData = ToGameData(developerSave);
@@ -114,6 +124,39 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 
 	private C7GameData.GameData ToGameData(SaveGame game) {
 		return game.ToGameData(fixture.behaviors);
+	}
+
+	[Fact]
+	public void WorldCharacteristicsSurviveSaveRoundTrip() {
+		SaveGame save = SaveGame.FromGameData(ToGameData(GetSave(SaveType.basic)));
+		save.WorldCharacteristics = new WorldCharacteristics {
+			worldSize = new WorldSize { name = "Standard", width = 100, height = 100 },
+			landform = WorldCharacteristics.Landform.Continents,
+			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
+			climate = WorldCharacteristics.Climate.Normal,
+			temperature = WorldCharacteristics.Temperature.Temperate,
+			age = WorldCharacteristics.Age.Billion_4,
+		};
+
+		WorldCharacteristics roundTripped = save.Clone().WorldCharacteristics;
+
+		Assert.Equal(save.WorldCharacteristics.worldSize.name, roundTripped.worldSize.name);
+		Assert.Equal(save.WorldCharacteristics.worldSize.width, roundTripped.worldSize.width);
+		Assert.Equal(save.WorldCharacteristics.worldSize.height, roundTripped.worldSize.height);
+		Assert.Equal(save.WorldCharacteristics.landform, roundTripped.landform);
+		Assert.Equal(save.WorldCharacteristics.oceanCoverage, roundTripped.oceanCoverage);
+		Assert.Equal(save.WorldCharacteristics.climate, roundTripped.climate);
+		Assert.Equal(save.WorldCharacteristics.temperature, roundTripped.temperature);
+		Assert.Equal(save.WorldCharacteristics.age, roundTripped.age);
+	}
+
+	// Saves made before world characteristics were persisted must still load,
+	// leaving the settings unset rather than defaulting to valid-looking values.
+	[Fact]
+	public void SaveWithoutWorldCharacteristicsLoadsWithThemUnset() {
+		SaveGame save = SaveGame.LoadFromJSON("{}");
+
+		Assert.Null(save.WorldCharacteristics);
 	}
 
 	[Fact]
@@ -190,7 +233,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			.MinimumLevel.Information()
 			.CreateLogger();
 
-		SaveGame developerSave = GetSave(saveType);
+		SaveGame developerSave = GetFreshSave(saveType);
 
 		new MsgSetAnimationsEnabled(false).send();
 
@@ -460,6 +503,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			Assert.Null(ex);
 			Assert.NotNull(game);
 			Assert.NotNull(gd);
+			Assert.NotNull(game.WorldCharacteristics);
+			Assert.NotNull(game.WorldCharacteristics.worldSize);
 			game.Save(Path.Combine(PathUtils.testDirectory, "data", "output", $"gotm_save_{i}.json"));
 			i++;
 		}
@@ -556,6 +601,19 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			Assert.NotNull(gd);
 			Assert.NotEqual(-1, gd.seed);
 
+			// The world characteristics are imported from the scenario and
+			// survive conversion to game data.
+			Assert.NotNull(game.WorldCharacteristics);
+			Assert.NotNull(game.WorldCharacteristics.worldSize);
+			Assert.Equal(game.WorldCharacteristics.worldSize.name, gd.worldCharacteristics.worldSize.name);
+			Assert.Equal(game.WorldCharacteristics.worldSize.width, gd.worldCharacteristics.worldSize.width);
+			Assert.Equal(game.WorldCharacteristics.worldSize.height, gd.worldCharacteristics.worldSize.height);
+			Assert.Equal(game.WorldCharacteristics.landform, gd.worldCharacteristics.landform);
+			Assert.Equal(game.WorldCharacteristics.oceanCoverage, gd.worldCharacteristics.oceanCoverage);
+			Assert.Equal(game.WorldCharacteristics.climate, gd.worldCharacteristics.climate);
+			Assert.Equal(game.WorldCharacteristics.temperature, gd.worldCharacteristics.temperature);
+			Assert.Equal(game.WorldCharacteristics.age, gd.worldCharacteristics.age);
+
 			CheckPlayableCivs(name, game);
 			CheckAlliances(name, gd);
 
@@ -649,7 +707,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			foreach (var gameUnit in game.Units) {
 				// there is a horseman barb + barb camp unit in this location
 				if (gameUnit.currentLocation is { X: 7, Y: 103 }) {
-					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).features);
+					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).overlays);
 					Assert.True(game.Players.Find(p => p.id == gameUnit.owner).civilization == "A Barbarian Chiefdom");
 				}
 			}

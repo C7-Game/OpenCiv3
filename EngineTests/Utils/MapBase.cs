@@ -174,6 +174,7 @@ public class MapBase {
 
 	protected TerrainImprovement road = new("road", TerrainImprovement.Layer.Roads, movementCost: 1.0f / 3);
 	protected TerrainImprovement railroad = new("railroad", TerrainImprovement.Layer.Roads, movementCost: 0);
+	protected TerrainImprovement barbCamp = new("barbarianCamp", TerrainImprovement.Layer.BarbarianCamp, movementCost: -1);
 
 	protected Tile MakeMountainTile() {
 		// Civ3 marks mountains as impassable to wheeled units, but passable to
