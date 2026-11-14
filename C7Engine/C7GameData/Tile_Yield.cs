@@ -71,12 +71,9 @@ public partial class Tile {
 		if (this.HasCity()) {
 			// All city centers have a food yield of 2, regardless of bonus
 			// food. See https://wiki.civforum.de/wiki/Stadtfeldertrag_(Civ3).
-			yield = 2;
-
-			// TODO: For agricultural civilizations, the city field produces
-			// a food yield of three food, but this is reduced to two by the
-			// despotism penalty, unless the city is located on a fresh
-			// water source or has already reached city size (≥ 7)
+			// Agricultural civilizations get 3 food in city center.
+			// The third food is lost to despotism penalty unless city is placed on fresh water source.
+			yield = player.IsAgricultural() ? 3 : 2;
 		}
 
 		yield += this.overlays.GetBaseYieldBonus(YieldType.Food);
@@ -117,7 +114,7 @@ public partial class Tile {
 				yield += 2;
 
 				// Industrious civs get +1 production in metropolises
-				if (cityAtTile.owner.civilization.traits.Contains(Civilization.Trait.Industrious)) {
+				if (cityAtTile.owner.IsIndustrious()) {
 					yield += 1;
 				}
 			}
@@ -157,14 +154,20 @@ public partial class Tile {
 		}
 
 		// See https://wiki.civforum.de/wiki/Stadtfeldertrag_(Civ3)
+		// TODO: Consider making these values moddable via Lua
 		if (HasCity()) {
 			int regularCityYield;
+			bool isCommercial = player.IsCommercial();
 			if (cityAtTile.residents.Count <= EngineStorage.gameData.rules.MaximumLevel1CitySize) {
 				regularCityYield = 1;
 			} else if (cityAtTile.residents.Count <= EngineStorage.gameData.rules.MaximumLevel2CitySize) {
 				regularCityYield = 2;
+				if (isCommercial)
+					regularCityYield += 2;
 			} else {
 				regularCityYield = 3;
+				if (isCommercial)
+					regularCityYield += 3;
 			}
 			if (borderRiver) {
 				regularCityYield += 1;
@@ -179,6 +182,11 @@ public partial class Tile {
 			}
 
 			yield = Math.Max(regularCityYield, capitalCityYield);
+
+			// Handle coastal cities + seafaring trait, applies AFTER 4 commerce floor for capitals
+			if (player.IsSeafaring() && NeighborsOcean()) {
+				yield += 1;
+			}
 		}
 
 		yield += this.overlays.GetBaseYieldBonus(YieldType.Commerce);
@@ -188,8 +196,6 @@ public partial class Tile {
 	public Yield CommerceYield(Player player) {
 		int yield = BaseCommerceYield(player);
 
-		// TODO: handle the commerce bonus for costal cities+seafaring
-		// TODO: handle the commerce bonus for commerial civs
 		return Yield.CalculateForPlayer(this, yield, YieldType.Commerce, player);
 	}
 	public Yield CommerceYield(City city) {

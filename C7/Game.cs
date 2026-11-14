@@ -587,16 +587,14 @@ public partial class Game : Node {
 		// Prompt the user if they would have a city riot when the turn ended.
 		bool doEndTurn = true;
 		EngineStorage.ReadGameData((GameData gameData) => {
-			foreach (City city in controller.cities) {
-				if (!controller.isHuman) {
-					continue;
-				}
-
-				City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
-				if (cityMood == City.Mood.Unhappy) {
-					new MsgCityRiotWarning(this.controller.id, city).send();
-					doEndTurn = false;
-					return;
+			if (controller.isHuman) {
+				foreach (City city in controller.cities) {
+					City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
+					if (cityMood == City.Mood.Unhappy) {
+						new MsgCityRiotWarning(this.controller.id, city).send();
+						doEndTurn = false;
+						return;
+					}
 				}
 			}
 		});

@@ -78,6 +78,7 @@ namespace C7GameData {
 		public int turnsOfUnhappinessDueToPopRushing = 0;
 
 		public bool isInCivilDisorder = false;
+		public bool hasFreshwaterAccess => location.BordersRiver() || location.NeighborsFreshWater();
 
 		public static City NONE = new City(Tile.NONE, null, "Dummy City", ID.None("city"));
 
@@ -422,26 +423,11 @@ namespace C7GameData {
 
 			// If the city doesn't have fresh water and doesn't have an aqueduct
 			// then it can't grow into a city.
-			//
-			// TODO: lakes are bodies of water under 20 tiles (https://civilization.fandom.com/wiki/Fresh_Water_Lake_(Civ3))
-			bool hasFreshwaterAccess = location.BordersRiver();
-			foreach (Tile t in location.neighbors.Values) {
-				if (!t.IsLand() && t.isFreshWater) {
-					hasFreshwaterAccess = true;
-					break;
-				}
-			}
 
-			bool canGrowIntoCity = hasFreshwaterAccess;
-			if (!hasFreshwaterAccess) {
-				// TODO: Skip obsolete buildings (see Building.IsObsolete).
-				foreach (CityBuilding cb in GetBuildings()) {
-					if (cb.building.allowsCitySize2 || cb.building.allowsCitySize3) {
-						canGrowIntoCity = true;
-						break;
-					}
-				}
-			}
+			bool canGrowIntoCity = hasFreshwaterAccess || GetBuildings()
+				.Select(cb => cb.building)
+				.Where(bldg => !bldg.IsObsolete(this.owner))
+				.Any(bldg => bldg.allowsCitySize2 || bldg.allowsCitySize3);
 
 			if (!canGrowIntoCity) {
 				return false;
@@ -454,9 +440,10 @@ namespace C7GameData {
 
 			// If we're a city trying to grow into a metropolis, we need a
 			// hospital.
-			// TODO: Skip obsolete buildings (see Building.IsObsolete).
-			foreach (CityBuilding cb in GetBuildings()) {
-				if (cb.building.allowsCitySize3) {
+			foreach (Building b in GetBuildings()
+				.Select(cb => cb.building)
+				.Where(bldg => !bldg.IsObsolete(this.owner))) {
+				if (b.allowsCitySize3) {
 					return true;
 				}
 			}
@@ -1124,7 +1111,9 @@ namespace C7GameData {
 
 			int happyCount = 0;
 			int unhappyCount = 0;
-			foreach (CityResident cr in residents) {
+			// Only loop through default citizens
+			// Specialists retain their mood in CityResident data which we don't want to count here
+			foreach (CityResident cr in residents.Where(c => c.citizenType.IsDefaultCitizen)) {
 				if (cr.mood == CityResident.Mood.Happy) { ++happyCount; }
 				if (cr.mood == CityResident.Mood.Unhappy) { ++unhappyCount; }
 			}

@@ -16,8 +16,8 @@ namespace C7GameData {
 		// If true, this is the government used while switching governments.
 		public bool transitionType;
 
-		// The "despotism penalty" applies for this goverment; reduces all 
-		// commerce, production and food output done by citizen laborers by -1 
+		// The "despotism penalty" applies for this goverment; reduces all
+		// commerce, production and food output done by citizen laborers by -1
 		// when they produce more than 2.
 		public bool hasTilePenalty {
 			get => _hasTilePenalty;
@@ -82,7 +82,18 @@ namespace C7GameData {
 		}
 
 		private static void TilePenalty(Tile.Yield yield) {
-			yield.penalty += yield.yield > 2 ? 1 : 0;
+			Tile t = yield.tile;
+
+			// Agricultural civs keep the third food of their city center when the
+			// city has fresh water access. Shields and commerce are still penalized.
+			bool exempt = yield.type == Tile.YieldType.Food
+				&& t.HasCity()
+				&& t.cityAtTile.owner.IsAgricultural()
+				&& t.cityAtTile.hasFreshwaterAccess;
+
+			if (!exempt) {
+				yield.penalty += yield.yield > 2 ? 1 : 0;
+			}
 		}
 	}
 }

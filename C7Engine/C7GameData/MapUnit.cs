@@ -330,7 +330,7 @@ namespace C7GameData {
 			double promotionChance = experienceLevel.promotionChance;
 			if (opponent.owner.isBarbarians)
 				promotionChance /= 2.0;
-			if (owner.civilization.traits.Contains(Civilization.Trait.Militaristic))
+			if (owner.IsMilitaristic())
 				promotionChance *= 2;
 			if (GameData.rng.NextDouble() < promotionChance) {
 				if (Promote()) {
@@ -679,7 +679,7 @@ namespace C7GameData {
 
 		public float workerSpeed() {
 			float progressPerTurn = this.IsCaptive() ? JOB_PROGRESS_SLAVE : JOB_PROGRESS_WORKER;
-			if (owner.civilization.traits.Contains(Civilization.Trait.Industrious)) {
+			if (owner.IsIndustrious()) {
 				progressPerTurn *= 1.5f;
 			}
 			return progressPerTurn;
