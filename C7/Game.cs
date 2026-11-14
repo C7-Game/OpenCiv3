@@ -138,8 +138,6 @@ public partial class Game : Node {
 
 	private MapView mapView;
 
-	public static Dictionary<Tile, Queue<TemporaryPopup>> tempPopupQueue = new();
-
 	public enum GameState {
 		PlayerTurn,
 		ComputerTurn
@@ -444,6 +442,7 @@ public partial class Game : Node {
 				break;
 			case MsgShowTemporaryPopup mSTP:
 				if (mSTP.controllerId != this.controller.id) return;
+				if (EngineStorage.gameData.observerMode) return; // TODO: make configurable
 				TemporaryPopup.Show(this.mapView, this, mSTP.message, mSTP.location);
 				break;
 			case MsgUnitMoved mUUAAB:

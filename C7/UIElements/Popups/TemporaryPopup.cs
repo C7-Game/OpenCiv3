@@ -9,12 +9,15 @@ public partial class TemporaryPopup : Label {
 	private Tile initialLocation;
 	private MapView mapView;
 
+	// Static popup queue, shared among all instances
+	private static readonly Dictionary<Tile, Queue<TemporaryPopup>> TempPopupQueue = new();
+
 	public override void _Process(double delta) {
 		base._Process(delta);
 		if (!this.Visible) return;
 
 		var posInQueue = 0;
-		if (Game.tempPopupQueue.TryGetValue(initialLocation, out var queue)) {
+		if (TempPopupQueue.TryGetValue(initialLocation, out var queue)) {
 			posInQueue = queue.ToList().IndexOf(this);
 		}
 
@@ -72,12 +75,12 @@ public partial class TemporaryPopup : Label {
 		TemporaryPopup popup = new(mapView, rootPosition, msg, 2);
 		parent.AddChild(popup);
 
-		if (Game.tempPopupQueue.TryGetValue(rootPosition, out Queue<TemporaryPopup> queue)) {
+		if (TempPopupQueue.TryGetValue(rootPosition, out Queue<TemporaryPopup> queue)) {
 			queue.Enqueue(popup);
 		} else {
 			var newQueue = new Queue<TemporaryPopup>();
 			newQueue.Enqueue(popup);
-			Game.tempPopupQueue.TryAdd(rootPosition, newQueue);
+			TempPopupQueue.TryAdd(rootPosition, newQueue);
 		}
 
 		popup.ShowPopup();
@@ -88,7 +91,7 @@ public partial class TemporaryPopup : Label {
 		await Task.Delay(durationInMillis);
 
 		Visible = false;
-		if (Game.tempPopupQueue.TryGetValue(initialLocation, out Queue<TemporaryPopup> queue)) {
+		if (TempPopupQueue.TryGetValue(initialLocation, out Queue<TemporaryPopup> queue)) {
 			queue.TryDequeue(out _);
 		}
 		QueueFree();
