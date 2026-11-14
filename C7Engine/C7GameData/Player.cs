@@ -801,6 +801,8 @@ namespace C7GameData {
 				if (c.UpdateCultureAndCheckForExpansion()) {
 					gameData.UpdateTileOwners();
 
+					new MsgShowTemporaryPopup(c.owner.id, "Our cultural influence is expanding!", c.location).send();
+
 					// Update the trade network if borders expanded, as a new
 					// resource may be part of the network.
 					EngineStorage.gameData.InvalidateCachedTradeNetwork();
@@ -1242,6 +1244,10 @@ namespace C7GameData {
 			float costFactor = isHuman ? 1.0f : difficulty.AiCostFactor / (float)(difficulty.HumanCostFactor);
 
 			return producible.ShieldCost(this, costFactor);
+		}
+
+		public bool HasUnitsOnTile(Tile location) {
+			return location.unitsOnTile.Count > 0 && location.unitsOnTile.Any(u => u.owner == this);
 		}
 
 		public void UpdateHistory(GameData gameData) {

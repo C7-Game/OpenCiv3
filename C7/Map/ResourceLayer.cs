@@ -26,7 +26,7 @@ public class ResourceLayer : LooseLayer {
 	}
 
 	private bool ResourceVisible(GameData gameData, Tile t) {
-		if (gameData.observerMode) {
+		if (gameData.revealMap) {
 			return true;
 		}
 		return gameData.GetFirstHumanPlayer().KnowsAboutResource(t.Resource);

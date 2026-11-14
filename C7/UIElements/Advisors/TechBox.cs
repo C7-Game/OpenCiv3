@@ -153,7 +153,7 @@ public partial class TechBox : TextureButton {
 		smallFontTheme.SetColor("font_color", "Label", new Color(0.71f, 0.35f, 0.13f));
 
 		var customTheme = new Theme();
-		customTheme.SetStylebox("panel", "TooltipPanel", TemporaryPopup.PopupTechStyleBox());
+		customTheme.SetStylebox("panel", "TooltipPanel", TemporaryPopup.InfoStyleBox());
 		customTheme.SetColor("font_color", "TooltipLabel", Colors.Black);
 		customTheme.SetFontSize("font_size", "TooltipLabel", 12);
 		this.Theme = customTheme;

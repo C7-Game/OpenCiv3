@@ -79,8 +79,6 @@ namespace C7GameData {
 
 		public CityResident personWorkingTile = null;   //allows us to see if another city is working this tile
 
-		public bool hasBarbarianCamp = false;
-
 		//See discussion on page 4 of the "Babylon" thread (https://forums.civfanatics.com/threads/0-1-babylon-progress-thread.673959) about sub-terrain type and Civ3 properties.
 		//We may well move these properties somewhere, whether that's Civ3ExtraInfo, a Civ3Tile child class, a Dictionary property, or something else, in the future.
 		public bool isBonusShield;
@@ -309,7 +307,11 @@ namespace C7GameData {
 		}
 
 		public bool IsAllowCities() {
-			return overlayTerrainType.allowCities && !hasBarbarianCamp;
+			return overlayTerrainType.allowCities && !HasBarbarianCamp();
+		}
+
+		public bool HasBarbarianCamp() {
+			return overlays.terrainImprovementByLayer.ContainsKey(Layer.BarbarianCamp);
 		}
 
 		public bool IsMountains() {
@@ -359,7 +361,7 @@ namespace C7GameData {
 			return riverNorth || riverNortheast || riverEast || riverSoutheast || riverSouth || riverSouthwest || riverWest || riverNorthwest;
 		}
 
-		// TODO: This method doesn't handle the electicity tech which allows
+		// TODO: This method doesn't handle the electricity tech which allows
 		// irrigating without fresh water access.
 		public bool CanBeIrrigated(TerrainImprovement irrigation, Player player) {
 			// Irrigation can't be done if there is no irrigation bonus for the
@@ -438,9 +440,7 @@ namespace C7GameData {
 				c.SetStoredShields(shieldsAwarded, true);
 				c.SetStoredShields(Math.Min(c.shieldsStored, c.owner.ShieldCost(c.itemBeingProduced)));
 
-				if (c.owner.isHuman) {
-					new MsgShowTemporaryPopup($"{shieldsAwarded} shields awarded for clearing forests", other).send();
-				}
+				new MsgShowTemporaryPopup(c.owner.id, $"{shieldsAwarded} shields awarded for clearing forests", other).send();
 
 				return;
 			}
@@ -552,5 +552,10 @@ namespace C7GameData {
 		}
 
 		public bool HasImprovements => overlays.HasBeenImproved();
+
+		public bool IsOwnedByPlayer(Player player) {
+			var owner = this.OwningPlayer();
+			return owner != null && owner == player;
+		}
 	}
 }

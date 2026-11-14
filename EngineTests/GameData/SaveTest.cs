@@ -29,10 +29,20 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		this.fixture = fixture;
 	}
 
+	// be careful when using this, tests that use it might be using stale data,
+	// initialized from another unrelated test that ran before the test you are running now
 	private SaveGame GetSave(SaveType type) {
 		return type switch {
 			SaveType.basic => fixture.saveGame,
 			SaveType.standalone => fixture.standaloneSaveGame,
+			_ => throw new ArgumentOutOfRangeException()
+		};
+	}
+
+	private SaveGame GetFreshSave(SaveType type) {
+		return type switch {
+			SaveType.basic => new SaveGameFixture().saveGame,
+			SaveType.standalone => new SaveGameFixture().standaloneSaveGame,
 			_ => throw new ArgumentOutOfRangeException()
 		};
 	}
@@ -57,7 +67,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 		// load SaveGame but convert to and from GameData before saving to file:
 		string outputWasGameDataPath = PathUtils.getDataPath($"output/static-save-was-game-data-{outputFilePostfix}.json");
 
-		SaveGame developerSave = GetSave(saveType);
+		SaveGame developerSave = GetFreshSave(saveType);
 		developerSave.Save(outputNeverGameDataPath);
 
 		C7GameData.GameData gameData = ToGameData(developerSave);
@@ -86,28 +96,8 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			EngineStorage.ProcessNextMessageToEngine();
 
 			while (EngineStorage.TryDequeueNextMessageToUI(out MessageToUI msg)) {
-				switch (msg) {
-					case MsgNewGame mNG:
-						continue;
-					case MsgStartTurn mST:
-						return;
-					case MsgWarDeclarationNotification mWD:
-						continue;
-					case MsgShowTemporaryPopup mSTP:
-						continue;
-					case MsgCityRaised mCR:
-						continue;
-					case MsgCityDestroyed mCD:
-						continue;
-					case MsgCityRansacked mCRS:
-						continue;
-					case MsgCivilizationDestroyed mCVD:
-						continue;
-					case MsgVictory mV:
-						continue;
-					default:
-						throw new Exception($"{msg}");
-				}
+				if (msg is MsgStartTurn)
+					return;
 			}
 		}
 	}
@@ -210,7 +200,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			.MinimumLevel.Information()
 			.CreateLogger();
 
-		SaveGame developerSave = GetSave(saveType);
+		SaveGame developerSave = GetFreshSave(saveType);
 
 		new MsgSetAnimationsEnabled(false).send();
 
@@ -669,7 +659,7 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 			foreach (var gameUnit in game.Units) {
 				// there is a horseman barb + barb camp unit in this location
 				if (gameUnit.currentLocation is { X: 7, Y: 103 }) {
-					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).features);
+					Assert.Contains("barbarianCamp", game.Map.tiles.Find(t => t.X == 7 && t.Y == 103).overlays);
 					Assert.True(game.Players.Find(p => p.id == gameUnit.owner).civilization == "A Barbarian Chiefdom");
 				}
 			}

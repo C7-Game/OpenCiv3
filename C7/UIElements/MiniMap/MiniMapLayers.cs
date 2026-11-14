@@ -72,16 +72,16 @@ public class WaterMiniLayer : MiniMapLayer {
 }
 
 public class FogOfWarMiniLayer : MiniMapLayer {
-	private bool _observerMode;
+	private bool _revealMap;
 	private TileKnowledge _tileKnowledge;
 
 	public override void Configure(GameData gD) {
-		_observerMode = gD.observerMode;
+		_revealMap = gD.revealMap;
 		_tileKnowledge = gD.GetFirstHumanPlayer().tileKnowledge;
 	}
 
 	public override void DrawTile(Image mapImage, Tile tile, int x, int y) {
-		if (visible && !_observerMode) {
+		if (visible && !_revealMap) {
 			if (_tileKnowledge.borderTiles.Contains(tile)) {
 				var currentColor = mapImage.GetPixel(x, y);
 				var newColor = Colors.Black.Lerp(currentColor, 0.50f); // blend with underlying map

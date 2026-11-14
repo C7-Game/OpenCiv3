@@ -250,7 +250,7 @@ namespace C7Engine {
 			}
 
 			List<Tile> reachableBarbCampsTiles = player.tileKnowledge.AllKnownTiles()
-				.Where(t => unit.CanEnter(t) && t.hasBarbarianCamp).ToList();
+				.Where(t => unit.CanEnter(t) && t.HasBarbarianCamp()).ToList();
 
 			Tile closestBarbCamp = Tile.NONE;
 			int closestBarbDistance = int.MaxValue;

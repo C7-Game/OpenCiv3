@@ -136,7 +136,8 @@ public sealed class AStarPathFindingLandUnitTest : MapBase {
 	private void TestBarbarianCampTileIsEnterableEvenWhenImpassable() {
 		InitilizeStartTile(MakeHillTile(), new TileLocation(50, 50));
 		var impassableDesert = AddNeighborsAndUpdateMap(startTile, MakeImpassableDesertTile(), TileDirection.NORTH);
-		impassableDesert.hasBarbarianCamp = true;
+		impassableDesert.overlays.Add(barbCamp);
+		Assert.True(impassableDesert.HasBarbarianCamp());
 
 		MapUnit unit = MakeLandUnit();
 		unit.unitType.attack = 1;

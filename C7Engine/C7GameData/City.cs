@@ -178,6 +178,18 @@ namespace C7GameData {
 			return gameData.GetTradeNetwork().GetResourcesAvailableToCity(owner, this).Keys.ToHashSet();
 		}
 
+		// 1 for a town, 2 for a city, 3 for a metropolis, by the rules' size limits.
+		public int SizeLevel() {
+			Rules rules = owner.rules;
+			if (residents.Count <= rules.MaximumLevel1CitySize) {
+				return 1;
+			} else if (residents.Count <= rules.MaximumLevel2CitySize) {
+				return 2;
+			} else {
+				return 3;
+			}
+		}
+
 		public int FoodNeededToGrow() {
 			Rules rules = owner.rules;
 			if (residents.Count <= rules.MaximumLevel1CitySize) {
@@ -320,6 +332,7 @@ namespace C7GameData {
 			log.Debug($"Produced {producedItem} in {this}");
 			if (producedItem is UnitPrototype prototype) {
 				AddUnit(prototype, gameData);
+				new MsgShowTemporaryPopup(this.owner.id, $"{this.name} built {prototype.name}.", this.location).send();
 			} else if (producedItem is Building building) {
 				AddBuilding(building);
 
@@ -586,8 +599,14 @@ namespace C7GameData {
 			double taxMultiplier = 1 + activeBuildings.Sum(b => b.commerceBonus);
 
 			// Split the commerce first, then apply the building bonuses to each part.
-			int baseBeakers = (int)Math.Floor(commerce.useful * owner.scienceRate / 10.0);
-			int baseHappiness = (int)Math.Floor(commerce.useful * owner.luxuryRate / 10.0);
+			int baseBeakers = (commerce.useful * owner.scienceRate + 5) / 10;
+			int baseHappiness = (commerce.useful * owner.luxuryRate + 5) / 10;
+
+			// If the total exceeds available commerce, truncate luxury spending
+			if (baseBeakers + baseHappiness > commerce.useful) {
+				baseHappiness = commerce.useful - baseBeakers;
+			}
+
 			int baseTaxes = commerce.useful - baseBeakers - baseHappiness;
 
 			// TODO: Science/Luxury commerce doesn't seem to be tabulating correctly, can be negative in some cases with specialists, might be ImportCiv3 issue?

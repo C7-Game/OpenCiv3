@@ -101,6 +101,8 @@ namespace C7Engine {
 	}
 
 	public class MsgLoadToTransport : MessageToEngine {
+		private ILogger log = Log.ForContext<MsgLoadToTransport>();
+
 		private ID unitID;
 		private ID transportUnitId;
 
@@ -111,9 +113,20 @@ namespace C7Engine {
 
 		public override void process() {
 			MapUnit unit = EngineStorage.gameData.GetUnit(unitID);
-			MapUnit transportUnit;
-			if (this.transportUnitId != null) {
-				transportUnit = EngineStorage.gameData.GetUnit(transportUnitId);
+			if (transportUnitId != null) {
+				var transportUnit = EngineStorage.gameData.GetUnit(transportUnitId);
+
+				if (transportUnit.IsFull()) {
+					log.Error("Transport unit {transport} is full. Can't load unit {unit}.",
+						transportUnit.id, unit.id);
+					return;
+				}
+				if (transportUnit.owner != unit.owner) {
+					log.Error("Transport unit {transport} and loading unit {unit} have different owners.",
+						transportUnit.id, unit.id);
+					return;
+				}
+
 				unit.BoardTransport(transportUnit);
 			} else
 				unit.TryBoardingTransportOnTile(unit.location);
@@ -443,7 +456,7 @@ namespace C7Engine {
 			this.worker.resetWorkerJob();
 			this.worker.isAutomated = false;
 			if (!this.worker.movementPoints.canMove)
-				new MsgShowTemporaryPopup("This unit has already moved.", this.worker.location).send();
+				new MsgShowTemporaryPopup(this.worker.owner.id, "This unit has already moved.", this.worker.location).send();
 		}
 	}
 
