@@ -687,6 +687,42 @@ public class CityTest : MapBase {
 		}
 	}
 
+	// Makes a city with the given number of laborers followed by one specialist
+	// whose leftover mood, from before they became a specialist, is set to
+	// specialistMood. bornContent is how many laborers start out content.
+	private (C7GameData.GameData gameData, City city) MakeCityWithSpecialist(int laborers, int bornContent, CityResident.Mood specialistMood) {
+		C7GameData.GameData gameData = new() {
+			gameDifficulty = new Difficulty { NumberOfCitizensBornContent = bornContent },
+			rules = new Rules { MaximumLevel1CitySize = 6, MaximumLevel2CitySize = 12 },
+		};
+		C7Engine.EngineStorage.InitializeGameDataForTests(gameData);
+
+		Player player = MakePlayerForProduction();
+		gameData.players.Add(player);
+		(City city, _) = MakeCityWithSurroundings(player);
+
+		CitizenType laborer = new() { IsDefaultCitizen = true };
+		for (int i = 0; i < laborers; i++) {
+			city.AddCitizen(new CityResident { city = city, citizenType = laborer });
+		}
+		city.AddCitizen(new CityResident { city = city, citizenType = new CitizenType(), mood = specialistMood });
+		return (gameData, city);
+	}
+
+	[Fact]
+	public void SpecialistWithLeftoverUnhappyMood_DoesNotMakeAContentCityUnhappy() {
+		(C7GameData.GameData gameData, City city) = MakeCityWithSpecialist(laborers: 2, bornContent: 2, specialistMood: CityResident.Mood.Unhappy);
+
+		Assert.Equal(City.Mood.Happy, city.RecalculateCitizenMoods(gameData));
+	}
+
+	[Fact]
+	public void SpecialistWithLeftoverHappyMood_DoesNotHideAnUnhappyLaborer() {
+		(C7GameData.GameData gameData, City city) = MakeCityWithSpecialist(laborers: 1, bornContent: 0, specialistMood: CityResident.Mood.Happy);
+
+		Assert.Equal(City.Mood.Unhappy, city.RecalculateCitizenMoods(gameData));
+	}
+
 	[Fact]
 	public void WithoutGoodsMustBeInCityRadius_AccessibleResourcesAreEnough() {
 		Resource iron = new() { Key = "iron" };

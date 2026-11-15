@@ -14,9 +14,13 @@ public partial class Civ3MenuButton : BaseButton {
 		TextBelowIcon
 	}
 
-	private Texture2D normalTexture = TextureLoader.Load("ui.button.inactive");
-	private Texture2D hoverTexture = TextureLoader.Load("ui.button.hover");
-	private Texture2D pressedTexture = TextureLoader.Load("ui.button.pressed");
+	// These are loaded in _Ready rather than in the field initializers: Godot
+	// instantiates nodes with this script in contexts that don't have the
+	// texture config set up (exporting a scene, for one), and throwing from the
+	// constructor makes such a scene silently lose the script entirely.
+	private Texture2D normalTexture;
+	private Texture2D hoverTexture;
+	private Texture2D pressedTexture;
 
 	private string _text;
 	[Export]
@@ -71,6 +75,10 @@ public partial class Civ3MenuButton : BaseButton {
 	}
 
 	public override void _Ready() {
+		normalTexture = TextureLoader.Load("ui.button.inactive");
+		hoverTexture = TextureLoader.Load("ui.button.hover");
+		pressedTexture = TextureLoader.Load("ui.button.pressed");
+
 		fontColor = GetThemeColor("font_color", "Button");
 		hoverColor = GetThemeColor("font_hover_color", "Button");
 		pressedColor = GetThemeColor("font_pressed_color", "Button");

@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using C7Engine;
+using Serilog;
 
 namespace C7GameData {
 	public class TileKnowledge {
+		private static ILogger log = Log.ForContext<TileKnowledge>();
 		private readonly Player _player;
 
 		public TileKnowledge(Player player) {
@@ -11,8 +13,10 @@ namespace C7GameData {
 		}
 
 		public HashSet<Tile> knownTiles { get; private set; } = new();
+		private Dictionary<ID, ICollection<string>> knownTerrainImprovements { get; set; } = new();
+		public IReadOnlyDictionary<ID, ICollection<string>> KnownTerrainImprovements => knownTerrainImprovements;
 		public HashSet<Tile> borderTiles { get; private set; } = new();
-		private HashSet<Tile> activeTiles = new HashSet<Tile>();
+		public HashSet<Tile> activeTiles = new HashSet<Tile>();
 
 		// Has this player explored all known ocean tiles?
 		// TODO: this should be split out for coast/ocean
@@ -21,28 +25,30 @@ namespace C7GameData {
 		// The set of tiles this player currently has explorers headed towards.
 		public HashSet<Tile> aiExplorationTargets = new();
 
-		public void AddTilesToKnown(Tile unitLocation, bool recomputeActiveTiles = true) {
-			knownTiles.Add(unitLocation);
-			borderTiles.Remove(unitLocation);
+		public void AddTilesToKnown(Tile location, bool recomputeActiveTiles = true) {
+			knownTiles.Add(location);
+			borderTiles.Remove(location);
 
 			// Crude benchmarking tool for GetTilesVisibleToUnit, which can be
 			// a hot function when profiling.
 			// {
 			// 	Stopwatch stopwatch = new Stopwatch();
 			// 	stopwatch.Start();
-
+			//
 			// 	for (int i = 0; i < 10000; ++i) {
-			// 		foreach (Tile t in GetTilesVisibleToUnit(unitLocation)) {
+			// 		foreach (Tile t in GetTilesVisibleFrom(location)) {
 			// 			knownTiles.Add(t);
 			// 		}
 			// 	}
-
+			//
 			// 	System.Console.WriteLine($"10k runs took: {stopwatch.ElapsedMilliseconds} milliseconds");
 			// }
 
-			foreach (Tile t in GetTilesVisibleToUnit(unitLocation)) {
+			foreach (Tile t in GetTilesVisibleFrom(location)) {
 				knownTiles.Add(t);
 				borderTiles.Remove(t);
+
+				TileSeen(t);
 
 				foreach (Tile border in t.neighbors.Values) {
 					if (border == Tile.NONE) {
@@ -59,6 +65,24 @@ namespace C7GameData {
 			}
 		}
 
+		public List<Tile> GetTilesVisibleFrom(Tile location) {
+			if (_player.HasUnitsOnTile(location)) {
+				return GetTilesVisibleToUnit(location);
+			}
+
+			List<Tile> tiles = new List<Tile>();
+			if (!_player.HasUnitsOnTile(location) && location.IsOwnedByPlayer(_player)) {
+				// A tile within a city's borders and all of its neighbors are active.
+				// A unit's visibility might be going further than that of a city,
+				// so we don't need to calculate this here.
+				foreach (var neighbor in location.neighbors.Values) {
+					tiles.Add(neighbor);
+				}
+			}
+
+			return tiles;
+		}
+
 		public List<Tile> GetTilesVisibleToUnit(Tile unitLocation) {
 			// TODO: Make visibility configurable in game rules
 			// Space for current tile, 8 inner ring tiles, 16 outer ring tiles
@@ -70,6 +94,7 @@ namespace C7GameData {
 
 			// Units with radar can see X (2 in OG game, configurable here) tiles away, regardless of terrain.
 			// They also don't need to be the "top" unit on the tile, if they exist on the tile, they boost visibility.
+			// TODO: currently this checks for any unit on the tile with radar, not if it's the player's
 			var anyRadarUnits = unitLocation.unitsOnTile.Any(u => u.unitType.hasRadar);
 			if (anyRadarUnits) {
 				result.AddRange(unitLocation.GetTilesWithinTileSquare(rules.RadarTileVisibility).Where(Tile.IsTileValid).ToList());
@@ -192,24 +217,37 @@ namespace C7GameData {
 		public void RecomputeActiveTiles() {
 			activeTiles.Clear();
 			foreach (Tile t in knownTiles) {
-				// A tile within a city's borders and all of its neighbors are active.
-				// A unit's visibility might be going further than that of a city,
-				// so we don't need to calculate this here.
-				if (t.unitsOnTile.Count < 1 && t.owningCity != null && t.owningCity.owner == _player) {
-					activeTiles.Add(t);
+				activeTiles.UnionWith(GetTilesVisibleFrom(t));
+			}
+		}
 
-					foreach (Tile neighbor in t.neighbors.Values) {
-						activeTiles.Add(neighbor);
-					}
-				}
+		public void FromSerializedImprovementsData(Dictionary<string, List<string>> serialisedImprovements) {
+			foreach ((string id, List<string> improvements) in serialisedImprovements) {
+				var tileId = ID.FromString(id);
+				SetImprovementsForTile(tileId, improvements);
+			}
+		}
 
-				// A tile with a unit on it and all of its neighbors are active.
-				if (t.unitsOnTile.Count > 0 && t.unitsOnTile[0].owner == _player) {
-					foreach (Tile x in GetTilesVisibleToUnit(t)) {
-						activeTiles.Add(x);
-					}
+		public void TileSeen(Tile tile) {
+			SetImprovementsForTile(tile.Id, tile.overlays.GetImprovements().Select(ti => ti.key).ToList());
+		}
+
+		private void SetImprovementsForTile(ID tileId, IEnumerable<string> improvements) {
+			knownTerrainImprovements[tileId] = improvements.ToList();
+		}
+
+		public void MaybeRemoveTerrainImprovement(ID id, string improvementKey) {
+			if (knownTerrainImprovements.ContainsKey(id)) {
+				knownTerrainImprovements[id].Remove(improvementKey);
+				if (knownTerrainImprovements[id].Count == 0) {
+					knownTerrainImprovements.Remove(id);
 				}
 			}
+		}
+
+		public bool KnowsAboutOverlay(Tile tile, string overlayKey) {
+			return knownTerrainImprovements.TryGetValue(tile.Id, out ICollection<string> knownOverlays)
+				   && knownOverlays.Contains(overlayKey);
 		}
 
 		public List<Tile> OwnedTiles() {
@@ -225,3 +263,4 @@ namespace C7GameData {
 		}
 	}
 }
+

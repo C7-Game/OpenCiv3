@@ -71,8 +71,10 @@ jobs:
       run: |
         if cp -r ${PROJECT_DIR}/Text build/${FOLDER_NAME}/Text && \\
            cp NOTICE.md build/${FOLDER_NAME}/Text/NOTICE.md && \\
+           cp LICENSE build/${FOLDER_NAME}/LICENSE && \\
            cp -r ${PROJECT_DIR}/Assets build/${FOLDER_NAME}/Assets && \\
-           cp -r ${PROJECT_DIR}/Lua build/${FOLDER_NAME}/Lua
+           cp -r ${PROJECT_DIR}/Lua build/${FOLDER_NAME}/Lua && \
+           rm -rf build/${FOLDER_NAME}/Assets/.git*
         then
           echo "successfully copied static files to build"
         else
@@ -122,8 +124,10 @@ jobs:
       run: |
         if cp -r ${PROJECT_DIR}/Text build/${FOLDER_NAME}/Text && \\
            cp NOTICE.md build/${FOLDER_NAME}/Text/NOTICE.md && \\
+           cp LICENSE build/${FOLDER_NAME}/LICENSE && \\
            cp -r ${PROJECT_DIR}/Assets build/${FOLDER_NAME}/Assets && \\
-           cp -r ${PROJECT_DIR}/Lua build/${FOLDER_NAME}/Lua
+           cp -r ${PROJECT_DIR}/Lua build/${FOLDER_NAME}/Lua && \
+           rm -rf build/${FOLDER_NAME}/Assets/.git*
         then
           echo "successfully copied static files to build"
         else
@@ -175,9 +179,10 @@ jobs:
     - name: Copy Static Files
       run: |
         cp NOTICE.md ${PROJECT_DIR}/Text/NOTICE.md
+        cp LICENSE ${PROJECT_DIR}/LICENSE
 
         cd ${PROJECT_DIR}
-        if zip -r ../build/${FOLDER_NAME}.zip Assets Text Lua
+        if zip -r ../build/${FOLDER_NAME}.zip Assets Text Lua LICENSE -x 'Assets/.git*'
         then
           echo "successfully copied static files to build"
         else

@@ -51,16 +51,16 @@ local c7_texture_list = {
   "Art/city screen/background.png",
   "Art/city screen/cityMgmtButtons.png",
   "Art/resources.png",
-  "Art/WorldSetup/CLIMTEMPAGEDepress.png",
-  "Art/WorldSetup/CLIMTEMPAGERollovers.png",
-  "Art/WorldSetup/age.png",
+  "Art/WorldSetup/CLIMTEMPAGEDepress.pcx",
+  "Art/WorldSetup/CLIMTEMPAGERollovers.pcx",
+  "Art/WorldSetup/age.pcx",
   "Art/WorldSetup/background.png",
-  "Art/WorldSetup/climate.png",
+  "Art/WorldSetup/climate.pcx",
   "Art/WorldSetup/landmassWaterSMALL.png",
   "Art/WorldSetup/landmassWaterSMALLdepress.png",
   "Art/WorldSetup/landmassWaterSMALLrollovers.png",
   "Art/WorldSetup/landmassWaterlarge.png",
-  "Art/WorldSetup/temperature.png",
+  "Art/WorldSetup/temperature.pcx",
   "Art/interface/NormButtons.png",
   "Art/interface/rolloverbuttons.png",
   "Art/interface/highlightedbuttons.png",
@@ -68,12 +68,12 @@ local c7_texture_list = {
   "Art/interface/box right color.png",
   "Art/interface/nextturn states color.png",
   "Art/interface/consoleButtons.png",
-  "Art/SmallHeads/popupDOMESTIC.png",
-  "Art/SmallHeads/popupTRADE.png",
-  "Art/SmallHeads/popupMILITARY.png",
-  "Art/SmallHeads/popupFOREIGN.png",
-  "Art/SmallHeads/popupCULTURE.png",
-  "Art/SmallHeads/popupSCIENCE.png",
+  "Art/SmallHeads/popupDOMESTIC.pcx",
+  "Art/SmallHeads/popupTRADE.pcx",
+  "Art/SmallHeads/popupMILITARY.pcx",
+  "Art/SmallHeads/popupFOREIGN.pcx",
+  "Art/SmallHeads/popupCULTURE.pcx",
+  "Art/SmallHeads/popupSCIENCE.pcx",
   "Art/Advisors/domestic_icons_aux.png",
   "Art/Advisors/domesticBUTTON.png",
   "Art/Cities/city icons.png",
@@ -216,7 +216,7 @@ return function(civ3_textures)
     local icon = tech_icon_replacement_map[tostring(tech.id)] or "placeholder.png"
     return { path = "Art/Tech Chooser/Icons/" .. icon }
   end
-  
+
   function c7_textures.leader_heads:map_object_to_sprite(player_or_civ)
     return {
       path = "Art/Advisors/placeholder_leaderhead.png",

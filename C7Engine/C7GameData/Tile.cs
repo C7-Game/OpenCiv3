@@ -79,8 +79,6 @@ namespace C7GameData {
 
 		public CityResident personWorkingTile = null;   //allows us to see if another city is working this tile
 
-		public bool hasBarbarianCamp = false;
-
 		//See discussion on page 4 of the "Babylon" thread (https://forums.civfanatics.com/threads/0-1-babylon-progress-thread.673959) about sub-terrain type and Civ3 properties.
 		//We may well move these properties somewhere, whether that's Civ3ExtraInfo, a Civ3Tile child class, a Dictionary property, or something else, in the future.
 		public bool isBonusShield;
@@ -268,6 +266,49 @@ namespace C7GameData {
 			}
 		}
 
+		// Sets the four cardinal river flags (N/E/S/W) from the diagonal ones.
+		//
+		// Rivers run along tile edges, and a tile only shares an edge with its
+		// diagonal neighbors (NE/SE/SW/NW), so only those four flags are stored
+		// directly. A move to a cardinal neighbor instead passes through the corner
+		// where four tiles meet, and crosses a river if river edges meeting at that
+		// corner lie on both sides of the path. The cardinal flags record that, so
+		// HasRiverCrossing() is a plain lookup for every direction.
+		//
+		// This needs the neighbors to be wired up and the diagonal flags to be final,
+		// and overwrites any existing cardinal flags. Maps call it for every tile
+		// once they are built or loaded; see GameMap.computeCardinalRiverFlags().
+		public void UpdateCardinalRiverFlags() {
+			riverNorth = CrossesRiverAtCorner(TileDirection.NORTH);
+			riverEast = CrossesRiverAtCorner(TileDirection.EAST);
+			riverSouth = CrossesRiverAtCorner(TileDirection.SOUTH);
+			riverWest = CrossesRiverAtCorner(TileDirection.WEST);
+		}
+
+		// For a cardinal move, the corner passed through is shared by this tile,
+		// the destination, and the two diagonal neighbors beside the path. Each
+		// side of the path has two candidate edges: one between this tile and the
+		// side neighbor, and one between the destination and that same neighbor.
+		private bool CrossesRiverAtCorner(TileDirection dir) {
+			neighbors.TryGetValue(dir, out Tile to);
+			if (to == null) {
+				return false;
+			}
+
+			switch (dir) {
+				case TileDirection.NORTH:
+					return (riverNorthwest || to.riverSouthwest) && (riverNortheast || to.riverSoutheast);
+				case TileDirection.SOUTH:
+					return (riverSouthwest || to.riverNorthwest) && (riverSoutheast || to.riverNortheast);
+				case TileDirection.EAST:
+					return (riverNortheast || to.riverNorthwest) && (riverSoutheast || to.riverSouthwest);
+				case TileDirection.WEST:
+					return (riverNorthwest || to.riverNortheast) && (riverSouthwest || to.riverSoutheast);
+				default:
+					return false;
+			}
+		}
+
 		public bool IsLand() {
 			return !baseTerrainType.isWater();
 		}
@@ -284,6 +325,22 @@ namespace C7GameData {
 			return baseTerrainType.isSea();
 		}
 
+		public bool IsFlatLand() {
+			return IsLand() && !overlayTerrainType.isHilly();
+		}
+
+		public bool HasJungle() {
+			return overlayTerrainType.isJungle();
+		}
+
+		public bool HasForest() {
+			return overlayTerrainType.isForest();
+		}
+
+		public bool HasMarsh() {
+			return overlayTerrainType.isMarsh();
+		}
+
 		public bool IsCountedForDomination() {
 			return IsLand() || IsCoast();
 		}
@@ -293,7 +350,19 @@ namespace C7GameData {
 		}
 
 		public bool IsAllowCities() {
-			return overlayTerrainType.allowCities && !hasBarbarianCamp;
+			return overlayTerrainType.allowCities && !HasBarbarianCamp();
+		}
+
+		public bool HasBarbarianCamp() {
+			return overlays.terrainImprovementByLayer.ContainsKey(Layer.BarbarianCamp);
+		}
+
+		public bool IsMountains() {
+			return overlayTerrainType.isMountain();
+		}
+
+		public bool IsHills() {
+			return overlayTerrainType.isHills();
 		}
 
 		public bool IsVolcano() {
@@ -335,7 +404,7 @@ namespace C7GameData {
 			return riverNorth || riverNortheast || riverEast || riverSoutheast || riverSouth || riverSouthwest || riverWest || riverNorthwest;
 		}
 
-		// TODO: This method doesn't handle the electicity tech which allows
+		// TODO: This method doesn't handle the electricity tech which allows
 		// irrigating without fresh water access.
 		public bool CanBeIrrigated(TerrainImprovement irrigation, Player player) {
 			// Irrigation can't be done if there is no irrigation bonus for the
@@ -414,9 +483,7 @@ namespace C7GameData {
 				c.SetStoredShields(shieldsAwarded, true);
 				c.SetStoredShields(Math.Min(c.shieldsStored, c.owner.ShieldCost(c.itemBeingProduced)));
 
-				if (c.owner.isHuman) {
-					new MsgShowTemporaryPopup($"{shieldsAwarded} shields awarded for clearing forests", other).send();
-				}
+				new MsgShowTemporaryPopup(c.owner.id, $"{shieldsAwarded} shields awarded for clearing forests", other).send();
 
 				return;
 			}
@@ -528,5 +595,10 @@ namespace C7GameData {
 		}
 
 		public bool HasImprovements => overlays.HasBeenImproved();
+
+		public bool IsOwnedByPlayer(Player player) {
+			var owner = this.OwningPlayer();
+			return owner != null && owner == player;
+		}
 	}
 }
