@@ -617,16 +617,16 @@ public partial class Game : Node {
 	}
 
 	public void OnSaveGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForSaving(@"Conquests/Saves");
+		SavePaths.EnsureSaveFolderExists();
+		FileDialog.SetDirectoryForSaving(SavePaths.SaveFolder);
+		FileDialog.PrefillFileName(SaveNameGenerator.GenerateSaveFileName(EngineStorage.gameData, controller));
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
 	}
 
 	public void OnLoadGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForLoading(@"Conquests/Saves");
+		FileDialog.PrefillLoadWithLatestSave();
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
