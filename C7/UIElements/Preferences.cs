@@ -83,16 +83,30 @@ public partial class Preferences : Control {
 		}
 
 		int autosaveTurns = PreferencesSettings.GetAutosaveTurns();
+		bool autoSavesEnabled = autosaveTurns > 0;
+
+		autosaveToggle.SetPressedNoSignal(autoSavesEnabled);
+		SetAutosaveToggleLabel(autoSavesEnabled);
+		autosaveToggle.UpdateVisuals();
+
+		autosaveCount.Visible = autoSavesEnabled;
 		autosaveCount.Text = autosaveTurns.ToString();
-		autosaveToggle.SetPressedNoSignal(autosaveTurns > 0);
+
 		autosaveToggle.Toggled += enabled => {
 			int value = enabled && int.TryParse(autosaveCount.Text, out int parsed) && parsed > 0
 				? parsed
 				: PreferencesSettings.DefaultAutosaveTurns;
+			autosaveCount.Visible = enabled;
+			SetAutosaveToggleLabel(enabled);
 			ApplyAutosaveCount(enabled ? value : 0);
 		};
+
 		autosaveCount.TextSubmitted += _ => ApplyAutosaveCountFromText();
 		autosaveCount.FocusExited += ApplyAutosaveCountFromText;
+	}
+
+	private void SetAutosaveToggleLabel(bool enabled) {
+		autosaveToggle.Text = "Enable autosaving" + (enabled ? "    #Saves to keep: " : "");
 	}
 
 	private void ApplyAutosaveCountFromText() {
