@@ -54,7 +54,7 @@ internal abstract class BaseStrategy : IBarbarianStrategy {
 	/// </summary>
 	protected Task<Orientation> Orient(Player player, MapUnit unit) {
 		return Task.FromResult(new Orientation {
-			IsLastUnitInCamp = unit.location.hasBarbarianCamp && unit.location.unitsOnTile.Count == 1,
+			IsLastUnitInCamp = unit.location.HasBarbarianCamp() && unit.location.unitsOnTile.Count == 1,
 			CombatIntel = CombatAI.MakeAiData(unit, player)
 		});
 	}

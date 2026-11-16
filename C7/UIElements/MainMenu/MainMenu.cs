@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.IO;
 using C7Engine;
 using Serilog;
 
@@ -42,6 +43,7 @@ public partial class MainMenu : Node {
 		DisplayServer.WindowSetTitle((string)ProjectSettings.GetSetting("application/config/name"));
 
 		try {
+			ConnectButtonSignals();
 			DisplayTitleScreen();
 			PlayMusic();
 		} catch (Exception ex) {
@@ -54,8 +56,7 @@ public partial class MainMenu : Node {
 		Global = GetNode<GlobalSingleton>("/root/GlobalSingleton");
 		Global.ResetLoadGameFields();
 
-		LoadDialog.SetDirectoryForLoading(@"Conquests/Saves");
-		LoadScenarioDialog.SetDirectoryForLoading(@"Conquests/Scenarios");
+		LoadScenarioDialog.SetDirectoryForLoading(Path.Combine(Util.Civ3Root, "Conquests", "Scenarios"));
 		LoadScenarioDialog.GoToScenarioSetupAfterLoading = true;
 
 		if (!C7Settings.UseStandaloneMode() && !ClassicGraphicsAvailable()) {
@@ -65,25 +66,11 @@ public partial class MainMenu : Node {
 		}
 
 		ButtonContainer.Visible = true;
-		ButtonContainer.CreateButtons();
 
-		// TODO: enable buttons are features are implemented
-		ButtonContainer.NewGame.Pressed += GoToWorldSetup;
-		ButtonContainer.QuickStart.Pressed += QuickStartGame;
-		ButtonContainer.Tutorial.Pressed += QuickStartGame;
+		// TODO: enable buttons as features are implemented
 		ButtonContainer.Tutorial.Visible = false;
-		ButtonContainer.LoadGame.Pressed += LoadGame;
-		ButtonContainer.LoadScenario.Pressed += LoadScenario;
-		ButtonContainer.HallOfFame.Pressed += HallOfFame;
 		ButtonContainer.HallOfFame.Visible = false;
-		ButtonContainer.Preferences.Pressed += ShowPreferences;
-		ButtonContainer.Credits.Pressed += showCredits;
-		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
 
-		ButtonContainer.ToggleGraphics.Pressed += () => {
-			Global.ToggleStandaloneMode();
-			GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
-		};
 		SetToggleGraphicsText();
 
 		// We can't toggle to using civ3 graphics in standalone mode.
@@ -93,6 +80,24 @@ public partial class MainMenu : Node {
 
 		// Hide if valid path is present as proven by reaching this point in code
 		NoCiv3Options.Visible = false;
+	}
+
+	private void ConnectButtonSignals() {
+		ButtonContainer.NewGame.Pressed += GoToWorldSetup;
+		ButtonContainer.QuickStart.Pressed += QuickStartGame;
+		ButtonContainer.Tutorial.Pressed += QuickStartGame;
+		ButtonContainer.LoadGame.Pressed += LoadGame;
+		ButtonContainer.LoadScenario.Pressed += LoadScenario;
+		ButtonContainer.HallOfFame.Pressed += HallOfFame;
+		ButtonContainer.Preferences.Pressed += ShowPreferences;
+		ButtonContainer.Credits.Pressed += showCredits;
+		ButtonContainer.Exit.Pressed += _on_Exit_pressed;
+		ButtonContainer.ToggleGraphics.Pressed += ToggleGraphicsPressed;
+	}
+
+	private void ToggleGraphicsPressed() {
+		Global.ToggleStandaloneMode();
+		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
 	}
 
 	private bool ClassicGraphicsAvailable() {
@@ -134,6 +139,7 @@ public partial class MainMenu : Node {
 	public void LoadGame() {
 		log.Information("load game button pressed");
 		PlayButtonPressedSound();
+		LoadDialog.PrefillLoadWithLatestSave();
 		LoadDialog.Popup();
 	}
 
@@ -145,7 +151,7 @@ public partial class MainMenu : Node {
 
 	public void showCredits() {
 		log.Information("credits button pressed");
-		GetTree().ChangeSceneToFile("res://Credits.tscn");
+		GetTree().ChangeSceneToFile("res://UIElements/Credits/Credits.tscn");
 	}
 
 	public void HallOfFame() {
@@ -167,7 +173,7 @@ public partial class MainMenu : Node {
 
 	private void _on_SetCiv3HomeDialog_dir_selected(string path) {
 		Util.Civ3Root = path;
-		C7Settings.SetValue("locations", "civ3InstallDir", path);
+		C7Settings.SetValue(C7Settings.Locations.SectionName, C7Settings.Locations.Civ3InstallDir, path);
 		C7Settings.SaveSettings();
 		// This function should only be reachable if DisplayTitleScreen failed on previous runs, so should be OK to run here
 		DisplayTitleScreen();

@@ -314,3 +314,68 @@ public static class TileDirectionExtensions {
 		}
 	}
 }
+
+public static class TileRandom {
+	// These methods basically use the MurmurHash as a way of producing a random value
+	// that also persists across game seeds and items' IDs
+	// https://en.wikipedia.org/wiki/MurmurHash
+	// https://gist.github.com/zeux/25b490b07b4873efc08bd37c843777a4
+
+	// The max is exclusive
+	public static int GetRandomInt(ID id, int worldSeed, int max, int offset = 0) {
+		unchecked {
+			uint hash = (uint)worldSeed;
+
+			hash = (hash ^ (uint)id.GetN) * 0x85ebca6b;
+			hash = (hash ^ (uint)offset) * 0x9e3779b9;
+
+			hash ^= hash >> 16;
+			hash *= 0x85ebca6b;
+			hash ^= hash >> 13;
+			hash *= 0xc2b2ae35;
+			hash ^= hash >> 16;
+
+			return (int)(hash % (uint)max);
+		}
+	}
+
+	// These takes two edge neighboring tiles (NW->SE) that both could be hilly,
+	// and if you either the NW of tile A or the SE of tile B, 
+	// you will get the same result every time.
+	// This way we don't have to allocate memory to save and update every tile's neighbor connections.
+	// Obviously this could be used for anything else
+	// that wants to check the relationship (true/false)
+	// between A and B with a custom probability threshold,
+	// without one having to update the other.
+	public static bool HasConnection(ID t1, ID t2, int worldSeed, float probability = 0.7f) {
+		int min = Math.Min(t1.GetN, t2.GetN);
+		int max = Math.Max(t1.GetN, t2.GetN);
+
+		unchecked {
+			uint hash = (uint)worldSeed;
+
+			hash = (hash ^ (uint)min) * 0x85ebca6b;
+			hash = (hash ^ (uint)max) * 0xc2b2ae35;
+			hash = (hash ^ 0x879) * 0x9e3779b9;
+
+			hash ^= hash >> 16;
+			hash *= 0x85ebca6b;
+			hash ^= hash >> 13;
+			hash *= 0xc2b2ae35;
+			hash ^= hash >> 16;
+
+			return hash / (double)uint.MaxValue < probability;
+		}
+	}
+
+	// Affects only the graphics, used to randomize if 2 tiles are connected as hills/mountain/volcanoes
+	public static bool HasVirtualHillConnection(Tile tile, TileDirection direction, int worldSeed) {
+		if (!tile.neighbors.TryGetValue(direction, out Tile neighbor))
+			return false;
+
+		if (!tile.overlayTerrainType.isHilly() || !neighbor.overlayTerrainType.isHilly())
+			return false;
+
+		return HasConnection(tile.Id, neighbor.Id, worldSeed);
+	}
+}

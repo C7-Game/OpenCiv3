@@ -5,6 +5,8 @@ using C7.Textures;
 using C7GameData;
 using Godot;
 
+namespace C7.Map;
+
 public partial class UnitLayer : LooseLayer {
 	private ImageTexture unitMovementIndicators;
 
@@ -359,7 +361,7 @@ public partial class UnitLayer : LooseLayer {
 	}
 
 	private bool UnitsVisible(GameData gameData, Player player, Tile t) {
-		if (gameData.observerMode) {
+		if (gameData.revealMap) {
 			return true;
 		}
 

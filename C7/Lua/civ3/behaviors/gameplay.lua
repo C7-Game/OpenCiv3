@@ -34,7 +34,7 @@ local function disband_reward(context)
     end
 
     local reward = math.floor(unit_shield_cost * rules().ShieldRateForDisbanding)
-    game_data().SendMessageToUiFromLua("Our " .. unit.name .. " has been converted to " .. reward .. " shields.",
+    game_data().SendMessageToUiFromLua(unit.owner.id, "Our " .. unit.name .. " has been converted to " .. reward .. " shields.",
       unit.location)
     city.SetStoredShields(reward, true)
   end

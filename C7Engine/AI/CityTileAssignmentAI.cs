@@ -16,12 +16,13 @@ namespace C7Engine.AI {
 		private static ILogger log = Log.ForContext<CityTileAssignmentAI>();
 
 		// Assigns a citizen, which is alredy part of a city, to a tile, if possible.
-		public static void AssignNewCitizenToTile(GameData gameData, CityResident newResident, bool manageMoods = false) {
+		//
+		// When a city is having all of its citizens re-assigned one at a time,
+		// pass the final head count as totalResidents so that the food target
+		// accounts for citizens who haven't been placed yet.
+		public static void AssignNewCitizenToTile(GameData gameData, CityResident newResident, bool manageMoods = false, int totalResidents = 0) {
 			City city = newResident.city;
-			int foodYield = city.CurrentFoodYield();
-
-			int desiredFoodRate = city.residents.Count * FOOD_PER_CITIZEN + DesiredFoodSurplusPerTurn;
-			int targetTileFoodAmount = desiredFoodRate - foodYield;
+			int targetTileFoodAmount = TargetTileFoodAmount(city, totalResidents);
 
 			double maxScore = 0;
 			Tile preferredTile = Tile.NONE;
@@ -51,11 +52,36 @@ namespace C7Engine.AI {
 			City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
 
 			if (cityMood == City.Mood.Unhappy && manageMoods) {
-				newResident.citizenType = city.owner.GetKnownSpecialists(gameData).MaxBy(x => x.Luxuries);
-				if (newResident.tileWorked != Tile.NONE) {
-					newResident.tileWorked = Tile.NONE;
-					preferredTile.personWorkingTile = null;
-				}
+				// Take the worker off the least valuable tile rather than
+				// whoever happened to be added last, otherwise a citizen who
+				// was placed to cover the city's food can get undone while
+				// earlier, less food-focused picks remain.
+				CityResident entertainer = newResident.tileWorked == Tile.NONE
+					? newResident
+					: FindLeastValuableWorker(city, TargetTileFoodAmount(city, totalResidents));
+				MakeEntertainer(gameData, entertainer);
+			}
+		}
+
+		// The food the tiles of citizens yet to be placed need to provide to
+		// reach the desired surplus.
+		internal static int TargetTileFoodAmount(City city, int totalResidents) {
+			int residents = Math.Max(totalResidents, city.residents.Count);
+			int desiredFoodRate = residents * FOOD_PER_CITIZEN + DesiredFoodSurplusPerTurn;
+			return desiredFoodRate - city.CurrentFoodYield();
+		}
+
+		private static CityResident FindLeastValuableWorker(City city, int targetFoodAmount) {
+			return city.residents
+				.Where(r => r.tileWorked != Tile.NONE)
+				.MinBy(r => CalculateTileYieldScore(r.tileWorked, targetFoodAmount, city.owner));
+		}
+
+		private static void MakeEntertainer(GameData gameData, CityResident resident) {
+			resident.citizenType = resident.city.owner.GetKnownSpecialists(gameData).MaxBy(x => x.Luxuries);
+			if (resident.tileWorked != Tile.NONE) {
+				resident.tileWorked.personWorkingTile = null;
+				resident.tileWorked = Tile.NONE;
 			}
 		}
 

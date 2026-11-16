@@ -152,13 +152,15 @@ public class GameMapGeneratorTest {
 				foreach (var temp in temps) {
 					foreach (var climate in climates) {
 						for (int k = 0; k < numMapsPerCategory; ++k) {
-							archipelagoMaps[i].Add(MapGenerator.GenerateMap(new WorldCharacteristics() {
-								landform = WorldCharacteristics.Landform.Archipelago,
-								oceanCoverage = oceans[i],
-								age = age,
-								climate = climate,
-								temperature = temp,
-								worldSize = new WorldSize() { width = 100, height = 100 },
+							archipelagoMaps[i].Add(MapGenerator.GenerateMap(new MapGeneratorData() {
+								worldCharacteristics = new WorldCharacteristics {
+									landform = WorldCharacteristics.Landform.Archipelago,
+									oceanCoverage = oceans[i],
+									age = age,
+									climate = climate,
+									temperature = temp,
+									worldSize = new WorldSize() { width = 100, height = 100 },
+								},
 								terrainTypes = terrainTypes,
 							}));
 						}
@@ -179,13 +181,15 @@ public class GameMapGeneratorTest {
 				foreach (var temp in temps) {
 					foreach (var climate in climates) {
 						for (int k = 0; k < numMapsPerCategory; ++k) {
-							continentMaps[i].Add(MapGenerator.GenerateMap(new WorldCharacteristics() {
-								landform = WorldCharacteristics.Landform.Continents,
-								oceanCoverage = oceans[i],
-								age = age,
-								climate = climate,
-								temperature = temp,
-								worldSize = new WorldSize() { width = 100, height = 100 },
+							continentMaps[i].Add(MapGenerator.GenerateMap(new MapGeneratorData() {
+								worldCharacteristics = new WorldCharacteristics {
+									landform = WorldCharacteristics.Landform.Continents,
+									oceanCoverage = oceans[i],
+									age = age,
+									climate = climate,
+									temperature = temp,
+									worldSize = new WorldSize() { width = 100, height = 100 },
+								},
 								terrainTypes = terrainTypes,
 							}));
 						}
@@ -206,13 +210,15 @@ public class GameMapGeneratorTest {
 				foreach (var temp in temps) {
 					foreach (var climate in climates) {
 						for (int k = 0; k < numMapsPerCategory; ++k) {
-							pangaeaMaps[i].Add(MapGenerator.GenerateMap(new WorldCharacteristics() {
-								landform = WorldCharacteristics.Landform.Pangaea,
-								oceanCoverage = oceans[i],
-								age = age,
-								climate = climate,
-								temperature = temp,
-								worldSize = new WorldSize() { width = 100, height = 100 },
+							pangaeaMaps[i].Add(MapGenerator.GenerateMap(new MapGeneratorData() {
+								worldCharacteristics = new WorldCharacteristics {
+									landform = WorldCharacteristics.Landform.Pangaea,
+									oceanCoverage = oceans[i],
+									age = age,
+									climate = climate,
+									temperature = temp,
+									worldSize = new WorldSize() { width = 100, height = 100 },
+								},
 								terrainTypes = terrainTypes,
 							}));
 						}

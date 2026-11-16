@@ -281,7 +281,7 @@ public partial class CityScreen : Control {
 					city = city
 				};
 				city.AddCitizen(newResident);
-				CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident, manageMoods: true);
+				CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident, manageMoods: true, totalResidents: numResidents);
 			}
 		}
 	}
@@ -295,7 +295,7 @@ public partial class CityScreen : Control {
 	private void OnShowCityScreenLocked(GameData gameData, ParameterWrapper<City> city) {
 		this.Show();
 		lastInspectedCity = city.Value;
-		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH], CameraPosition.Absolute);
+		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH], MapView.CameraPosition.Absolute);
 		tileAssignmentLayer.city = city.Value;
 		cityName.Text = city.Value.name;
 		RenderPopHeads(city.Value);

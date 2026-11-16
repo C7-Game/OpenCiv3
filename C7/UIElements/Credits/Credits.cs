@@ -1,24 +1,40 @@
 using Godot;
 using Serilog;
 
+/// <summary>
+/// The credits screen. The layout lives in Credits.tscn; this script only
+/// loads the credits text and the Civ3/standalone artwork, wires up the exit
+/// button, and slowly auto-scrolls the column.
+/// </summary>
 public partial class Credits : Node2D {
-	[Export] Civ3TextureRect background;
-	[Export] RichTextLabel creditsLabel;
+	private static ILogger log = Log.ForContext<Credits>();
+
+	[Export] private TextureRect background;
+	[Export] private ScrollContainer creditsScrollContainer;
+	[Export] private VBoxContainer creditsContainer;
+	[Export] private RichTextLabel creditsLabel;
+	[Export] private TextureButton exitButton;
 
 	private string creditsText = "Could not load credits file";
 	private string assetCreditsText = "Could not load asset credits file";
 	private string licencesText = "Could not load licences text file";
 	private string specialText = "Could not load special text file";
 
-	private static ILogger log = Log.ForContext<Credits>();
-
 	private Theme theme;
+	private AutoScroller _autoScroller;
 
 	public override void _Ready() {
 		log.Information("Now rolling the credits!");
+
 		LoadCreditsText();
 		GenerateCreditsTheme();
 		ShowCredits();
+
+		background.Texture = TextureLoader.Load("credits.background");
+		TextureLoader.SetButtonTextures(exitButton, "ui.exit");
+		exitButton.Pressed += ReturnToMenu;
+
+		_autoScroller = new AutoScroller(creditsScrollContainer, creditsContainer);
 	}
 
 	private void LoadCreditsText() {
@@ -60,17 +76,10 @@ public partial class Credits : Node2D {
 		creditsLabel.Theme = theme;
 		creditsLabel.Set("markdown_text", combined);
 		creditsLabel.BbcodeEnabled = true;
-
-		AddBackButton();
 	}
 
-	private void AddBackButton() {
-		ImageTexture goBackTexture = TextureLoader.Load("ui.exit.normal");
-		TextureButton goBackButton = new TextureButton();
-		goBackButton.TextureNormal = goBackTexture;
-		goBackButton.SetPosition(new Vector2(952, 720));
-		AddChild(goBackButton);
-		goBackButton.Pressed += ReturnToMenu;
+	public override void _Process(double delta) {
+		_autoScroller.ScrollByDelta(delta);
 	}
 
 	private void GenerateCreditsTheme() {

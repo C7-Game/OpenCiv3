@@ -53,6 +53,7 @@ namespace C7GameData.Save {
 		public static SaveGame FromGameData(GameData data) {
 			SaveGame save = new SaveGame {
 				Seed = data.seed,
+				WorldCharacteristics = data.worldCharacteristics,
 				TurnNumber = data.turn,
 				Civilizations = data.civilizations,
 				CultureGroups = data.cultureGroups,
@@ -144,6 +145,7 @@ namespace C7GameData.Save {
 			EngineStorage.gameData = data;
 
 			ConvertMapAndPlayers(data);
+			ConvertBarbarianCamps(data);
 			ConvertBuildings(data);
 			ConvertUnits(data);
 			ConvertCities(data);
@@ -235,6 +237,7 @@ namespace C7GameData.Save {
 			// copy data without references
 			var data = new GameData(Seed) {
 				turn = TurnNumber,
+				worldCharacteristics = WorldCharacteristics,
 				terrainTypes = TerrainTypes,
 				Resources = Resources,
 				scenarioSearchPath = ScenarioSearchPath,
@@ -269,6 +272,12 @@ namespace C7GameData.Save {
 
 			// players need game map to populate tile knowledge
 			data.players = Players.ConvertAll(player => player.ToPlayer(data.map, Civilizations, data.governments, data.techs, data.rules, data.alliances));
+		}
+
+		private void ConvertBarbarianCamps(GameData data) {
+			foreach (var mapBarbarianCamp in data.map.barbarianCamps) {
+				mapBarbarianCamp.overlays.Add(data.terrainImprovements.First(w => w.layer == TerrainImprovement.Layer.BarbarianCamp));
+			}
 		}
 
 		private void ConvertTerrainImprovements(GameData gameData) {
@@ -497,6 +506,7 @@ namespace C7GameData.Save {
 
 		public string Version = "0.0.0";
 		public int Seed = -1;
+		public WorldCharacteristics WorldCharacteristics;
 		public int TurnNumber = 0;
 		public SaveMap Map = new SaveMap();
 		public List<TerrainType> TerrainTypes = new List<TerrainType>();

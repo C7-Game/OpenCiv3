@@ -13,7 +13,7 @@ using Xunit;
 namespace EngineTests.GameData;
 
 // Dispersing a barbarian camp pays the gold set by the rules (#1047).
-public class BarbarianCampTest : IClassFixture<SaveGameFixture> {
+public class BarbarianCampTest : MapBase, IClassFixture<SaveGameFixture> {
 	private readonly SaveGameFixture fixture;
 	private readonly C7GameData.GameData gameData;
 
@@ -39,7 +39,7 @@ public class BarbarianCampTest : IClassFixture<SaveGameFixture> {
 			Tile tile = neighbor.Value;
 			if (tile.unitsOnTile.Count > 0 || tile.HasCity() || !warrior.CanEnter(tile))
 				continue;
-			tile.hasBarbarianCamp = true;
+			tile.overlays.Add(barbCamp);
 			gameData.map.barbarianCamps.Add(tile);
 			return (warrior, tile, neighbor.Key);
 		}
@@ -83,12 +83,13 @@ public class BarbarianCampTest : IClassFixture<SaveGameFixture> {
 		gameData.rules.BarbarianCampGold = campGold;
 		Player human = gameData.players.First(p => p.isHuman);
 		(MapUnit unit, Tile camp, TileDirection direction) = PlaceCampNextTo(human);
+		Assert.True(camp.HasBarbarianCamp());
 		int goldBefore = human.gold;
 
 		Assert.True(await unit.Move(direction));
 
 		Assert.Equal(camp, unit.location);
-		Assert.False(camp.hasBarbarianCamp);
+		Assert.False(camp.HasBarbarianCamp());
 		Assert.DoesNotContain(camp, gameData.map.barbarianCamps);
 		Assert.Equal(goldBefore + campGold, human.gold);
 
@@ -102,11 +103,12 @@ public class BarbarianCampTest : IClassFixture<SaveGameFixture> {
 		gameData.rules.BarbarianCampGold = 40;
 		Player ai = gameData.players.First(p => !p.isHuman && !p.isBarbarians && p.units.Count > 0);
 		(MapUnit unit, Tile camp, TileDirection direction) = PlaceCampNextTo(ai);
+		Assert.True(camp.HasBarbarianCamp());
 		int goldBefore = ai.gold;
 
 		Assert.True(await unit.Move(direction));
 
-		Assert.False(camp.hasBarbarianCamp);
+		Assert.False(camp.HasBarbarianCamp());
 		Assert.Equal(goldBefore + 40, ai.gold);
 		Assert.Empty(CampMessages());
 	}

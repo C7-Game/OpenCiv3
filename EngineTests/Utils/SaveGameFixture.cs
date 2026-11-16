@@ -42,15 +42,16 @@ public class SaveGameFixture : IDisposable {
 			optimalNumberOfCities = 20,
 		};
 
-		WorldCharacteristics wc = new(save) {
+		save.Seed = TestSeed;
+		save.BarbarianInfo.barbarianActivity = BarbarianActivity.Roaming;
+
+		WorldCharacteristics wc = new() {
 			landform = WorldCharacteristics.Landform.Pangaea,
 			oceanCoverage = WorldCharacteristics.OceanCoverage.Percent_70,
 			age = WorldCharacteristics.Age.Billion_4,
 			climate = WorldCharacteristics.Climate.Normal,
 			temperature = WorldCharacteristics.Temperature.Temperate,
-			barbarianActivity = BarbarianActivity.Roaming,
 			worldSize = worldSize,
-			mapSeed = TestSeed,
 		};
 
 		GameSetup gameSetup = new() {
@@ -70,6 +71,11 @@ public class SaveGameFixture : IDisposable {
 				if (!save.History.ContainsKey(player.id.ToString()))
 					save.History[player.id.ToString()] = new List<HistTurnRecord>();
 			}
+		}
+
+		foreach (var mapBarbarianCamp in save.Map.barbarianCamps) {
+			save.Map.tiles.First(t => t.X == mapBarbarianCamp.X && t.Y == mapBarbarianCamp.Y).overlays.Add("barbarianCamp");
+			mapBarbarianCamp.overlays.Add("barbarianCamp");
 		}
 
 		return save;

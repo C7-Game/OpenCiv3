@@ -27,12 +27,15 @@ public class OptionsPopUp : InformationPopup {
 				buttonGroup = btnGroup,
 				message = option.message,
 				action = option.action,
+				pressed = option.pressed,
 			};
 			optionsList.Add(actionButton);
 		}
 
-		var firstOption = optionsList.First();
-		firstOption.pressed = true;
+		// Fall back to the first row when the caller doesn't preselect one
+		if (!optionsList.Any(option => option.pressed)) {
+			optionsList.First().pressed = true;
+		}
 
 		this.buttonActions = optionsList;
 

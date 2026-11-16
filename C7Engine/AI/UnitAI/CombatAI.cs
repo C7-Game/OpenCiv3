@@ -51,7 +51,7 @@ namespace C7Engine.AI.UnitAI {
 				&& !dest.unitsOnTile[0].owner.IsAtPeaceWith(unit.owner);
 			bool destinationHasEnemyCity = dest.cityAtTile != null
 				&& !data.destination.cityAtTile.owner.IsAtPeaceWith(unit.owner);
-			bool destinationHasBarbCamp = dest.hasBarbarianCamp;
+			bool destinationHasBarbCamp = dest.HasBarbarianCamp();
 
 			if (!destinationHasEnemyCity && !destinationHasEnemyUnits && !destinationHasBarbCamp) {
 				return C7GameData.UnitAI.Result.Done;
@@ -64,7 +64,7 @@ namespace C7Engine.AI.UnitAI {
 				foreach (Tile t in unit.location.neighbors.Values) {
 					bool nextToEnemyCity = t.cityAtTile != null && !t.cityAtTile.owner.IsAtPeaceWith(unit.owner);
 					bool nextToEnemyUnit = t.unitsOnTile.Count > 0 && !t.unitsOnTile[0].owner.IsAtPeaceWith(unit.owner);
-					bool nextToBarbCamp = t.hasBarbarianCamp;
+					bool nextToBarbCamp = t.HasBarbarianCamp();
 
 					if (!nextToEnemyCity && !nextToEnemyUnit && !nextToBarbCamp) {
 						continue;
