@@ -39,6 +39,7 @@ namespace C7Engine {
 			public const string Difficulty = nameof(Difficulty);
 			public const string Opponents = nameof(Opponents);
 			public const string LatestSave = nameof(LatestSave);
+			public const string LastWorldSave = "LastWorldSave";
 		}
 
 		public static class Locations {
@@ -97,6 +98,18 @@ namespace C7Engine {
 			SetValue(section, key, value ? "true" : "false");
 		}
 
+		public static int GetIntOrDefault(string section, string key, int defaultValue) {
+			string value = GetSettingsValueOrDefault(section, key, defaultValue.ToString());
+			if (int.TryParse(value, out int result)) {
+				return result;
+			}
+			return defaultValue;
+		}
+
+		public static void SetInt(string section, string key, int value) {
+			SetValue(section, key, value.ToString());
+		}
+
 		public static string GetSettingsValueOrDefault(string section, string key, string defaultValue) {
 			if (settings == null) {
 				LoadSettings();
@@ -125,6 +138,11 @@ namespace C7Engine {
 
 		public static void SetLatestSave(string path) {
 			SetValue(LastGame.SectionName, LastGame.LatestSave, path);
+			SaveSettings();
+		}
+
+		public static void SetLastWorldSave(string path) {
+			SetValue(LastGame.SectionName, LastGame.LastWorldSave, path);
 			SaveSettings();
 		}
 	}

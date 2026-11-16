@@ -30,6 +30,8 @@ namespace C7Engine {
 			}
 		}
 
+		public static string AutosaveFolder => Path.Combine(SaveFolder, "Auto");
+
 		public static string LatestSaveFileName {
 			get {
 				string latest = C7Settings.GetLatestSave();
