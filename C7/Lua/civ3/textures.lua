@@ -582,10 +582,6 @@ textures.tileinfo = {
 textures.civilopedia_screen = {
   -- Base Civ3 pedia background: 1024x768 parchment panel with transparency.
   background = { path = "Art/Civilopedia/civilopediaBackground.pcx" },
-  fwdBackarrows = { path = "Art/Civilopedia/fwdBackarrows.pcx" },
-  descbox       = { path = "Art/Civilopedia/descbox.pcx" },
-  advances      = { path = "Art/Civilopedia/advances.pcx" },
-  arrows_small  = { path = "Art/Civilopedia/civilo_Up_Next_Back_ARROWS.pcx" },
 }
 
 textures.popup_background = {

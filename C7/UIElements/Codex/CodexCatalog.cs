@@ -21,9 +21,12 @@ public enum CodexSection {
 
 // One renderable Codex article: a name, optional icon, stat block, and markdown pages.
 public class CodexArticle {
+	public CodexSection Section;
 	public string Key;
 	public string Name;
 	public ImageTexture Icon;
+	public ImageTexture SmallIcon;
+	public string Group;
 	public List<string> StatLines = new();
 	public List<string> Pages = new();
 
@@ -33,16 +36,16 @@ public class CodexArticle {
 
 public static class CodexCatalog {
 	public static readonly CodexSection[] SectionOrder = {
-		CodexSection.Units,
-		CodexSection.CityImprovements,
+		CodexSection.Civilizations,
+		CodexSection.Technologies,
 		CodexSection.GreatWonders,
 		CodexSection.SmallWonders,
-		CodexSection.Technologies,
-		CodexSection.Civilizations,
+		CodexSection.CityImprovements,
 		CodexSection.Governments,
+		CodexSection.Units,
+		CodexSection.TerrainImprovements,
 		CodexSection.Terrain,
 		CodexSection.Resources,
-		CodexSection.TerrainImprovements,
 		CodexSection.GameConcepts,
 	};
 
@@ -52,15 +55,33 @@ public static class CodexCatalog {
 			CodexSection.CityImprovements => "City Improvements",
 			CodexSection.GreatWonders => "Great Wonders",
 			CodexSection.SmallWonders => "Small Wonders",
-			CodexSection.Technologies => "Technologies",
-			CodexSection.Civilizations => "Civilizations",
+			CodexSection.Technologies => "Civilization Advances",
+			CodexSection.Civilizations => "Tribes",
 			CodexSection.Governments => "Governments",
 			CodexSection.Terrain => "Terrain",
 			CodexSection.Resources => "Resources",
-			CodexSection.TerrainImprovements => "Terrain Improvements",
+			CodexSection.TerrainImprovements => "Worker Actions",
 			CodexSection.GameConcepts => "Game Concepts",
 			_ => section.ToString(),
 		};
+	}
+
+	public static ImageTexture SectionIcon(CodexSection section, bool large) {
+		string file = section switch {
+			CodexSection.Units => large ? "Unitlarge.pcx" : "unitsmall.pcx",
+			CodexSection.CityImprovements => large ? "Cityimpslarge.pcx" : "cityimpssmall.pcx",
+			CodexSection.GreatWonders => large ? "Wonderslarge.pcx" : "wonderssmall.pcx",
+			CodexSection.SmallWonders => large ? "swonderlarge.pcx" : "swondersmall.pcx",
+			CodexSection.Technologies => large ? "Techlarge.pcx" : "techsmall.pcx",
+			CodexSection.Civilizations => large ? "Races/MenuLarge.pcx" : "Races/MenuSMALL.pcx",
+			CodexSection.Governments => large ? "Govtlarge.pcx" : "govtsmall.pcx",
+			CodexSection.Terrain => large ? "Terrainlarge.pcx" : "terrainsmall.pcx",
+			CodexSection.Resources => large ? "Resourceslarge.pcx" : "Resourcessmall.pcx",
+			CodexSection.TerrainImprovements => large ? "WorkerActionsLarge.pcx" : "workeractionssmall.pcx",
+			CodexSection.GameConcepts => large ? "concepts large.pcx" : "concepts small.pcx",
+			_ => null,
+		};
+		return file == null ? null : TryLoad(() => TextureLoader.LoadByPath("Art/Civilopedia/Icons/" + file));
 	}
 
 	public static List<CodexArticle> Build(GameData gameData, CodexSection section) {
@@ -83,6 +104,9 @@ public static class CodexCatalog {
 		if (section != CodexSection.GameConcepts) {
 			articles.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
 		}
+		foreach (CodexArticle article in articles) {
+			article.Section = section;
+		}
 		return articles;
 	}
 
@@ -100,7 +124,8 @@ public static class CodexCatalog {
 			}
 
 			CodexArticle article = NewArticle(gameData, unit.civilopediaEntry, unit.name);
-			article.Icon = TryLoad(() => LoadUnitIcon(unit));
+			article.Icon = TryLoad(() => LoadUnitIcon(unit, large: true));
+			article.SmallIcon = LoadIcon(() => LoadUnitIcon(unit, large: false), () => article.Icon);
 
 			if (unit.attack > 0) article.StatLines.Add($"Attack: {unit.attack}");
 			if (unit.defense > 0) article.StatLines.Add($"Defense: {unit.defense}");
@@ -118,10 +143,10 @@ public static class CodexCatalog {
 		return articles;
 	}
 
-	private static ImageTexture LoadUnitIcon(UnitPrototype unit) {
-		string path = unit.art.pediaArt.large;
+	private static ImageTexture LoadUnitIcon(UnitPrototype unit, bool large) {
+		string path = large ? unit.art.pediaArt.large : unit.art.pediaArt.small;
 		if (string.IsNullOrEmpty(path)) {
-			path = unit.art.pediaArt.small;
+			path = large ? unit.art.pediaArt.small : unit.art.pediaArt.large;
 		}
 		return string.IsNullOrEmpty(path) ? null : TextureLoader.LoadByPath(path);
 	}
@@ -134,8 +159,12 @@ public static class CodexCatalog {
 			}
 
 			CodexArticle article = NewArticle(gameData, building.civilopediaEntry, building.name);
-			article.Icon = TryLoad(() => LoadPediaIcon(gameData, building.civilopediaEntry)
-				?? TextureLoader.Load("building_icons.large", building, useCache: true));
+			article.Icon = LoadIcon(
+				() => LoadPediaIcon(gameData, building.civilopediaEntry),
+				() => TextureLoader.Load("building_icons.large", building, useCache: true));
+			article.SmallIcon = LoadIcon(
+				() => LoadPediaSmallIcon(gameData, building.civilopediaEntry),
+				() => TextureLoader.Load("building_icons.small", building, useCache: true));
 
 			if (building.shieldCost > 0) article.StatLines.Add($"Cost: {building.shieldCost} shields");
 			if (building.maintenanceCost > 0) article.StatLines.Add($"Maintenance: {building.maintenanceCost} gold/turn");
@@ -166,8 +195,12 @@ public static class CodexCatalog {
 			}
 
 			CodexArticle article = NewArticle(gameData, tech.CivilopediaEntry, tech.Name);
-			article.Icon = TryLoad(() => LoadPediaIcon(gameData, tech.CivilopediaEntry)
-				?? TextureLoader.Load("tech_icons.small", tech, useCache: true));
+			article.Icon = LoadIcon(
+				() => LoadPediaIcon(gameData, tech.CivilopediaEntry),
+				() => TextureLoader.Load("tech_icons.small", tech, useCache: true));
+			article.SmallIcon = LoadIcon(
+				() => LoadPediaSmallIcon(gameData, tech.CivilopediaEntry),
+				() => TextureLoader.Load("tech_icons.small", tech, useCache: true));
 
 			if (tech.Cost > 0) article.StatLines.Add($"Cost: {tech.Cost} beakers");
 			if (!string.IsNullOrEmpty(tech.EraCivilopediaName)) article.StatLines.Add($"Era: {PrettifyKey(tech.EraCivilopediaName, "ERA_")}");
@@ -190,7 +223,12 @@ public static class CodexCatalog {
 			}
 
 			CodexArticle article = NewArticle(gameData, civ.civilopediaEntry, civ.name);
-			article.Icon = TryLoad(() => TextureLoader.Load("leader_heads", civ, useCache: true));
+			article.Icon = LoadIcon(
+				() => LoadPediaIcon(gameData, civ.civilopediaEntry),
+				() => TextureLoader.Load("leader_heads", civ, useCache: true));
+			article.SmallIcon = LoadIcon(
+				() => LoadPediaSmallIcon(gameData, civ.civilopediaEntry),
+				() => article.Icon);
 
 			if (!string.IsNullOrEmpty(civ.leader)) article.StatLines.Add($"Leader: {civ.leader}");
 			if (!string.IsNullOrEmpty(civ.adjective)) article.StatLines.Add($"Adjective: {civ.adjective}");
@@ -263,8 +301,18 @@ public static class CodexCatalog {
 			}
 
 			CodexArticle article = NewArticle(gameData, resource.CivilopediaEntry, resource.Name);
-			article.Icon = TryLoad(() => LoadPediaIcon(gameData, resource.CivilopediaEntry)
-				?? TextureLoader.Load("resources.large", resource, useCache: true));
+			article.Icon = LoadIcon(
+				() => LoadPediaIcon(gameData, resource.CivilopediaEntry),
+				() => TextureLoader.Load("resources.large", resource, useCache: true));
+			article.SmallIcon = LoadIcon(
+				() => LoadPediaSmallIcon(gameData, resource.CivilopediaEntry),
+				() => TextureLoader.Load("resources.small", resource, useCache: true));
+			article.Group = resource.Category switch {
+				ResourceCategory.BONUS => "Bonus Resources",
+				ResourceCategory.LUXURY => "Luxury Resources",
+				ResourceCategory.STRATEGIC => "Strategic Resources",
+				_ => null,
+			};
 
 			article.StatLines.Add($"Category: {PrettifyCategory(resource.Category)}");
 			if (resource.FoodBonus != 0) article.StatLines.Add($"Food bonus: +{resource.FoodBonus}");
@@ -356,12 +404,25 @@ public static class CodexCatalog {
 		}
 	}
 
+	private static ImageTexture LoadIcon(Func<ImageTexture> primary, Func<ImageTexture> fallback) {
+		return TryLoad(primary) ?? TryLoad(fallback);
+	}
+
 	// Loads the entry's Civilopedia icon from PediaIcons.txt, which points at
 	// the full size icon art instead of the small in-game icons.
 	private static ImageTexture LoadPediaIcon(GameData gameData, string civilopediaEntry) {
 		PediaIcons pediaIcons = gameData.pediaIcons ?? ResolvePediaIcons(gameData);
 		string path = pediaIcons?.GetCivilopediaIconPath(civilopediaEntry)
 			?? pediaIcons?.GetTechCivilopediaIconPath(civilopediaEntry);
+		return string.IsNullOrEmpty(path) ? null : TextureLoader.LoadByPath(path);
+	}
+
+	private static ImageTexture LoadPediaSmallIcon(GameData gameData, string civilopediaEntry) {
+		PediaIcons pediaIcons = gameData.pediaIcons ?? ResolvePediaIcons(gameData);
+		string path = pediaIcons?.GetCivilopediaSmallIconPath(civilopediaEntry);
+		if (path == null && civilopediaEntry != null && civilopediaEntry.StartsWith("TECH_", StringComparison.OrdinalIgnoreCase)) {
+			path = pediaIcons?.GetTechIconPath(civilopediaEntry);
+		}
 		return string.IsNullOrEmpty(path) ? null : TextureLoader.LoadByPath(path);
 	}
 

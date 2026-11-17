@@ -15,7 +15,6 @@ public partial class CivilopediaButton : Civ3TextureButton {
 	}
 
 	public override void _Pressed() {
-		base._Pressed();
 		popupOverlay.ShowPopup(new CodexPopup(), PopupOverlay.PopupCategory.Info);
 		ReleaseFocus();
 	}

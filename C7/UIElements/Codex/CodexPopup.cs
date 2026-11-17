@@ -1,71 +1,115 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using C7Engine;
 using C7GameData;
 using Godot;
 
 // The Codex (Civilopedia) popup, opened from the top-left toolbar.
+// It reproduces the stock Civ3 Civilopedia's layout and navigation.
 public partial class CodexPopup : Popup {
 	private const int WindowWidth = 1024;
 	private const int WindowHeight = 768;
+
+	// civilopediaBackground.pcx pads its 1024x768 canvas with transparency; the
+	// parchment panel only covers this region. The fallback must match it so both
+	// modes occupy the same screen space.
+	private const int PanelLeft = 172;
+	private const int PanelTop = 11;
+	private const int PanelWidth = 677;
+	private const int PanelHeight = 734;
+
 	// Regions measured from civilopediaBackground.pcx (1024x768).
-	private const int ContentInsetX = 12;
-	private const int MainLeft = 199 + ContentInsetX;
-	private const int MainRight = 671;
-	private const int MainWidth = MainRight - MainLeft;
-	// The art leaves the entry-title band transparent (x199..693); the name is inset to match the body.
-	private const int TitleLeft = 199;
-	private const int TitleTop = 71;
-	private const int TitleWidth = 693 - TitleLeft;
-	private const int TitleHeight = 28;
-	private const int BodyTop = 112;
-	private const int BodyHeight = 712 - BodyTop;
-	private const int SideLeft = 695;
-	private const int SideWidth = 128;
-	private const int IconTop = 60;
+	private const int TitleLeft = 198;
+	private const int TitleTop = 26;
+	private const int TitleWidth = 192;
+	private const int TitleHeight = 34;
+	private const int BackLeft = 412;
+	private const int ForwardLeft = 440;
+	private const int ArrowTop = 33;
+	private const int NameBarLeft = 199;
+	private const int NameBarTop = 70;
+	private const int NameBarWidth = 648;
+	private const int NameBarHeight = 30;
+	private const int NameLeft = 222;
+	private const int NameWidth = 470;
+	private const int IconLeft = 695;
+	private const int IconTop = 59;
 	private const int IconSize = 128;
-	// Sections list is capped to the art's striped band between the icon and the tan area.
-	private const int SectionsHeight = 112;
-	// Entries list fills the art's light-tan area.
-	private const int EntriesHeight = 290;
-	private const int SideHeight = 744 - IconTop;
-	// Entry rows are indented inside their row, and the row itself is not resized.
-	private const int EntryTextInset = 6;
-	// Header spans the body column only, nudged down within the art's top band.
-	private const int HeaderLeft = MainLeft;
-	private const int HeaderTop = 22;
-	private const int HeaderWidth = MainWidth;
-	private const int HeaderHeight = 44;
-	// Gap between the title text and the nav arrows: 113 + 2 x 6px separation = ~125px.
-	private const int TitleToNavGap = 113;
-	private const int CloseButtonBottomGap = 17;
-	private const int CloseButtonShiftX = 6;
+	private const int DescriptionLeft = 707;
+	private const int DescriptionTop = 233;
+	private const int UpLeft = 748;
+	private const int UpTop = 343;
+	private const int PreviousLeft = 727;
+	private const int NextLeft = 777;
+	private const int RowArrowTop = 362;
+	private const int LetterLeft = 720;
+	private const int LetterTop = 400;
+	private const int LetterWidth = 20;
+	private const int LetterHeight = 22;
+	private const int LetterSpacingX = 20;
+	private const int LetterSpacingY = 32;
+	private const int CloseLeft = 728;
+	private const int CloseTop = 684;
+	private const int CloseWidth = 62;
+	private const int CloseHeight = 34;
+	private const int ListLeft = 212;
+	private const int ListTop = 118;
+	private const int ListWidth = 452;
+	private const int ListHeight = 584;
+	private const int TextLeft = 222;
+	private const int TextWidth = 440;
 	private const int BodyFontSize = 13;
-	// Parchment tone sampled next to the title cut-out, to fill the art's transparent title band.
-	private static readonly Color TitleBackgroundColor = Color.Color8(190, 178, 145);
-	// Draw outlines over the art regions to check alignment.
-	private static readonly bool ShowLayoutGuides = false;
 
-	private readonly Dictionary<CodexSection, Button> sectionButtons = new();
-	private VBoxContainer indexList;
-	private Label indexHeader;
-	private CodexSection activeSection = CodexSection.Units;
+	private static readonly Color BodyTextColor = new("2a2418");
 
-	private TextureRect icon;
+	private enum PageKind {
+		Main,
+		Section,
+		Entry,
+		Index,
+	}
+
+	private readonly record struct Page(PageKind Kind, CodexSection? Section, CodexArticle Article, bool Description);
+
+	private enum BarColor {
+		Blue,
+		Green,
+		Grey,
+		Orange,
+		Purple,
+		Red,
+		Yellow,
+	}
+
+	private static readonly string ArrowSheet = "Art/Civilopedia/civilo_Up_Next_Back_ARROWS.pcx";
+	private static readonly string BackSheet = "Art/Civilopedia/fwdBackarrows.pcx";
+
+	private readonly Dictionary<CodexSection, List<CodexArticle>> articlesBySection = new();
+
+	private Control pageLayer;
+	private ColorRect nameBarFallback;
+	private TextureRect nameBar;
 	private Label nameLabel;
-	private Label statLabel;
+	private TextureRect largeIcon;
+	private TextureButton backButton;
+	private TextureButton forwardButton;
+	private TextureButton upButton;
+	private TextureButton previousButton;
+	private TextureButton nextButton;
+	private TextureButton descriptionButton;
+	private Label descriptionLabel;
+	private readonly List<Button> letterButtons = new();
 
-	private static ImageTexture defaultIcon;
+	private ScrollContainer listScroll;
+	private readonly List<(string name, Control row)> listRows = new();
 
-	private HBoxContainer pager;
-	private Button prevPage;
-	private Button nextPage;
-	private Label pageLabel;
+	private readonly List<Page> history = new();
+	private int historyIndex = -1;
+	private Page current = new(PageKind.Main, null, null, false);
+
 	private RichTextLabel articleLabel;
 	private bool articleIsMarkdown;
-
-	private List<string> pages = new();
-	private int pageIndex;
 
 	public CodexPopup() {
 		// Shown via PopupOverlay.ShowPopup, which reads these before _Ready.
@@ -80,364 +124,668 @@ public partial class CodexPopup : Popup {
 
 		AddTexture(WindowWidth, WindowHeight);
 		if (!TrySetPediaBackground()) {
-			AddBackground(WindowWidth, WindowHeight);
+			AddFallbackBackground();
 		}
 
 		EngineStorage.ReadGameData(BuildUi);
 	}
 
-	private void BuildUi(GameData gameData) {
-		if (gameData == null) {
+	private void BuildUi(GameData data) {
+		if (data == null) {
 			return;
 		}
 
-		HBoxContainer header = BuildHeader();
-		header.SetPosition(new Vector2(HeaderLeft, HeaderTop));
-		header.SetSize(new Vector2(HeaderWidth, HeaderHeight));
-		AddChild(header);
-
-		AddChild(BuildTitleRow());
-
-		VBoxContainer main = BuildMainPane();
-		main.SetPosition(new Vector2(MainLeft, BodyTop));
-		main.SetSize(new Vector2(MainWidth, BodyHeight));
-		AddChild(main);
-
-		VBoxContainer side = BuildSidePane(gameData);
-		side.SetPosition(new Vector2(SideLeft, IconTop));
-		side.SetSize(new Vector2(SideWidth, SideHeight));
-		AddChild(side);
-
-		if (ShowLayoutGuides) {
-			AddLayoutGuides();
+		foreach (CodexSection section in CodexCatalog.SectionOrder) {
+			articlesBySection[section] = CodexCatalog.Build(data, section);
 		}
 
-		SelectSection(gameData, CodexSection.Units);
+		CreateChrome();
+		Navigate(new Page(PageKind.Main, null, null, false));
 	}
 
-	private Control BuildTitleRow() {
-		Control row = new();
-		row.SetPosition(new Vector2(TitleLeft, TitleTop));
-		row.SetSize(new Vector2(TitleWidth, TitleHeight));
+	private void CreateChrome() {
+		pageLayer = new Control { MouseFilter = MouseFilterEnum.Ignore };
+		pageLayer.SetPosition(Vector2.Zero);
+		pageLayer.SetSize(new Vector2(WindowWidth, WindowHeight));
+		AddChild(pageLayer);
 
-		ColorRect background = new() { Color = TitleBackgroundColor };
-		background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		row.AddChild(background);
+		Label title = MakeLabel("CIVILOPEDIA", 24, Colors.Black);
+		title.SetPosition(new Vector2(TitleLeft, TitleTop));
+		title.SetSize(new Vector2(TitleWidth, TitleHeight));
+		title.HorizontalAlignment = HorizontalAlignment.Center;
+		AddChild(title);
 
-		nameLabel = new Label {
-			VerticalAlignment = VerticalAlignment.Center,
-			ClipText = true,
-		};
-		nameLabel.AddThemeFontSizeOverride("font_size", 20);
-		nameLabel.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		nameLabel.OffsetLeft = ContentInsetX;
-		row.AddChild(nameLabel);
+		backButton = MakeArrowButton(BackSheet, 37, 69, 101, 1, 15, 24, new Vector2(BackLeft, ArrowTop), "Back", GoBack);
+		forwardButton = MakeArrowButton(BackSheet, 53, 85, 117, 1, 15, 24, new Vector2(ForwardLeft, ArrowTop), "Forward", GoForward);
 
-		return row;
-	}
-
-	private static ImageTexture DefaultIcon() {
-		// Keeps the icon square occupied (and the column from shifting up) when an entry has no art.
-		if (defaultIcon == null) {
-			Image image = Image.CreateEmpty(IconSize, IconSize, false, Image.Format.Rgba8);
-			image.Fill(TitleBackgroundColor);
-			defaultIcon = ImageTexture.CreateFromImage(image);
-		}
-		return defaultIcon;
-	}
-
-	private void AddLayoutGuides() {
-		AddGuide(HeaderLeft, HeaderTop, HeaderWidth, HeaderHeight);
-		AddGuide(TitleLeft, TitleTop, TitleWidth, TitleHeight);
-		AddGuide(MainLeft, BodyTop, MainWidth, BodyHeight);
-		AddGuide(SideLeft, IconTop, SideWidth, IconSize);
-		AddGuide(SideLeft, IconTop + IconSize, SideWidth, SectionsHeight);
-		AddGuide(SideLeft, IconTop + IconSize + SectionsHeight, SideWidth, EntriesHeight);
-	}
-
-	private void AddGuide(int x, int y, int width, int height) {
-		ReferenceRect guide = new() {
-			BorderColor = new Color(1, 0, 0),
-			BorderWidth = 1,
-			EditorOnly = false,
+		nameBarFallback = new ColorRect {
+			Position = new Vector2(NameBarLeft, NameBarTop),
+			Size = new Vector2(NameBarWidth, NameBarHeight),
 			MouseFilter = MouseFilterEnum.Ignore,
 		};
-		guide.SetPosition(new Vector2(x, y));
-		guide.SetSize(new Vector2(width, height));
-		AddChild(guide);
-	}
+		AddChild(nameBarFallback);
 
-	private HBoxContainer BuildHeader() {
-		HBoxContainer header = new() {
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
+		nameBar = new TextureRect {
+			Position = new Vector2(NameBarLeft, NameBarTop),
+			Size = new Vector2(NameBarWidth, NameBarHeight),
+			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+			StretchMode = TextureRect.StretchModeEnum.Scale,
+			MouseFilter = MouseFilterEnum.Ignore,
 		};
-		header.AddThemeConstantOverride("separation", 6);
+		AddChild(nameBar);
 
-		Label title = new() { Text = "Codex" };
-		title.AddThemeFontSizeOverride("font_size", 24);
-		title.SizeFlagsVertical = SizeFlags.ShrinkCenter;
-		LineEdit search = new() {
-			PlaceholderText = "Search (coming soon)",
-			Editable = false,
-			CustomMinimumSize = new Vector2(150, 0),
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
-			SizeFlagsVertical = SizeFlags.ShrinkCenter,
-		};
+		nameLabel = MakeLabel("", 18, Colors.Black);
+		nameLabel.SetPosition(new Vector2(NameLeft, NameBarTop));
+		nameLabel.SetSize(new Vector2(NameWidth, NameBarHeight));
+		nameLabel.VerticalAlignment = VerticalAlignment.Center;
+		nameLabel.ClipText = true;
+		AddChild(nameLabel);
 
-		header.AddChild(title);
-		header.AddChild(new Control { CustomMinimumSize = new Vector2(TitleToNavGap, 0) });
-		header.AddChild(MakeTextButton("\u25c0", 14, () => { }, disabled: true, tooltip: "Back (coming soon)"));
-		header.AddChild(MakeTextButton("\u25b6", 14, () => { }, disabled: true, tooltip: "Forward (coming soon)"));
-		header.AddChild(search);
-
-		return header;
-	}
-
-	private VBoxContainer BuildSidePane(GameData gameData) {
-		VBoxContainer right = new();
-		right.AddThemeConstantOverride("separation", 6);
-
-		// The icon fills the art's transparent top-right square.
-		Control iconWrap = new() {
-			CustomMinimumSize = new Vector2(IconSize, IconSize),
-			SizeFlagsHorizontal = SizeFlags.ShrinkBegin,
-		};
-		// Draw a black backdrop so circular leader heads don't show parchment behind the square.
-		ColorRect iconBackdrop = new() {
-			Color = Colors.Black,
-		};
-		iconBackdrop.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		iconWrap.AddChild(iconBackdrop);
-		icon = new TextureRect {
+		largeIcon = new TextureRect {
+			Position = new Vector2(IconLeft, IconTop),
+			Size = new Vector2(IconSize, IconSize),
 			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
 			StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+			MouseFilter = MouseFilterEnum.Ignore,
 		};
-		icon.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-		iconWrap.AddChild(icon);
-		right.AddChild(iconWrap);
+		AddChild(largeIcon);
 
-		Label sectionsTitle = new() { Text = "SECTIONS" };
-		sectionsTitle.AddThemeFontSizeOverride("font_size", 11);
-		right.AddChild(IndentLabel(sectionsTitle, EntryTextInset));
-
-		// Capped and scrollable so the sections list stays in the art's striped band.
-		ScrollContainer sectionScroll = new() {
-			CustomMinimumSize = new Vector2(0, SectionsHeight),
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
-			HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+		descriptionButton = new TextureButton {
+			Position = new Vector2(DescriptionLeft, DescriptionTop),
+			Size = new Vector2(102, 17),
+			IgnoreTextureSize = true,
+			TooltipText = "Description",
 		};
-		right.AddChild(sectionScroll);
+		descriptionButton.TextureNormal = Crop("Art/Civilopedia/descbox.pcx", 1, 1, 102, 17);
+		descriptionButton.TextureHover = Crop("Art/Civilopedia/descbox.pcx", 104, 1, 102, 17);
+		descriptionButton.TexturePressed = Crop("Art/Civilopedia/descbox.pcx", 207, 1, 102, 17);
+		descriptionButton.Pressed += ToggleDescription;
+		AddChild(descriptionButton);
 
-		VBoxContainer sectionList = new() {
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
-		};
-		sectionList.AddThemeConstantOverride("separation", 0);
-		sectionScroll.AddChild(sectionList);
+		descriptionLabel = MakeLabel("Description", 12, Colors.Black);
+		descriptionLabel.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		descriptionLabel.HorizontalAlignment = HorizontalAlignment.Center;
+		descriptionLabel.VerticalAlignment = VerticalAlignment.Center;
+		descriptionButton.AddChild(descriptionLabel);
 
-		foreach (CodexSection section in CodexCatalog.SectionOrder) {
-			Button button = MakeTextButton(CodexCatalog.SectionTitle(section), 13, null);
-			button.Alignment = HorizontalAlignment.Left;
-			IndentButtonText(button, EntryTextInset);
-			CodexSection captured = section;
-			button.Pressed += () => SelectSection(gameData, captured);
-			sectionList.AddChild(button);
-			sectionButtons[section] = button;
+		upButton = MakeArrowButton(ArrowSheet, 1, 26, 51, 27, 24, 15, new Vector2(UpLeft, UpTop), "Up", GoUp);
+		previousButton = MakeArrowButton(ArrowSheet, 1, 33, 65, 1, 15, 24, new Vector2(PreviousLeft, RowArrowTop), "Previous", () => GoToNeighbor(-1));
+		nextButton = MakeArrowButton(ArrowSheet, 17, 49, 81, 1, 15, 24, new Vector2(NextLeft, RowArrowTop), "Next", () => GoToNeighbor(1));
+
+		for (int i = 0; i < 26; i++) {
+			char letter = (char)('A' + i);
+			Button button = MakeFlatButton(letter.ToString(), 14);
+			button.SetPosition(new Vector2(LetterLeft + (i % 4) * LetterSpacingX, LetterTop + (i / 4) * LetterSpacingY));
+			button.SetSize(new Vector2(LetterWidth, LetterHeight));
+			button.Pressed += () => GoToLetter(letter);
+			AddChild(button);
+			letterButtons.Add(button);
 		}
 
-		indexHeader = new Label {
-			ClipText = true,
-			TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis,
-		};
-		indexHeader.AddThemeFontSizeOverride("font_size", 11);
-		right.AddChild(IndentLabel(indexHeader, EntryTextInset));
+		Button closeButton = MakeFlatButton("X", 22);
+		closeButton.SetPosition(new Vector2(CloseLeft, CloseTop));
+		closeButton.SetSize(new Vector2(CloseWidth, CloseHeight));
+		closeButton.TooltipText = "Close";
+		closeButton.AddThemeColorOverride("font_color", new Color("5a6e52"));
+		closeButton.AddThemeColorOverride("font_hover_color", new Color("a85a20"));
+		closeButton.AddThemeColorOverride("font_pressed_color", new Color("a85a20"));
+		closeButton.Pressed += Close;
+		AddChild(closeButton);
+	}
 
+	private Button MakeFlatButton(string text, int fontSize) {
+		Button button = new() {
+			Text = text,
+			Flat = true,
+			FocusMode = FocusModeEnum.None,
+		};
+		button.AddThemeFontSizeOverride("font_size", fontSize);
+		button.AddThemeColorOverride("font_color", Colors.Black);
+		button.AddThemeColorOverride("font_hover_color", new Color("b4641e"));
+		button.AddThemeColorOverride("font_pressed_color", new Color("b4641e"));
+		button.AddThemeColorOverride("font_focus_color", Colors.Black);
+		button.AddThemeColorOverride("font_disabled_color", new Color("8a8a8a"));
+		foreach (string state in new[] { "normal", "hover", "pressed", "focus", "disabled" }) {
+			button.AddThemeStyleboxOverride(state, new StyleBoxEmpty());
+		}
+		return button;
+	}
+
+	private Label MakeLabel(string text, int fontSize, Color color) {
+		Label label = new() {
+			Text = text,
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		label.AddThemeFontSizeOverride("font_size", fontSize);
+		label.AddThemeColorOverride("font_color", color);
+		return label;
+	}
+
+	private TextureButton MakeArrowButton(string sheet, int normalX, int hoverX, int disabledX, int y, int width, int height, Vector2 position, string tooltip, Action action) {
+		TextureButton button = new() {
+			Position = position,
+			Size = new Vector2(width, height),
+			IgnoreTextureSize = true,
+			TooltipText = tooltip,
+			TextureNormal = Crop(sheet, normalX, y, width, height),
+			TextureHover = Crop(sheet, hoverX, y, width, height),
+			TexturePressed = Crop(sheet, hoverX, y, width, height),
+			TextureDisabled = Crop(sheet, disabledX, y, width, height),
+		};
+		if (button.TextureNormal == null) {
+			Label fallback = MakeLabel(tooltip switch {
+				"Back" => "<",
+				"Forward" => ">",
+				"Up" => "^",
+				"Previous" => "<",
+				_ => ">",
+			}, 16, Colors.Black);
+			fallback.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+			fallback.HorizontalAlignment = HorizontalAlignment.Center;
+			fallback.VerticalAlignment = VerticalAlignment.Center;
+			button.AddChild(fallback);
+		}
+		button.Pressed += action;
+		AddChild(button);
+		return button;
+	}
+
+	private static AtlasTexture Crop(string path, int x, int y, int width, int height) {
+		try {
+			ImageTexture sheet = TextureLoader.LoadByPath(path);
+			if (sheet == null) {
+				return null;
+			}
+			return new AtlasTexture {
+				Atlas = sheet,
+				Region = new Rect2(x, y, width, height),
+			};
+		} catch (Exception) {
+			return null;
+		}
+	}
+
+	private static ImageTexture LoadArt(string path) {
+		try {
+			return TextureLoader.LoadByPath(path);
+		} catch (Exception) {
+			return null;
+		}
+	}
+
+	// ---- Navigation ----
+
+	private List<CodexArticle> Articles(CodexSection section) {
+		return articlesBySection.TryGetValue(section, out List<CodexArticle> articles)
+			? articles
+			: new List<CodexArticle>();
+	}
+
+	private List<CodexArticle> AllArticles() {
+		return articlesBySection.Values
+			.SelectMany(articles => articles)
+			.OrderBy(article => article.Name, StringComparer.OrdinalIgnoreCase)
+			.ToList();
+	}
+
+	private void Navigate(Page page) {
+		if (historyIndex >= 0 && history[historyIndex] == page) {
+			DrawPage(page);
+			return;
+		}
+		if (historyIndex < history.Count - 1) {
+			history.RemoveRange(historyIndex + 1, history.Count - historyIndex - 1);
+		}
+		history.Add(page);
+		historyIndex = history.Count - 1;
+		DrawPage(page);
+	}
+
+	private void GoBack() {
+		if (historyIndex > 0) {
+			historyIndex--;
+			DrawPage(history[historyIndex]);
+		}
+	}
+
+	private void GoForward() {
+		if (historyIndex < history.Count - 1) {
+			historyIndex++;
+			DrawPage(history[historyIndex]);
+		}
+	}
+
+	private void GoUp() {
+		if (current.Kind == PageKind.Entry) {
+			Navigate(new Page(PageKind.Section, current.Section, null, false));
+		} else if (current.Kind == PageKind.Section || current.Kind == PageKind.Index) {
+			Navigate(new Page(PageKind.Main, null, null, false));
+		}
+	}
+
+	private void GoToNeighbor(int step) {
+		if (current.Kind == PageKind.Entry) {
+			List<CodexArticle> entries = Articles(current.Section.Value);
+			int index = entries.FindIndex(entry => ReferenceEquals(entry, current.Article));
+			if (index < 0 || entries.Count == 0) {
+				return;
+			}
+			CodexArticle neighbor = entries[(index + step + entries.Count) % entries.Count];
+			Navigate(new Page(PageKind.Entry, current.Section, neighbor, false));
+		} else if (current.Kind == PageKind.Section) {
+			int index = Array.IndexOf(CodexCatalog.SectionOrder, current.Section.Value);
+			CodexSection neighbor = CodexCatalog.SectionOrder[(index + step + CodexCatalog.SectionOrder.Length) % CodexCatalog.SectionOrder.Length];
+			Navigate(new Page(PageKind.Section, neighbor, null, false));
+		}
+	}
+
+	private void GoToLetter(char letter) {
+		if (current.Kind == PageKind.Main) {
+			Navigate(new Page(PageKind.Index, null, null, false));
+			ScrollListTo(letter);
+			return;
+		}
+		if (current.Kind == PageKind.Section || current.Kind == PageKind.Index) {
+			ScrollListTo(letter);
+			return;
+		}
+		CodexArticle first = Articles(current.Section.Value)
+			.FirstOrDefault(article => StartsWith(article.Name, letter));
+		if (first != null) {
+			Navigate(new Page(PageKind.Entry, current.Section, first, false));
+		}
+	}
+
+	private static bool StartsWith(string name, char letter) {
+		if (string.IsNullOrWhiteSpace(name)) {
+			return false;
+		}
+		return char.ToUpperInvariant(name.TrimStart()[0]) == letter;
+	}
+
+	private void ToggleDescription() {
+		if (current.Kind != PageKind.Entry || current.Article.Pages.Count < 2) {
+			return;
+		}
+		Page toggled = current with { Description = !current.Description };
+		if (historyIndex >= 0) {
+			history[historyIndex] = toggled;
+		}
+		DrawPage(toggled);
+	}
+
+	// ---- Drawing pages ----
+
+	private void DrawPage(Page page) {
+		current = page;
+		ClearPage();
+
+		CodexArticle entry = page.Article;
+		CodexSection? section = entry?.Section ?? page.Section;
+		BarColor bar = page.Kind == PageKind.Main || page.Kind == PageKind.Index
+			? BarColor.Red
+			: BarColorOf(section.Value);
+
+		nameBar.Texture = BarTexture(bar);
+		nameBarFallback.Visible = nameBar.Texture == null;
+		nameBarFallback.Color = BarFallbackColor(bar);
+		nameLabel.AddThemeColorOverride("font_color",
+			nameBar.Texture == null ? new Color("f7efce") : BarTextColor(bar));
+		nameLabel.Text = page.Kind switch {
+			PageKind.Main => "Main",
+			PageKind.Index => "Index",
+			PageKind.Section => CodexCatalog.SectionTitle(section.Value),
+			_ => entry.Name,
+		};
+		largeIcon.Texture = page.Kind switch {
+			PageKind.Main => LoadArt("Art/Civilopedia/Icons/menu_red large.pcx"),
+			PageKind.Index => LoadArt("Art/Civilopedia/Icons/menus large.pcx"),
+			PageKind.Section => CodexCatalog.SectionIcon(section.Value, large: true),
+			_ => entry.Icon ?? CodexCatalog.SectionIcon(entry.Section, large: true),
+		};
+
+		backButton.Disabled = historyIndex <= 0;
+		forwardButton.Disabled = historyIndex >= history.Count - 1;
+		upButton.Disabled = page.Kind == PageKind.Main;
+		previousButton.Disabled = page.Kind == PageKind.Main || page.Kind == PageKind.Index;
+		nextButton.Disabled = page.Kind == PageKind.Main || page.Kind == PageKind.Index;
+
+		bool hasDescription = entry != null && entry.Pages.Count > 1;
+		descriptionButton.Visible = hasDescription;
+		descriptionLabel.Text = page.Description ? "Effects" : "Description";
+
+		char? letter = entry != null && !string.IsNullOrEmpty(entry.Name)
+			? char.ToUpperInvariant(entry.Name[0])
+			: null;
+		for (int i = 0; i < letterButtons.Count; i++) {
+			bool isCurrent = letter == (char)('A' + i);
+			letterButtons[i].AddThemeColorOverride("font_color", isCurrent ? new Color("3a78c8") : Colors.Black);
+		}
+
+		switch (page.Kind) {
+			case PageKind.Main:
+				DrawMain();
+				break;
+			case PageKind.Section:
+				DrawSection(section.Value);
+				break;
+			case PageKind.Index:
+				DrawIndex();
+				break;
+			case PageKind.Entry:
+				DrawEntry(entry, page.Description);
+				break;
+		}
+	}
+
+	private void ClearPage() {
+		foreach (Node child in pageLayer.GetChildren()) {
+			pageLayer.RemoveChild(child);
+			child.QueueFree();
+		}
+		listScroll = null;
+		listRows.Clear();
+	}
+
+	private void DrawMain() {
+		for (int i = 0; i < CodexCatalog.SectionOrder.Length; i++) {
+			CodexSection section = CodexCatalog.SectionOrder[i];
+			float y = 124 + i * 38;
+
+			ColorRect backing = new() {
+				Color = new Color("c4382a"),
+				Position = new Vector2(228, y - 2),
+				Size = new Vector2(36, 36),
+				MouseFilter = MouseFilterEnum.Ignore,
+			};
+			pageLayer.AddChild(backing);
+
+			TextureRect icon = new() {
+				Texture = CodexCatalog.SectionIcon(section, large: false),
+				Position = new Vector2(230, y),
+				Size = new Vector2(32, 32),
+				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+				StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+				MouseFilter = MouseFilterEnum.Ignore,
+			};
+			pageLayer.AddChild(icon);
+
+			Button button = MakeFlatButton(CodexCatalog.SectionTitle(section), 17);
+			button.Alignment = HorizontalAlignment.Left;
+			button.SetPosition(new Vector2(272, y + 1));
+			button.SetSize(new Vector2(300, 30));
+			CodexSection captured = section;
+			button.Pressed += () => Navigate(new Page(PageKind.Section, captured, null, false));
+			pageLayer.AddChild(button);
+		}
+	}
+
+	private void DrawSection(CodexSection section) {
+		List<CodexArticle> entries = Articles(section);
+		ScrollContainer scroll = CreateList();
+		VBoxContainer column = new() { CustomMinimumSize = new Vector2(TextWidth, 0) };
+		column.AddThemeConstantOverride("separation", 2);
+		scroll.AddChild(column);
+
+		if (section == CodexSection.Resources) {
+			// Civ3 lists resources by kind.
+			string[] groups = { "Bonus Resources", "Luxury Resources", "Strategic Resources" };
+			foreach (string group in groups) {
+				List<CodexArticle> ofKind = entries.Where(entry => entry.Group == group).ToList();
+				if (ofKind.Count == 0) {
+					continue;
+				}
+				column.AddChild(MakeLabel(group, 15, BodyTextColor));
+				AddListGrid(column, ofKind, columns: 2, icons: true);
+			}
+
+			List<CodexArticle> ungrouped = entries.Where(entry => !groups.Contains(entry.Group)).ToList();
+			if (ungrouped.Count > 0) {
+				AddListGrid(column, ungrouped, columns: 2, icons: true);
+			}
+			return;
+		}
+
+		AddListGrid(column, entries, columns: 2, icons: true);
+	}
+
+	private void DrawIndex() {
+		ScrollContainer scroll = CreateList();
+		VBoxContainer column = new() { CustomMinimumSize = new Vector2(TextWidth, 0) };
+		column.AddThemeConstantOverride("separation", 2);
+		scroll.AddChild(column);
+		AddListGrid(column, AllArticles(), columns: 3, icons: false);
+	}
+
+	private ScrollContainer CreateList() {
 		ScrollContainer scroll = new() {
-			CustomMinimumSize = new Vector2(0, EntriesHeight),
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
+			Position = new Vector2(ListLeft, ListTop),
+			Size = new Vector2(ListWidth, ListHeight),
 			HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
 		};
-		right.AddChild(scroll);
-
-		indexList = new VBoxContainer {
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
-		};
-		indexList.AddThemeConstantOverride("separation", 0);
-		scroll.AddChild(indexList);
-
-		right.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
-		right.AddChild(BuildCloseButton());
-
-		return right;
+		pageLayer.AddChild(scroll);
+		listScroll = scroll;
+		return scroll;
 	}
 
-	private MarginContainer BuildCloseButton() {
-		MarginContainer wrap = new() {
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
-		};
-		wrap.AddThemeConstantOverride("margin_bottom", CloseButtonBottomGap);
+	private void AddListGrid(Container parent, List<CodexArticle> entries, int columns, bool icons) {
+		GridContainer grid = new() { Columns = columns };
+		grid.AddThemeConstantOverride("h_separation", 6);
+		grid.AddThemeConstantOverride("v_separation", icons ? 4 : 0);
+		parent.AddChild(grid);
 
-		HBoxContainer row = new() {
-			Alignment = BoxContainer.AlignmentMode.Center,
-			SizeFlagsHorizontal = SizeFlags.ExpandFill,
-		};
+		float width = (TextWidth - (columns - 1) * 6f) / columns;
+		foreach (CodexArticle entry in entries) {
+			HBoxContainer row = new() { CustomMinimumSize = new Vector2(width, icons ? 34 : 18) };
+			row.AddThemeConstantOverride("separation", 6);
+			if (icons) {
+				row.AddChild(new TextureRect {
+					Texture = entry.SmallIcon ?? CodexCatalog.SectionIcon(entry.Section, large: false),
+					CustomMinimumSize = new Vector2(32, 32),
+					ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+					StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+					MouseFilter = MouseFilterEnum.Ignore,
+				});
+			}
 
-		TextureButton close = new();
-		TextureLoader.SetButtonTextures(close, "ui.exit");
-		close.Pressed += Close;
-		row.AddChild(close);
-		// A trailing spacer nudges the centered button left within the column.
-		row.AddChild(new Control { CustomMinimumSize = new Vector2(CloseButtonShiftX * 2, 0) });
-
-		wrap.AddChild(row);
-		return wrap;
+			Button name = MakeFlatButton(entry.Name, icons ? 14 : 12);
+			name.Alignment = HorizontalAlignment.Left;
+			name.ClipText = true;
+			name.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			name.TooltipText = entry.Name;
+			CodexArticle captured = entry;
+			name.Pressed += () => Navigate(new Page(PageKind.Entry, captured.Section, captured, false));
+			row.AddChild(name);
+			grid.AddChild(row);
+			listRows.Add((entry.Name, row));
+		}
 	}
 
-	private VBoxContainer BuildMainPane() {
-		VBoxContainer main = new();
-		main.AddThemeConstantOverride("separation", 6);
-
-		statLabel = new Label {
-			AutowrapMode = TextServer.AutowrapMode.Word,
-		};
-		statLabel.AddThemeFontSizeOverride("font_size", 13);
-		main.AddChild(statLabel);
-		main.AddChild(new HSeparator());
-
-		CreateArticleLabel();
-		main.AddChild(articleLabel);
-
-		pager = new HBoxContainer {
-			Alignment = BoxContainer.AlignmentMode.Center,
-			Visible = false,
-		};
-		pager.AddThemeConstantOverride("separation", 12);
-		prevPage = MakeTextButton("< Previous", 13, () => ChangePage(-1));
-		pager.AddChild(prevPage);
-		pageLabel = new Label();
-		pager.AddChild(pageLabel);
-		nextPage = MakeTextButton("Next >", 13, () => ChangePage(1));
-		pager.AddChild(nextPage);
-		main.AddChild(pager);
-
-		return main;
+	private void ScrollListTo(char letter) {
+		if (listScroll == null) {
+			return;
+		}
+		foreach ((string name, Control row) in listRows) {
+			if (!StartsWith(name, letter)) {
+				continue;
+			}
+			// Rows only know their positions after layout.
+			Callable.From(() => {
+				if (IsInstanceValid(row) && IsInstanceValid(listScroll)) {
+					listScroll.ScrollVertical = (int)(row.GetGlobalRect().Position.Y - listScroll.GetGlobalRect().Position.Y + listScroll.ScrollVertical);
+				}
+			}).CallDeferred();
+			return;
+		}
 	}
 
-	private void CreateArticleLabel() {
-		GDScript markdownScript = ResourceLoader.Load<GDScript>("res://addons/markdownlabel/addons/markdownlabel/markdownlabel.gd");
-		if (markdownScript != null) {
-			try {
-				RichTextLabel markdown = markdownScript.New().As<RichTextLabel>();
-				// Do not let the markdown renderer open key:/URLs; navigation is a later phase.
-				markdown.Set("automatic_links", false);
-				articleLabel = markdown;
-				articleIsMarkdown = true;
-			} catch (Exception) {
-				articleLabel = null;
+	private void DrawEntry(CodexArticle entry, bool description) {
+		ScrollContainer scroll = new() {
+			Position = new Vector2(TextLeft, ListTop),
+			Size = new Vector2(TextWidth, ListHeight),
+			HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+		};
+		pageLayer.AddChild(scroll);
+
+		VBoxContainer content = new() {
+			CustomMinimumSize = new Vector2(TextWidth, 0),
+			SizeFlagsHorizontal = SizeFlags.ExpandFill,
+		};
+		content.AddThemeConstantOverride("separation", 6);
+		scroll.AddChild(content);
+
+		if (!description && entry.HasStats) {
+			Label stats = new() {
+				Text = string.Join("\n", entry.StatLines),
+				AutowrapMode = TextServer.AutowrapMode.Word,
+			};
+			stats.AddThemeFontSizeOverride("font_size", BodyFontSize);
+			stats.AddThemeColorOverride("font_color", BodyTextColor);
+			content.AddChild(stats);
+			if (entry.HasPages) {
+				content.AddChild(new HSeparator());
 			}
 		}
 
-		if (articleLabel == null) {
-			articleLabel = new RichTextLabel();
+		if (entry.HasPages) {
+			articleLabel = CreateArticleLabel();
+			articleLabel.FitContent = true;
+			articleLabel.ScrollActive = false;
+			articleLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			articleLabel.SizeFlagsVertical = SizeFlags.ShrinkBegin;
+			SetArticleText(description && entry.Pages.Count > 1 ? entry.Pages[1] : entry.Pages[0]);
+			content.AddChild(articleLabel);
+		}
+	}
+
+	private RichTextLabel CreateArticleLabel() {
+		GDScript markdownScript = ResourceLoader.Load<GDScript>("res://addons/markdownlabel/addons/markdownlabel/markdownlabel.gd");
+		RichTextLabel label = null;
+		if (markdownScript != null) {
+			try {
+				label = markdownScript.New().As<RichTextLabel>();
+				// Do not let the markdown renderer open key:/URLs; navigation is a later phase.
+				label.Set("automatic_links", false);
+				articleIsMarkdown = true;
+			} catch (Exception) {
+				label = null;
+			}
+		}
+
+		if (label == null) {
+			label = new RichTextLabel();
 			articleIsMarkdown = false;
 		}
 
-		articleLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		articleLabel.SizeFlagsVertical = SizeFlags.ExpandFill;
 		// RichTextLabel uses a separate theme font size per style, and MarkdownLabel
 		// scales headings off normal_font_size, so set them all to keep the article uniform.
-		articleLabel.AddThemeFontSizeOverride("normal_font_size", BodyFontSize);
-		articleLabel.AddThemeFontSizeOverride("bold_font_size", BodyFontSize);
-		articleLabel.AddThemeFontSizeOverride("italics_font_size", BodyFontSize);
-		articleLabel.AddThemeFontSizeOverride("bold_italics_font_size", BodyFontSize);
-		articleLabel.AddThemeFontSizeOverride("mono_font_size", BodyFontSize);
-		articleLabel.BbcodeEnabled = true;
-		articleLabel.ScrollActive = true;
-		articleLabel.FitContent = false;
-		// Civ3 tab tables are tuned to Civ3's font; 5-space stops best-fit the article's font.
-		articleLabel.TabSize = 5;
-		// The theme only styles Label, so match its font color explicitly.
-		articleLabel.AddThemeColorOverride("default_color", new Color(0, 0, 0));
+		label.AddThemeFontSizeOverride("normal_font_size", BodyFontSize);
+		label.AddThemeFontSizeOverride("bold_font_size", BodyFontSize);
+		label.AddThemeFontSizeOverride("italics_font_size", BodyFontSize);
+		label.AddThemeFontSizeOverride("bold_italics_font_size", BodyFontSize);
+		label.AddThemeFontSizeOverride("mono_font_size", BodyFontSize);
+		label.BbcodeEnabled = true;
+		label.TabSize = 5;
+		label.AddThemeColorOverride("default_color", BodyTextColor);
+		return label;
 	}
 
-	private void SelectSection(GameData gameData, CodexSection section) {
-		activeSection = section;
-
-		foreach (KeyValuePair<CodexSection, Button> pair in sectionButtons) {
-			bool active = pair.Key == section;
-			pair.Value.AddThemeColorOverride("font_color", active ? new Color(0.0f, 0.28f, 0.55f) : new Color(0.25f, 0.25f, 0.25f));
-			pair.Value.AddThemeColorOverride("font_hover_color", new Color(0.55f, 0.27f, 0.0f));
-		}
-
-		indexHeader.Text = CodexCatalog.SectionTitle(section).ToUpperInvariant();
-
-		foreach (Node child in indexList.GetChildren()) {
-			indexList.RemoveChild(child);
-			child.QueueFree();
-		}
-
-		List<CodexArticle> articles = CodexCatalog.Build(gameData, section);
-		foreach (CodexArticle article in articles) {
-			Button button = MakeTextButton(article.Name, 13, null);
-			button.Alignment = HorizontalAlignment.Left;
-			button.ClipText = true;
-			button.TextOverrunBehavior = TextServer.OverrunBehavior.TrimEllipsis;
-			IndentButtonText(button, EntryTextInset);
-			CodexArticle captured = article;
-			button.Pressed += () => ShowArticle(captured);
-			indexList.AddChild(button);
-		}
-
-		if (articles.Count > 0) {
-			ShowArticle(articles[0]);
-		} else {
-			ClearArticle();
-		}
-	}
-
-	private void ShowArticle(CodexArticle article) {
-		nameLabel.Text = string.IsNullOrEmpty(article.Name) ? "(unnamed)" : article.Name;
-
-		icon.Texture = article.Icon ?? DefaultIcon();
-
-		statLabel.Text = article.HasStats ? string.Join("\n", article.StatLines) : "";
-		statLabel.Visible = article.HasStats;
-
-		pages = article.Pages;
-		pageIndex = 0;
-		UpdatePage();
-	}
-
-	private void ClearArticle() {
-		nameLabel.Text = "";
-		icon.Texture = DefaultIcon();
-		statLabel.Text = "";
-		statLabel.Visible = false;
-		pages = new List<string>();
-		pageIndex = 0;
-		UpdatePage();
-	}
-
-	private void ChangePage(int delta) {
-		int next = pageIndex + delta;
-		if (next < 0 || next >= pages.Count) {
-			return;
-		}
-		pageIndex = next;
-		UpdatePage();
-	}
-
-	private void UpdatePage() {
-		string text = pages.Count > 0 ? pages[pageIndex] : "";
+	private void SetArticleText(string text) {
 		if (articleIsMarkdown) {
 			articleLabel.Set("markdown_text", text);
 		} else {
 			articleLabel.Text = text;
 		}
+	}
 
-		pager.Visible = pages.Count > 1;
-		pageLabel.Text = pages.Count > 0 ? $"Page {pageIndex + 1} / {pages.Count}" : "";
-		prevPage.Disabled = pageIndex <= 0;
-		nextPage.Disabled = pageIndex >= pages.Count - 1;
+	// ---- Civ3 art ----
+
+	private static BarColor BarColorOf(CodexSection section) => section switch {
+		CodexSection.Civilizations => BarColor.Orange,
+		CodexSection.Technologies => BarColor.Blue,
+		CodexSection.GreatWonders or CodexSection.SmallWonders => BarColor.Yellow,
+		CodexSection.CityImprovements => BarColor.Orange,
+		CodexSection.Governments => BarColor.Grey,
+		CodexSection.Units => BarColor.Purple,
+		CodexSection.TerrainImprovements or CodexSection.Terrain or CodexSection.Resources => BarColor.Green,
+		CodexSection.GameConcepts => BarColor.Grey,
+		_ => BarColor.Red,
+	};
+
+	private static ImageTexture BarTexture(BarColor color) {
+		string file = color switch {
+			BarColor.Blue => "bar-blue.pcx",
+			BarColor.Green => "bar-green.pcx",
+			BarColor.Grey => "bar-grey.pcx",
+			BarColor.Orange => "bar-orange.pcx",
+			BarColor.Purple => "bar-purple.pcx",
+			BarColor.Red => "bar-red.pcx",
+			_ => "bar-yello.pcx",
+		};
+		return LoadArt("Art/Civilopedia/" + file);
+	}
+
+	private static Color BarFallbackColor(BarColor color) => color switch {
+		BarColor.Blue => new Color("2a3a8a"),
+		BarColor.Green => new Color("2f6a2f"),
+		BarColor.Grey => new Color("4a4a4a"),
+		BarColor.Orange => new Color("b86820"),
+		BarColor.Purple => new Color("4a2a7a"),
+		BarColor.Red => new Color("c4382a"),
+		_ => new Color("b8a020"),
+	};
+
+	private static Color BarTextColor(BarColor color) => color switch {
+		BarColor.Blue => new Color("1a2a8a"),
+		BarColor.Green => new Color("1f5a1f"),
+		BarColor.Grey => new Color("303030"),
+		BarColor.Orange => new Color("7a3a08"),
+		BarColor.Purple => new Color("1c1c8c"),
+		BarColor.Red => new Color("8a1a14"),
+		_ => new Color("80782a"),
+	};
+
+	// Standalone mode ships no pedia art, so stand in a panel at the Civ3 panel's rect.
+	private void AddFallbackBackground() {
+		ColorRect frame = new() {
+			Color = new Color("214a31"),
+			Position = new Vector2(PanelLeft, PanelTop),
+			Size = new Vector2(PanelWidth, PanelHeight),
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		AddChild(frame);
+
+		ColorRect page = new() {
+			Color = new Color("f7efce"),
+			Position = new Vector2(PanelLeft + 4, PanelTop + 4),
+			Size = new Vector2(PanelWidth - 8, PanelHeight - 8),
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		AddChild(page);
+	}
+
+	private bool TrySetPediaBackground() {
+		try {
+			ImageTexture background = TextureLoader.Load("civilopedia_screen.background");
+			if (background == null) {
+				return false;
+			}
+
+			TextureRect art = new() {
+				Texture = background,
+				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+				StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+				SizeFlagsHorizontal = SizeFlags.ExpandFill,
+				SizeFlagsVertical = SizeFlags.ExpandFill,
+				MouseFilter = MouseFilterEnum.Ignore,
+			};
+			art.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+			AddChild(art);
+			MoveChild(art, 0);
+			return true;
+		} catch (Exception) {
+			return false;
+		}
 	}
 
 	private void Close() {
@@ -445,68 +793,40 @@ public partial class CodexPopup : Popup {
 	}
 
 	public override void _UnhandledInput(InputEvent @event) {
-		if (@event is InputEventKey key && key.Pressed && key.Keycode == Key.Escape) {
-			Close();
+		if (@event is not InputEventKey key || !key.Pressed) {
+			return;
+		}
+
+		bool handled = true;
+		switch (key.Keycode) {
+			case Key.Escape:
+				Close();
+				break;
+			case Key.Left when key.AltPressed:
+				GoBack();
+				break;
+			case Key.Right when key.AltPressed:
+				GoForward();
+				break;
+			case Key.Left:
+				GoToNeighbor(-1);
+				break;
+			case Key.Right:
+				GoToNeighbor(1);
+				break;
+			case Key.Up:
+				GoUp();
+				break;
+			case Key.Backspace:
+				GoBack();
+				break;
+			default:
+				handled = false;
+				break;
+		}
+
+		if (handled) {
 			GetViewport().SetInputAsHandled();
-		}
-	}
-
-	private static Button MakeTextButton(string text, int fontSize, Action onPressed, bool disabled = false, string tooltip = null) {
-		Button button = new() {
-			Text = text,
-			Disabled = disabled,
-			Flat = true,
-			SizeFlagsVertical = SizeFlags.ShrinkCenter,
-		};
-		button.AddThemeFontSizeOverride("font_size", fontSize);
-		if (tooltip != null) {
-			button.TooltipText = tooltip;
-		}
-		if (onPressed != null) {
-			button.Pressed += onPressed;
-		}
-		return button;
-	}
-
-	private static void IndentButtonText(Button button, int left) {
-		// Shifts the text inside the row without changing the row's own size.
-		foreach (string state in new[] { "normal", "hover", "pressed", "focus", "disabled" }) {
-			if (button.GetThemeStylebox(state)?.Duplicate() is StyleBox style) {
-				style.ContentMarginLeft = left;
-				button.AddThemeStyleboxOverride(state, style);
-			}
-		}
-	}
-
-	private static MarginContainer IndentLabel(Label label, int left) {
-		MarginContainer wrap = new() { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-		wrap.AddThemeConstantOverride("margin_left", left);
-		wrap.AddChild(label);
-		return wrap;
-	}
-
-	private bool TrySetPediaBackground() {
-		try {
-			Godot.ImageTexture bg = TextureLoader.Load("civilopedia_screen.background");
-			if (bg == null) {
-				return false;
-			}
-
-			// The parchment art is 1024x768 with transparent margins; draw it scaled to
-			// fit the popup without distortion (letterboxed if needed).
-			TextureRect background = new TextureRect {
-				Texture = bg,
-				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-				StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-				SizeFlagsHorizontal = SizeFlags.ExpandFill,
-				SizeFlagsVertical = SizeFlags.ExpandFill,
-			};
-			background.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-			AddChild(background);
-			MoveChild(background, 0);
-			return true;
-		} catch (Exception) {
-			return false;
 		}
 	}
 }
