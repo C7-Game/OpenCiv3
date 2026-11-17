@@ -797,11 +797,10 @@ public partial class CodexPopup : Popup {
 			return;
 		}
 
+		// Escape is handled by Game.ProcessAction. Closing here would hide the
+		// popup before that check runs, so the same key press would quit the game.
 		bool handled = true;
 		switch (key.Keycode) {
-			case Key.Escape:
-				Close();
-				break;
 			case Key.Left when key.AltPressed:
 				GoBack();
 				break;
