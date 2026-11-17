@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace QueryCiv3 {
+namespace QueryCiv3.Steam {
 	// Minimal reader for Valve's KeyValues text format (the ".vdf" files
 	// Steam keeps its library configuration in). This is deliberately not a
 	// general VDF library: it only understands quoted/unquoted strings,
 	// nested sections, // comments and [conditional] tags, which is all the
-	// library and config files use. It exists so Civ3Location can find a
+	// library and config files use. It exists so SteamInstallFinder can find a
 	// Steam install of Civ3 without taking a new package dependency for two
 	// small files.
 	public class VdfNode {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using QueryCiv3;
+using QueryCiv3.Steam;
 using Xunit;
 
 namespace EngineTests {
@@ -91,7 +92,7 @@ namespace EngineTests {
 			Directory.CreateDirectory(Path.Combine(steamRoot, "steamapps"));
 			File.WriteAllText(Path.Combine(steamRoot, "steamapps", "libraryfolders.vdf"), vdf);
 
-			string found = Civ3Location.CheckSteamLibraries(new[] { steamRoot });
+			string found = SteamInstallFinder.CheckSteamLibraries(new[] { steamRoot });
 			Assert.Equal(civ3Dir, found);
 		}
 
@@ -103,8 +104,8 @@ namespace EngineTests {
 			Directory.CreateDirectory(Path.Combine(steamRoot, "steamapps"));
 			Directory.CreateDirectory(binDir);
 
-			Assert.Contains(steamRoot, Civ3Location.RootsContainingSteamApps(binDir));
-			Assert.Empty(Civ3Location.RootsContainingSteamApps(baseDir));
+			Assert.Contains(steamRoot, SteamInstallFinder.RootsContainingSteamApps(binDir));
+			Assert.Empty(SteamInstallFinder.RootsContainingSteamApps(baseDir));
 		}
 
 		private static string MakeSteamRoot(string libraryFoldersVdf, string configVdf) {
