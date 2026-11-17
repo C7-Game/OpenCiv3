@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System;
 using C7.Map;
+using C7.UIElements;
 using Godot;
 using C7GameData;
 
@@ -68,6 +69,11 @@ public partial class MapView : Node2D {
 	public GridLayer gridLayer { get; private set; }
 	public CityLayer cityLayer { get; private set; }
 	public TileAssignmentLayer tileAssignmentLayer { get; private set; }
+	public RiverLayer riverLayer { get; private set; }
+	public ForestLayer forestLayer { get; private set; }
+	public TileOverlayLayer tileOverlayLayer { get; private set; }
+	public ResourceLayer resourceLayer { get; private set; }
+	public BorderLayer borderLayer { get; private set; }
 
 	const float MIN_SCALE = 0.1f;
 	const float MAX_SCALE = 4.0f;
@@ -139,16 +145,21 @@ public partial class MapView : Node2D {
 		// be drawn behind cities (which are child nodes).
 		LooseView terrainView = new(this);
 		terrainView.layers.Add(new TerrainLayer());
-		terrainView.layers.Add(new RiverLayer());
-		terrainView.layers.Add(new ForestLayer());
+		this.riverLayer = new RiverLayer();
+		terrainView.layers.Add(this.riverLayer);
+		this.forestLayer = new ForestLayer();
+		terrainView.layers.Add(this.forestLayer);
 		terrainView.layers.Add(new MarshLayer());
 		terrainView.layers.Add(new HillsLayer());
 		terrainView.layers.Add(new TntLayer());
-		terrainView.layers.Add(new TileOverlayLayer());
-		terrainView.layers.Add(new ResourceLayer());
+		this.tileOverlayLayer = new TileOverlayLayer();
+		terrainView.layers.Add(this.tileOverlayLayer);
+		this.resourceLayer = new ResourceLayer();
+		terrainView.layers.Add(this.resourceLayer);
 		this.gridLayer = new GridLayer();
 		terrainView.layers.Add(this.gridLayer);
-		terrainView.layers.Add(new BorderLayer());
+		this.borderLayer = new BorderLayer();
+		terrainView.layers.Add(this.borderLayer);
 
 		LooseView cityView = new(this);
 		this.cityLayer = new();
@@ -183,6 +194,19 @@ public partial class MapView : Node2D {
 		looseViews.Add(unitView);
 		AddChild(otherView);
 		looseViews.Add(otherView);
+	}
+
+	public void ApplyCleanMapPreferences() {
+		this.riverLayer.visible = !CleanMapSettings.IsHiding(CleanMapToggle.HideRiversFloodPlains);
+		this.forestLayer.visible = !CleanMapSettings.IsHiding(CleanMapToggle.HideForestsJungles);
+		this.borderLayer.visible = !CleanMapSettings.IsHiding(CleanMapToggle.HideTerritoryBoundaries);
+		this.resourceLayer.visible = !CleanMapSettings.IsHiding(CleanMapToggle.HideNaturalResources);
+		this.tileOverlayLayer.visible =
+			!CleanMapSettings.IsHiding(CleanMapToggle.HideRoadsRailroads)
+			&& !CleanMapSettings.IsHiding(CleanMapToggle.HideIrrigation)
+			&& !CleanMapSettings.IsHiding(CleanMapToggle.HideTerrainBuildings)
+			&& !CleanMapSettings.IsHiding(CleanMapToggle.HidePollution);
+		this.cityLayer.SetMapVisible(!CleanMapSettings.IsHiding(CleanMapToggle.HideCities));
 	}
 
 	public override void _Process(double delta) {

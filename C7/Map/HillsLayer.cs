@@ -1,3 +1,4 @@
+using C7.UIElements;
 using C7GameData;
 using Godot;
 using static C7GameData.TileRandom;
@@ -34,6 +35,8 @@ public class HillsLayer : LooseLayer {
 
 	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
 		if (!tile.overlayTerrainType.isHilly()) return;
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideMountains) && (tile.IsMountains() || tile.IsVolcano())) return;
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideHills) && tile.IsHills()) return;
 
 		int pcxIndex = GetMountainIndex(tile);
 
@@ -47,7 +50,7 @@ public class HillsLayer : LooseLayer {
 			if (tile.isSnowCapped) {
 				mountainGraphics = snowMountainTexture;
 			} else {
-				TerrainType dominantVegetation = GetDominantVegetationNearHillyTile(tile);
+				TerrainType dominantVegetation = DominantVegetationForHillyTile(tile);
 				if (dominantVegetation.isForest()) {
 					mountainGraphics = forestMountainTexture;
 				} else if (dominantVegetation.isJungle()) {
@@ -61,7 +64,7 @@ public class HillsLayer : LooseLayer {
 			Rect2 hillsRectangle = new Rect2(column * hillsSize.X, row * hillsSize.Y, hillsSize);
 			Rect2 screenTarget = new Rect2(tileCenter - (float)0.5 * hillsSize + new Vector2(0, -4), hillsSize);
 			ImageTexture hillGraphics;
-			TerrainType dominantVegetation = GetDominantVegetationNearHillyTile(tile);
+			TerrainType dominantVegetation = DominantVegetationForHillyTile(tile);
 			if (dominantVegetation.isForest()) {
 				hillGraphics = forestHillsTexture;
 			} else if (dominantVegetation.isJungle()) {
@@ -74,7 +77,7 @@ public class HillsLayer : LooseLayer {
 			Rect2 volcanoRectangle = new Rect2(column * volcanoSize.X, row * volcanoSize.Y, volcanoSize);
 			Rect2 screenTarget = new Rect2(tileCenter - (float)0.5 * volcanoSize + new Vector2(0, -12), volcanoSize);
 			ImageTexture volcanoGraphics;
-			TerrainType dominantVegetation = GetDominantVegetationNearHillyTile(tile);
+			TerrainType dominantVegetation = DominantVegetationForHillyTile(tile);
 			if (dominantVegetation.isForest()) {
 				volcanoGraphics = forestVolcanoTexture;
 			} else if (dominantVegetation.isJungle()) {
@@ -85,6 +88,13 @@ public class HillsLayer : LooseLayer {
 			looseView.DrawTextureRectRegion(volcanoGraphics, screenTarget, volcanoRectangle);
 		}
 
+	}
+
+	private TerrainType DominantVegetationForHillyTile(Tile center) {
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideForestsJungles)) {
+			return TerrainType.NONE;
+		}
+		return GetDominantVegetationNearHillyTile(center);
 	}
 
 	private TerrainType GetDominantVegetationNearHillyTile(Tile center) {

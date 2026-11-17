@@ -307,6 +307,7 @@ public partial class Game : Node {
 
 			mapView.cameraZoom = (float)1.0;
 			mapView.gridLayer.visible = PreferencesSettings.GetShowGrid();
+			mapView.ApplyCleanMapPreferences();
 
 			if (!cameraLocation.HasValue) {
 				// Set initial camera location. If the UI controller has any cities, focus on their capital. Otherwise, focus on their
@@ -919,6 +920,22 @@ public partial class Game : Node {
 			return;
 		}
 
+		if (eventKeyDown.Keycode == Godot.Key.M
+			&& eventKeyDown.IsCommandOrControlPressed()
+			&& eventKeyDown.ShiftPressed
+			&& !eventKeyDown.AltPressed) {
+			ToggleCleanMap();
+			return;
+		}
+
+		if (eventKeyDown.Keycode == Godot.Key.N
+			&& eventKeyDown.IsCommandOrControlPressed()
+			&& eventKeyDown.ShiftPressed
+			&& !eventKeyDown.AltPressed) {
+			EmitCleanMapPreferencesSignal();
+			return;
+		}
+
 		if (eventKeyDown.Keycode == Godot.Key.F1) {
 			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor);
 		}
@@ -954,8 +971,8 @@ public partial class Game : Node {
 			EmitSignal(SignalName.ShowGameView, C7Action.ShowDemographicsView);
 		}
 
-		if (eventKeyDown.Keycode == Godot.Key.C && HasCurrentlySelectedUnit()) {
-			mapView.centerCameraOnTile(CurrentlySelectedUnit.location);
+		if (eventKeyDown.Keycode == Godot.Key.C) {
+			CenterScreenOnActiveUnit();
 		}
 		if (eventKeyDown.Keycode == Godot.Key.H) {
 			City capital = controller.cities.Find(c => c.IsCapital());
@@ -1035,6 +1052,18 @@ public partial class Game : Node {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			gameData.showGridCoordinates = !gameData.showGridCoordinates;
 		});
+	}
+
+	private void CenterScreenOnActiveUnit() {
+		if (mapView == null || !HasCurrentlySelectedUnit()) {
+			return;
+		}
+		mapView.centerCameraOnTile(CurrentlySelectedUnit.location);
+	}
+
+	private void ToggleCleanMap() {
+		CleanMapSettings.Enabled = !CleanMapSettings.Enabled;
+		mapView?.ApplyCleanMapPreferences();
 	}
 
 	private void ToggleCameraZoom() {

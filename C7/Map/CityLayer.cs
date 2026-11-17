@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using C7.UIElements;
 using C7GameData;
 using Godot;
 
@@ -6,8 +8,21 @@ namespace C7.Map;
 
 public class CityLayer : LooseLayer {
 	private Dictionary<City, CityScene> citySceneLookup = new();
+	private bool mapVisible = true;
 
 	public CityLayer() {
+	}
+
+	public void SetMapVisible(bool visible) {
+		if (mapVisible == visible) {
+			return;
+		}
+		mapVisible = visible;
+		if (!visible) {
+			foreach (City city in citySceneLookup.Keys.ToList()) {
+				EraseCity(city);
+			}
+		}
 	}
 
 	public void UpdateAfterCityDestruction(City city) {
@@ -22,7 +37,7 @@ public class CityLayer : LooseLayer {
 	}
 
 	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
-		if (tile.cityAtTile is null) {
+		if (!mapVisible || tile.cityAtTile is null) {
 			return;
 		}
 
