@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using C7.UIElements;
 using C7GameData;
 using Godot;
 
@@ -50,7 +51,8 @@ public class TileAssignmentLayer : LooseLayer {
 		}
 
 		// Only draw yields for our citizens.
-		if (tile.personWorkingTile?.city != city && tile.cityAtTile != city) {
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideFoodShieldIcons)
+			|| (tile.personWorkingTile?.city != city && tile.cityAtTile != city)) {
 			return;
 		}
 

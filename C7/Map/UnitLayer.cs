@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using C7.Textures;
+using C7.UIElements;
 using C7GameData;
 using Godot;
 
@@ -249,6 +250,10 @@ public partial class UnitLayer : LooseLayer {
 	}
 
 	public override void drawObject(LooseView looseView, GameData gameData, Tile tile, Vector2 tileCenter) {
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideUnits)) {
+			return;
+		}
+
 		if (!UnitsVisible(gameData, looseView.mapView.game.controller, tile)) {
 			return;
 		}

@@ -44,6 +44,10 @@ public partial class InteractablePopUpController : Control {
 
 	private LineEditComponent lineEditComponent;
 
+	private MarginContainer checkboxContainer;
+	private VBoxContainer checkboxList;
+	private readonly List<(Civ3Checkbox checkbox, CheckboxOption option)> activeCheckboxes = new();
+
 	private float defaultOffsetTop;
 	private float defaultOffsetBottom;
 	private float defaultOffsetLeft;
@@ -78,6 +82,7 @@ public partial class InteractablePopUpController : Control {
 
 		this.SetUpConfirmButton();
 		this.SetUpCancelButton();
+		this.SetUpCheckboxContainer();
 
 		this.confirm.Pressed += this.OnConfirm;
 		this.cancel.Pressed += this.OnCancel;
@@ -170,6 +175,21 @@ public partial class InteractablePopUpController : Control {
 			this.lineEdit.GrabFocus();
 		}
 
+		if (value.checkboxActions is { Count: > 0 }) {
+			this.checkboxContainer.Show();
+			foreach (CheckboxOption option in value.checkboxActions) {
+				Civ3Checkbox checkbox = new() {
+					Text = option.message,
+					FontSize = 14,
+					ButtonPressed = option.pressed,
+				};
+				this.checkboxList.AddChild(checkbox);
+				this.activeCheckboxes.Add((checkbox, option));
+			}
+		} else {
+			this.checkboxContainer.Hide();
+		}
+
 		if (value.buttonActions is { Count: > 0 }) {
 			this.buttonContainer.Show();
 			buttonGroup = new ButtonGroup();
@@ -244,6 +264,9 @@ public partial class InteractablePopUpController : Control {
 	}
 
 	private void Cycle(bool forward = true) {
+		if (buttonGroup == null) {
+			return;
+		}
 		var btns = buttonGroup.GetButtons();
 		if (btns.Count < 1) {
 			return;
@@ -281,6 +304,10 @@ public partial class InteractablePopUpController : Control {
 			this.lineEditComponent.callback.Invoke(this.lineEdit.Text.StripEdges());
 		}
 
+		foreach ((Civ3Checkbox checkbox, CheckboxOption option) in this.activeCheckboxes) {
+			option.action?.Invoke(checkbox.ButtonPressed);
+		}
+
 		this.audioManager.PlayUIAudio("buttons.button_ok");
 		this.Hide();
 		this.CloseAndDelete();
@@ -310,6 +337,22 @@ public partial class InteractablePopUpController : Control {
 		new MsgUiDisengaged().send();
 	}
 
+	private void SetUpCheckboxContainer() {
+		this.checkboxList = new VBoxContainer();
+		this.checkboxList.AddThemeConstantOverride("separation", 4);
+
+		this.checkboxContainer = new MarginContainer();
+		this.checkboxContainer.AddThemeConstantOverride("margin_left", 30);
+		this.checkboxContainer.AddThemeConstantOverride("margin_top", 5);
+		this.checkboxContainer.AddThemeConstantOverride("margin_right", 10);
+		this.checkboxContainer.AddThemeConstantOverride("margin_bottom", 5);
+		this.checkboxContainer.AddChild(this.checkboxList);
+		this.checkboxContainer.Hide();
+
+		this.mainBgContainer.AddChild(this.checkboxContainer);
+		this.mainBgContainer.MoveChild(this.checkboxContainer, this.buttons.GetIndex());
+	}
+
 	private void CloseAndDelete() {
 		this.Hide();
 
@@ -328,6 +371,15 @@ public partial class InteractablePopUpController : Control {
 		this.advisorTextureRect.Texture = null;
 		this.lineEditContainer.Hide();
 		this.lineEditComponent = null;
+
+		this.checkboxContainer?.Hide();
+		if (this.checkboxList != null) {
+			foreach (Node child in this.checkboxList.GetChildren()) {
+				this.checkboxList.RemoveChild(child);
+				child.QueueFree();
+			}
+		}
+		this.activeCheckboxes.Clear();
 
 		foreach (var child in buttonContainer.GetChildren()) {
 			buttonContainer.RemoveChild(child);

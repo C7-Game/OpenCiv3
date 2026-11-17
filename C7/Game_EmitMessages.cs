@@ -780,9 +780,27 @@ public partial class Game {
 				}
 			}));
 
-		int zoomPercent = mapView != null ? Mathf.RoundToInt(mapView.cameraZoom * 100) : 100;
 		options.Add(CreateMapMenuToggle(
 			1,
+			selectedOption,
+			"Center Screen (C)",
+			CenterScreenOnActiveUnit));
+
+		options.Add(CreateMapMenuToggle(
+			2,
+			selectedOption,
+			$"Clean Map (Ctrl+Shift+M): {(CleanMapSettings.Enabled ? "On" : "Off")}",
+			ToggleCleanMap));
+
+		var cleanMapPreferencesBtn = new ButtonAction() {
+			message = "Clean Map Preferences (Ctrl+Shift+N)",
+			action = () => EmitCleanMapPreferencesSignal(),
+		};
+		options.Add(cleanMapPreferencesBtn);
+
+		int zoomPercent = mapView != null ? Mathf.RoundToInt(mapView.cameraZoom * 100) : 100;
+		options.Add(CreateMapMenuToggle(
+			4,
 			selectedOption,
 			$"Zoom (Z): {zoomPercent}%",
 			ToggleCameraZoom));
@@ -807,7 +825,7 @@ public partial class Game {
 				options,
 				Advisor.None,
 				Mood.None,
-				hSize: 350,
+				hSize: 400,
 				margins: new Margins(top: 100)
 			)
 		));
@@ -822,6 +840,35 @@ public partial class Game {
 			},
 			pressed = optionIndex == selectedOption,
 		};
+	}
+
+	public void EmitCleanMapPreferencesSignal() {
+		List<CheckboxOption> checkboxOptions = new List<CheckboxOption>();
+		foreach (CleanMapOptionDefinition option in CleanMapSettings.Options) {
+			CleanMapToggle toggle = option.Toggle;
+			checkboxOptions.Add(new CheckboxOption() {
+				message = option.Label,
+				pressed = CleanMapSettings.Get(toggle),
+				action = value => {
+					CleanMapSettings.Set(toggle, value);
+					mapView?.ApplyCleanMapPreferences();
+				},
+			});
+		}
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Clean Map Preferences",
+				null,
+				new List<ButtonAction>(),
+				Advisor.None,
+				Mood.None,
+				hSize: 400,
+				margins: new Margins(top: 100),
+				checkboxActions: checkboxOptions
+			)
+		));
 	}
 
 	public void EmitWorldSettingsSignal() {

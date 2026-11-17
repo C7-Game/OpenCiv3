@@ -22,6 +22,7 @@ public class InteractablePopUp {
 	public LineEditComponent lineEditComponent { get; init; }
 	public int contollerEraIndex { get; init; } = 0;
 	public List<ButtonAction> buttonActions { get; init; }
+	public List<CheckboxOption> checkboxActions { get; init; }
 	public bool hasConfirm { get; init; }
 	public bool hasCancel { get; init; }
 
@@ -45,6 +46,12 @@ public class ButtonAction {
 	public Action action { get; init; }
 	public ButtonGroup buttonGroup { get; init; }
 	public bool pressed { get; set; } = false;
+}
+
+public class CheckboxOption {
+	public string message { get; init; }
+	public Action<bool> action { get; init; }
+	public bool pressed { get; init; }
 }
 
 public class LineEditComponent {

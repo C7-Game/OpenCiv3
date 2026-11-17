@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using C7.UIElements;
 using C7Engine;
 using C7GameData;
 using Godot;
@@ -63,6 +64,10 @@ public class TileOverlayLayer : LooseLayer {
 		var improvements = RenderableTerrainImprovements(tile);
 
 		foreach (TerrainImprovement ti in improvements.OrderBy(ti => ti.zIndex)) {
+			if (ShouldHideImprovement(ti.key)) {
+				continue;
+			}
+
 			switch (ti.key) {
 				case IRRIGATION:
 					DrawIrrigation(looseView, tile, screenTarget);
@@ -90,6 +95,23 @@ public class TileOverlayLayer : LooseLayer {
 					break;
 			}
 		}
+	}
+
+	private static bool ShouldHideImprovement(string key) {
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideRoadsRailroads) && (key == ROAD || key == RAILROAD)) {
+			return true;
+		}
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideIrrigation) && key == IRRIGATION) {
+			return true;
+		}
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HidePollution) && (key == POLLUTION || key == CRATERS)) {
+			return true;
+		}
+		if (CleanMapSettings.IsHiding(CleanMapToggle.HideTerrainBuildings)
+			&& key != ROAD && key != RAILROAD && key != IRRIGATION && key != POLLUTION && key != CRATERS) {
+			return true;
+		}
+		return false;
 	}
 
 	private List<TerrainImprovement> RenderableTerrainImprovements(Tile tile) {

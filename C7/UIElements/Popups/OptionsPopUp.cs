@@ -16,7 +16,8 @@ public class OptionsPopUp : InformationPopup {
 	public OptionsPopUp(
 		ID controllerId, string header, string message, List<ButtonAction> options,
 		Advisor advisor, Mood mood, int hSize = 400,
-		LayoutPreset layoutPreset = DEFAULT_LAYOUT_PRESET, Margins margins = null)
+		LayoutPreset layoutPreset = DEFAULT_LAYOUT_PRESET, Margins margins = null,
+		List<CheckboxOption> checkboxActions = null)
 		: base(controllerId, header, message, advisor, mood, hSize, layoutPreset, margins) {
 
 		var btnGroup = new ButtonGroup();
@@ -33,11 +34,12 @@ public class OptionsPopUp : InformationPopup {
 		}
 
 		// Fall back to the first row when the caller doesn't preselect one
-		if (!optionsList.Any(option => option.pressed)) {
+		if (optionsList.Count > 0 && !optionsList.Any(option => option.pressed)) {
 			optionsList.First().pressed = true;
 		}
 
 		this.buttonActions = optionsList;
+		this.checkboxActions = checkboxActions;
 
 		this.hasConfirm = true;
 		this.hasCancel = true;
