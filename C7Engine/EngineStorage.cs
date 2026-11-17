@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace C7Engine {
 	using System;
 	using C7GameData;
@@ -80,6 +82,14 @@ namespace C7Engine {
 
 		public static void InitializeGameDataForTests(GameData gD) {
 			gameData = gD;
+		}
+
+		/// <summary>
+		/// Returns the player that either controls the UI, and if that somehow doesn't exist, it returns the first human player 
+		/// </summary>
+		/// <returns></returns>
+		public static Player GetUIController() {
+			return gameData.players.FirstOrDefault(p => p.id == uiControllerID) ?? gameData.GetFirstHumanPlayer();
 		}
 	}
 }

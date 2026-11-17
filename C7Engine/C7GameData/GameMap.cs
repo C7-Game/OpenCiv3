@@ -1,5 +1,3 @@
-using Serilog;
-
 namespace C7GameData {
 	using System;
 	using System.Linq;
@@ -18,7 +16,6 @@ namespace C7GameData {
 		public int optimalNumberOfCities;
 
 		public List<Tile> tiles { get; set; }
-		public List<Tile> barbarianCamps = new List<Tile>();
 
 		// The list of continents, with continents[0] being the largest continent.
 		//
@@ -29,6 +26,8 @@ namespace C7GameData {
 		//
 		// TODO: How is this saved in editor generated scenarios?
 		public List<Tile> startingLocations = new();
+
+		public List<Tile> barbarianCamps = new();
 
 		public GameMap() {
 			this.tiles = new List<Tile>();
@@ -58,6 +57,16 @@ namespace C7GameData {
 				}
 				tile.neighbors = neighbors;
 				tile.map = this;
+			}
+		}
+
+		// Fills in the cardinal river flags of every tile from the diagonal ones.
+		// Call this after computeNeighbors() and once rivers are final.
+		public void computeCardinalRiverFlags() {
+			foreach (Tile tile in tiles) {
+				if (tile != Tile.NONE) {
+					tile.UpdateCardinalRiverFlags();
+				}
 			}
 		}
 

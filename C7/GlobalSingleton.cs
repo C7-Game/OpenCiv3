@@ -59,11 +59,8 @@ public partial class GlobalSingleton : Node {
 		var (audioLua, audioConfig) = GameMode.audio;
 		AudioLoader.SetConfig(audioLua, audioConfig);
 
-		if (config.addonPaths.Contains("standalone")) {
-			C7Settings.SetValue("locations", "useStandaloneMode", "true");
-		} else {
-			C7Settings.SetValue("locations", "useStandaloneMode", "false");
-		}
+		C7Settings.SetBool(C7Settings.Locations.SectionName, C7Settings.Locations.UseStandaloneMode,
+			config.addonPaths.Contains("standalone"));
 
 		C7Settings.SaveSettings();
 	}

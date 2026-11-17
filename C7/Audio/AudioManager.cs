@@ -177,6 +177,17 @@ public partial class AudioManager : Node {
 	 * Each one is polyphonic, able to play overlapping tracks.
 	 */
 
+	private Dictionary<string, AudioStream> audioCache = new ();
+
+	public void PlaySfxAudioByPath(string audioPath) {
+		if (!audioCache.TryGetValue(audioPath, out AudioStream stream)) {
+			stream = AudioLoader.LoadFromPath(audioPath);
+			audioCache.Add(audioPath, stream);
+		}
+		if (stream != null)
+			_polySfxAudioPlayer.Play(stream);
+	}
+
 	public void PlaySfxAudio(string configKey) {
 		var stream = AudioLoader.Load(configKey);
 		if (stream != null)

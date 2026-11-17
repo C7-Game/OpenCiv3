@@ -492,6 +492,12 @@
       "layer": "craters",
       "zIndex": 5,
       "movementCost": -1
+    },
+    {
+      "key": "barbarianCamp",
+      "layer": "barbarianCamp",
+      "zIndex": 8,
+      "movementCost": -1
     }
   ],
   "resources": [
@@ -11718,6 +11724,7 @@
     "turnPenaltyForEachHurrySacrifice": 20,
     "maximumLevel1CitySize": 6,
     "maximumLevel2CitySize": 12,
+    "capitalNeighborDistance": 8,
     "foodNeededToGrowForLevel1Cities": 20,
     "foodNeededToGrowForLevel2Cities": 40,
     "foodNeededToGrowForLevel3Cities": 60,
@@ -11727,6 +11734,7 @@
     "scoutUnitType": "Scout",
     "maxRankOfWorkableTiles": 2,
     "maxRankOfBarbarianCampTiles": 2,
+    "barbarianCampGold": 25,
     "defaultDealDuration": 20,
     "treasuryInterestRate": 0.05,
     "maxInterest": 50,

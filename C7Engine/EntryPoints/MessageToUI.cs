@@ -1,6 +1,7 @@
 namespace C7Engine {
 	using C7GameData;
 	using System;
+	using System.Collections.Generic;
 
 	public interface IMessageToUI {
 		public void send();
@@ -207,6 +208,14 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgPlayerDefeated : MessageToUI {
+		public ID playerId;
+
+		public MsgPlayerDefeated(ID playerId) {
+			this.playerId = playerId;
+		}
+	}
+
 	public class MsgCityCreated : MessageToUI {
 		public City city;
 
@@ -245,20 +254,23 @@ namespace C7Engine {
 		}
 	}
 
-	public class MsgShowMilitaryAdvisorPopup : MessageToUI {
-		public string message;
-		public bool happy;
-		public MsgShowMilitaryAdvisorPopup(string message, bool happy) {
-			this.message = message;
-			this.happy = happy;
+	public class MsgBarbarianCampDispersed : MessageToUI {
+		public ID controllerId;
+		public int goldEarned;
+
+		public MsgBarbarianCampDispersed(ID controllerId, int goldEarned) {
+			this.controllerId = controllerId;
+			this.goldEarned = goldEarned;
 		}
 	}
 
 	public class MsgShowTemporaryPopup : MessageToUI {
+		public ID controllerId;
 		public string message;
 		public Tile location;
 
-		public MsgShowTemporaryPopup(string message, Tile location) {
+		public MsgShowTemporaryPopup(ID receiver, string message, Tile location) {
+			this.controllerId = receiver;
 			this.message = message;
 			this.location = location;
 		}
@@ -282,6 +294,13 @@ namespace C7Engine {
 		public MapUnit Unit;
 		public MsgUnitMoved(MapUnit unit) {
 			this.Unit = unit;
+		}
+	}
+
+	public class MsgSelectTransport : MessageToUI {
+		public MapUnit unit;
+		public MsgSelectTransport(MapUnit unit) {
+			this.unit = unit;
 		}
 	}
 

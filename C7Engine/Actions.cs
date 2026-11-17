@@ -24,7 +24,10 @@ public static class C7Action {
 	public const string ToggleCoordinates = "toggle_coordinates";
 	public const string ToggleZoom = "toggle_zoom";
 	public const string OpenPreferences = "open_preferences"; // Ctrl-P
-	public const string OpenGameMenu = "open_game_menu";
+	public const string OpenGameMenu = "open_game_menu"; //Ctrl-M
+	public const string SaveGame = "save_game"; // Ctrl-S
+	public const string LoadGame = "load_game"; // Ctrl-L
+	public const string Retire = "retire"; // Ctrl-Q
 
 	public const string ShowDomesticAdvisor = "show_domestic_advisor"; // F1
 	public const string ShowTradeAdvisor = "show_trade_advisor";

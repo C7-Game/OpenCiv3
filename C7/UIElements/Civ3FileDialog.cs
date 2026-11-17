@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using C7Engine;
 using C7GameData;
 using Godot;
@@ -23,14 +25,25 @@ public partial class Civ3FileDialog : FileDialog {
 		FileSelected += OnFileSelected;
 	}
 
-	public void SetDirectoryForLoading(string RelPath) {
-		CurrentDir = Util.Civ3Root + "/" + RelPath;
+	public void SetDirectoryForLoading(string absoluteDir) {
+		CurrentDir = absoluteDir;
 		FileMode = FileDialog.FileModeEnum.OpenFile;
 	}
 
-	public void SetDirectoryForSaving(string RelPath) {
-		CurrentDir = Util.Civ3Root + "/" + RelPath;
+	public void SetDirectoryForSaving(string absoluteDir) {
+		CurrentDir = absoluteDir;
 		FileMode = FileDialog.FileModeEnum.SaveFile;
+	}
+
+	public void PrefillFileName(string fileName) {
+		if (!string.IsNullOrEmpty(fileName)) {
+			CurrentFile = fileName;
+		}
+	}
+
+	public void PrefillLoadWithLatestSave() {
+		SetDirectoryForLoading(SavePaths.LatestSaveDirectory);
+		PrefillFileName(SavePaths.LatestSaveFileName);
 	}
 
 	private void OnFileSelected(string path) {
@@ -43,14 +56,13 @@ public partial class Civ3FileDialog : FileDialog {
 				GetTree().ChangeSceneToFile("res://C7Game.tscn");
 			}
 		} else {
-			if (!path.EndsWith(".json")) {
+			if (!path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) {
 				path = path + ".json";
 			}
 
 			log.Information($"Saving game to {path}");
-			EngineStorage.ReadGameData((GameData gameData) => {
-				C7GameData.Save.SaveGame.FromGameData(gameData).Save(path);
-			});
+			EngineStorage.ReadGameData((GameData gameData) => SaveManager.Save(gameData, path));
+			C7Settings.SetLatestSave(Path.GetFileName(path));
 		}
 	}
 }

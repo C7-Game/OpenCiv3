@@ -1,6 +1,6 @@
 # OpenCiv3
 
-**OpenCiv3** (formerly known by the codename "C7") is an open-source, mod-oriented remake of _Civilization III_ by the fan community built with Godot and C#, with capabilities inspired by other 4X games and lessons learned in Civ3 modding. We aim to create a new game that looks and plays like Civ3 but incorporates features from the best of the genre and our own dreams.
+**OpenCiv3** (formerly known by the codename "C7") is an open-source, cross-platform, mod-oriented, modernized reimagining of _Civilization III_ by the fan community. Built with the Godot Engine and C#, it has capabilities inspired by the best of the 4X genre and lessons learned from modding Civ3. Our vision is to make Civ3 as it could have been, rebuilt for today's modders and players: removing arbitary limits, fixing broken features, expanding mod capabilities, and supporting modern graphics and platforms. A game that can go beyond C3C but retain all of its gameplay and content.
 
 ***OpenCiv3 is under active development and currently in a pre-alpha state.*** It is a rudimentary playable game but lacking many mechanics and late-game content, and errors are likely. Keep up with our development for the latest updates and opportunities to contribute!
 
@@ -19,7 +19,15 @@
 
 ## Status
 
-The latest stable version can be downloaded from the [Releases page](https://github.com/C7-Game/OpenCiv3/releases). Current information on installation and features can always be found on the [project homepage.](https://www.openciv3.org/)
+The latest stable version with installation instructions and a full list of new features for each version is always available on the [Releases page](https://github.com/C7-Game/OpenCiv3/releases). Additional information on the project can be found on the [project homepage.](https://www.openciv3.org/)
+
+### System Requirements
+
+- 64-bit Windows, Linux, or Mac OS. Other platforms may be supported in future releases.
+- Minimum hardware requirements have not yet been identified. Refer to [Godot's system requirements](https://docs.godotengine.org/en/stable/about/system_requirements.html#exported-godot-project) as a baseline. Please let us know if OpenCiv3 does not perform well on your system, or how it does on a particularly old system.
+- Currently the OpenCiv3 installation is about 200-300 Mb but this is expected to increase significantly as we add media.
+- Recommended: A locally installed copy (the game itself does NOT have to run) of _Civilization III Conquests_ or _Complete_ edition. Standalone mode is available with placeholder graphics for those who do not have a copy.
+  - _Civilization III Complete_ is available for a pittance from [Steam](https://store.steampowered.com/app/3910/Sid_Meiers_Civilization_III_Complete/) or [GOG](https://www.gog.com/en/game/sid_meiers_civilization_iii_complete)
 
 ## Contributing
 
