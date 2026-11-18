@@ -25,6 +25,11 @@ local POPUP_BORDERS = "Art/popupborders.pcx"
 
 local CURSORS = "Art/Cursor.pcx"
 
+local CODEX = "Art/Civilopedia/"
+local CODEX_ARROWS = CODEX .. "civilo_Up_Next_Back_ARROWS.pcx"
+local CODEX_BACK = CODEX .. "fwdBackarrows.pcx"
+local CODEX_DESCRIPTION = CODEX .. "descbox.pcx"
+
 -- Texture definitions
 local textures = {}
 
@@ -576,6 +581,62 @@ textures.tileinfo = {
       box = {
         path = TILEINFO
       },
+}
+
+-- Codex (Civilopedia) popup textures.
+textures.codex = {
+  -- Base Civ3 pedia background: 1024x768 parchment panel with transparency.
+  background = { path = CODEX .. "civilopediaBackground.pcx" },
+  icons = {
+    main_menu = { path = CODEX .. "Icons/menu_red large.pcx" },
+    index = { path = CODEX .. "Icons/menus large.pcx" },
+  },
+  name_bars = {
+    blue = { path = CODEX .. "bar-blue.pcx" },
+    green = { path = CODEX .. "bar-green.pcx" },
+    grey = { path = CODEX .. "bar-grey.pcx" },
+    orange = { path = CODEX .. "bar-orange.pcx" },
+    purple = { path = CODEX .. "bar-purple.pcx" },
+    red = { path = CODEX .. "bar-red.pcx" },
+    yellow = { path = CODEX .. "bar-yello.pcx" },
+  },
+  buttons = {
+    back = {
+      normal = { path = CODEX_BACK, crop_region = { 37, 1, 15, 24 }, shadows = false },
+      hover = { path = CODEX_BACK, crop_region = { 69, 1, 15, 24 }, shadows = false },
+      pressed = { path = CODEX_BACK, crop_region = { 69, 1, 15, 24 }, shadows = false },
+      disabled = { path = CODEX_BACK, crop_region = { 101, 1, 15, 24 }, shadows = false },
+    },
+    forward = {
+      normal = { path = CODEX_BACK, crop_region = { 53, 1, 15, 24 }, shadows = false },
+      hover = { path = CODEX_BACK, crop_region = { 85, 1, 15, 24 }, shadows = false },
+      pressed = { path = CODEX_BACK, crop_region = { 85, 1, 15, 24 }, shadows = false },
+      disabled = { path = CODEX_BACK, crop_region = { 117, 1, 15, 24 }, shadows = false },
+    },
+    up = {
+      normal = { path = CODEX_ARROWS, crop_region = { 1, 27, 24, 15 }, shadows = false },
+      hover = { path = CODEX_ARROWS, crop_region = { 26, 27, 24, 15 }, shadows = false },
+      pressed = { path = CODEX_ARROWS, crop_region = { 26, 27, 24, 15 }, shadows = false },
+      disabled = { path = CODEX_ARROWS, crop_region = { 51, 27, 24, 15 }, shadows = false },
+    },
+    previous = {
+      normal = { path = CODEX_ARROWS, crop_region = { 1, 1, 15, 24 }, shadows = false },
+      hover = { path = CODEX_ARROWS, crop_region = { 33, 1, 15, 24 }, shadows = false },
+      pressed = { path = CODEX_ARROWS, crop_region = { 33, 1, 15, 24 }, shadows = false },
+      disabled = { path = CODEX_ARROWS, crop_region = { 65, 1, 15, 24 }, shadows = false },
+    },
+    next = {
+      normal = { path = CODEX_ARROWS, crop_region = { 17, 1, 15, 24 }, shadows = false },
+      hover = { path = CODEX_ARROWS, crop_region = { 49, 1, 15, 24 }, shadows = false },
+      pressed = { path = CODEX_ARROWS, crop_region = { 49, 1, 15, 24 }, shadows = false },
+      disabled = { path = CODEX_ARROWS, crop_region = { 81, 1, 15, 24 }, shadows = false },
+    },
+    description = {
+      normal = { path = CODEX_DESCRIPTION, crop_region = { 1, 1, 102, 17 }, shadows = false },
+      hover = { path = CODEX_DESCRIPTION, crop_region = { 104, 1, 102, 17 }, shadows = false },
+      pressed = { path = CODEX_DESCRIPTION, crop_region = { 207, 1, 102, 17 }, shadows = false },
+    },
+  },
 }
 
 textures.popup_background = {
