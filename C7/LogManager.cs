@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using C7Engine;
 using Godot;
 using Serilog;
 using Serilog.Templates;
@@ -24,8 +26,20 @@ public partial class LogManager : Node {
 		// suggested:
 		// filter += " OR SourceContext like 'C7Engine.AI.%'"; // (insert the namespace you need to debug)
 
+		// One file per session, named for when it started. Prune the older
+		// sessions before this one starts writing, and let a long session
+		// roll onto numbered chunks instead of stopping at the size limit.
+		// Resolve the full path first: in editor runs WritableDir is empty,
+		// so LogFilePath is a bare filename and GetDirectoryName alone would
+		// return an empty string, which reads as "no directory" and would
+		// skip pruning entirely. The full path resolves against the working
+		// directory, which is where the sink writes the relative path.
+		string logFilePath = GamePaths.LogFilePath;
+		LogFiles.PruneOldSessions(Path.GetDirectoryName(Path.GetFullPath(logFilePath)), logFilePath);
+
 		Log.Logger = new LoggerConfiguration()
-			.WriteTo.File(GamePaths.LogFilePath, buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(2500), fileSizeLimitBytes: 52428800, //50 MB
+			.WriteTo.File(logFilePath, buffered: true, flushToDiskInterval: TimeSpan.FromMilliseconds(2500), fileSizeLimitBytes: 52428800, //50 MB
+						  rollOnFileSizeLimit: true, retainedFileCountLimit: LogFiles.FilesPerSessionToKeep,
 						  outputTemplate: "[{Level:u3}] {Timestamp:HH:mm:ss} {SourceContext}: {Message:lj} {NewLine}{Exception}")
 			.Filter.ByIncludingOnly(filter)
 			.MinimumLevel.Debug()
