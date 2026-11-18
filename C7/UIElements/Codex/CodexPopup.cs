@@ -82,9 +82,6 @@ public partial class CodexPopup : Popup {
 		Yellow,
 	}
 
-	private static readonly string ArrowSheet = "Art/Civilopedia/civilo_Up_Next_Back_ARROWS.pcx";
-	private static readonly string BackSheet = "Art/Civilopedia/fwdBackarrows.pcx";
-
 	private readonly Dictionary<CodexSection, List<CodexArticle>> articlesBySection = new();
 
 	private Control pageLayer;
@@ -155,8 +152,8 @@ public partial class CodexPopup : Popup {
 		title.HorizontalAlignment = HorizontalAlignment.Center;
 		AddChild(title);
 
-		backButton = MakeArrowButton(BackSheet, 37, 69, 101, 1, 15, 24, new Vector2(BackLeft, ArrowTop), "Back", GoBack);
-		forwardButton = MakeArrowButton(BackSheet, 53, 85, 117, 1, 15, 24, new Vector2(ForwardLeft, ArrowTop), "Forward", GoForward);
+		backButton = MakeArrowButton("codex.buttons.back", new Vector2(BackLeft, ArrowTop), new Vector2(15, 24), "Back", GoBack);
+		forwardButton = MakeArrowButton("codex.buttons.forward", new Vector2(ForwardLeft, ArrowTop), new Vector2(15, 24), "Forward", GoForward);
 
 		nameBarFallback = new ColorRect {
 			Position = new Vector2(NameBarLeft, NameBarTop),
@@ -196,9 +193,7 @@ public partial class CodexPopup : Popup {
 			IgnoreTextureSize = true,
 			TooltipText = "Description",
 		};
-		descriptionButton.TextureNormal = Crop("Art/Civilopedia/descbox.pcx", 1, 1, 102, 17);
-		descriptionButton.TextureHover = Crop("Art/Civilopedia/descbox.pcx", 104, 1, 102, 17);
-		descriptionButton.TexturePressed = Crop("Art/Civilopedia/descbox.pcx", 207, 1, 102, 17);
+		SetButtonTextures(descriptionButton, "codex.buttons.description");
 		descriptionButton.Pressed += ToggleDescription;
 		AddChild(descriptionButton);
 
@@ -208,9 +203,9 @@ public partial class CodexPopup : Popup {
 		descriptionLabel.VerticalAlignment = VerticalAlignment.Center;
 		descriptionButton.AddChild(descriptionLabel);
 
-		upButton = MakeArrowButton(ArrowSheet, 1, 26, 51, 27, 24, 15, new Vector2(UpLeft, UpTop), "Up", GoUp);
-		previousButton = MakeArrowButton(ArrowSheet, 1, 33, 65, 1, 15, 24, new Vector2(PreviousLeft, RowArrowTop), "Previous", () => GoToNeighbor(-1));
-		nextButton = MakeArrowButton(ArrowSheet, 17, 49, 81, 1, 15, 24, new Vector2(NextLeft, RowArrowTop), "Next", () => GoToNeighbor(1));
+		upButton = MakeArrowButton("codex.buttons.up", new Vector2(UpLeft, UpTop), new Vector2(24, 15), "Up", GoUp);
+		previousButton = MakeArrowButton("codex.buttons.previous", new Vector2(PreviousLeft, RowArrowTop), new Vector2(15, 24), "Previous", () => GoToNeighbor(-1));
+		nextButton = MakeArrowButton("codex.buttons.next", new Vector2(NextLeft, RowArrowTop), new Vector2(15, 24), "Next", () => GoToNeighbor(1));
 
 		for (int i = 0; i < 26; i++) {
 			char letter = (char)('A' + i);
@@ -261,17 +256,14 @@ public partial class CodexPopup : Popup {
 		return label;
 	}
 
-	private TextureButton MakeArrowButton(string sheet, int normalX, int hoverX, int disabledX, int y, int width, int height, Vector2 position, string tooltip, Action action) {
+	private TextureButton MakeArrowButton(string configKey, Vector2 position, Vector2 size, string tooltip, Action action) {
 		TextureButton button = new() {
 			Position = position,
-			Size = new Vector2(width, height),
+			Size = size,
 			IgnoreTextureSize = true,
 			TooltipText = tooltip,
-			TextureNormal = Crop(sheet, normalX, y, width, height),
-			TextureHover = Crop(sheet, hoverX, y, width, height),
-			TexturePressed = Crop(sheet, hoverX, y, width, height),
-			TextureDisabled = Crop(sheet, disabledX, y, width, height),
 		};
+		SetButtonTextures(button, configKey);
 		if (button.TextureNormal == null) {
 			Label fallback = MakeLabel(tooltip switch {
 				"Back" => "<",
@@ -290,24 +282,18 @@ public partial class CodexPopup : Popup {
 		return button;
 	}
 
-	private static AtlasTexture Crop(string path, int x, int y, int width, int height) {
+	private static void SetButtonTextures(TextureButton button, string configKey) {
 		try {
-			ImageTexture sheet = TextureLoader.LoadByPath(path);
-			if (sheet == null) {
-				return null;
-			}
-			return new AtlasTexture {
-				Atlas = sheet,
-				Region = new Rect2(x, y, width, height),
-			};
+			TextureLoader.SetButtonTextures(button, configKey);
 		} catch (Exception) {
-			return null;
+			return;
 		}
+		button.TextureDisabled = TryLoadTexture(configKey + ".disabled");
 	}
 
-	private static ImageTexture LoadArt(string path) {
+	private static ImageTexture TryLoadTexture(string configKey) {
 		try {
-			return TextureLoader.LoadByPath(path);
+			return TextureLoader.Load(configKey);
 		} catch (Exception) {
 			return null;
 		}
@@ -438,8 +424,8 @@ public partial class CodexPopup : Popup {
 			_ => entry.Name,
 		};
 		largeIcon.Texture = page.Kind switch {
-			PageKind.Main => LoadArt("Art/Civilopedia/Icons/menu_red large.pcx"),
-			PageKind.Index => LoadArt("Art/Civilopedia/Icons/menus large.pcx"),
+			PageKind.Main => TryLoadTexture("codex.icons.main_menu"),
+			PageKind.Index => TryLoadTexture("codex.icons.index"),
 			PageKind.Section => CodexCatalog.SectionIcon(section.Value, large: true),
 			_ => entry.Icon ?? CodexCatalog.SectionIcon(entry.Section, large: true),
 		};
@@ -713,16 +699,16 @@ public partial class CodexPopup : Popup {
 	};
 
 	private static ImageTexture BarTexture(BarColor color) {
-		string file = color switch {
-			BarColor.Blue => "bar-blue.pcx",
-			BarColor.Green => "bar-green.pcx",
-			BarColor.Grey => "bar-grey.pcx",
-			BarColor.Orange => "bar-orange.pcx",
-			BarColor.Purple => "bar-purple.pcx",
-			BarColor.Red => "bar-red.pcx",
-			_ => "bar-yello.pcx",
+		string name = color switch {
+			BarColor.Blue => "blue",
+			BarColor.Green => "green",
+			BarColor.Grey => "grey",
+			BarColor.Orange => "orange",
+			BarColor.Purple => "purple",
+			BarColor.Red => "red",
+			_ => "yellow",
 		};
-		return LoadArt("Art/Civilopedia/" + file);
+		return TryLoadTexture("codex.name_bars." + name);
 	}
 
 	private static Color BarFallbackColor(BarColor color) => color switch {
@@ -765,27 +751,23 @@ public partial class CodexPopup : Popup {
 	}
 
 	private bool TrySetPediaBackground() {
-		try {
-			ImageTexture background = TextureLoader.Load("civilopedia_screen.background");
-			if (background == null) {
-				return false;
-			}
-
-			TextureRect art = new() {
-				Texture = background,
-				ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-				StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-				SizeFlagsHorizontal = SizeFlags.ExpandFill,
-				SizeFlagsVertical = SizeFlags.ExpandFill,
-				MouseFilter = MouseFilterEnum.Ignore,
-			};
-			art.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-			AddChild(art);
-			MoveChild(art, 0);
-			return true;
-		} catch (Exception) {
+		ImageTexture background = TryLoadTexture("codex.background");
+		if (background == null) {
 			return false;
 		}
+
+		TextureRect art = new() {
+			Texture = background,
+			ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+			StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+			SizeFlagsHorizontal = SizeFlags.ExpandFill,
+			SizeFlagsVertical = SizeFlags.ExpandFill,
+			MouseFilter = MouseFilterEnum.Ignore,
+		};
+		art.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
+		AddChild(art);
+		MoveChild(art, 0);
+		return true;
 	}
 
 	private void Close() {
