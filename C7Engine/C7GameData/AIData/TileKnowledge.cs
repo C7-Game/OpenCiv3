@@ -105,7 +105,7 @@ namespace C7GameData {
 				if (innerRingNeighbor == Tile.NONE) {
 					continue;
 				}
-				result.Add(innerRingNeighbor);
+				AddIfNew(result, innerRingNeighbor);
 				int innerHeight = innerRingNeighbor.overlayTerrainType.height;
 
 				foreach (var (outerTileDirection, outerRingNeighbor) in innerRingNeighbor.neighbors) {
@@ -143,12 +143,12 @@ namespace C7GameData {
 					// but land tiles "block" any tiles that are in their line of sight
 
 					if ((outerRingNeighbor.IsWater() && !innerRingNeighbor.IsLand())) {
-						result.Add(outerRingNeighbor);
+						AddIfNew(result, outerRingNeighbor);
 						continue;
 					}
 
 					if ((outerRingNeighbor.IsLand() && innerRingNeighbor.IsWater())) {
-						result.Add(outerRingNeighbor);
+						AddIfNew(result, outerRingNeighbor);
 						continue;
 					}
 
@@ -157,7 +157,7 @@ namespace C7GameData {
 					// outer tile (so you can see mountains over hills, but
 					// not hills over forest).
 					if (outerHeight >= 2 && innerHeight + 2 <= outerHeight) {
-						result.Add(outerRingNeighbor);
+						AddIfNew(result, outerRingNeighbor);
 						continue;
 					}
 
@@ -165,12 +165,18 @@ namespace C7GameData {
 					// you are standing, as long as the tile in the middle has
 					// height at least 2 lower than you.
 					if (outerHeight + 1 <= unitHeight && innerHeight + 2 <= unitHeight) {
-						result.Add(outerRingNeighbor);
+						AddIfNew(result, outerRingNeighbor);
 						continue;
 					}
 				}
 			}
 			return result;
+		}
+
+		static void AddIfNew(List<Tile> list, Tile tile) {
+			if (!list.Contains(tile)) {
+				list.Add(tile);
+			}
 		}
 
 		// neighboring tiles should not be added when loading tile knowledge
@@ -263,4 +269,3 @@ namespace C7GameData {
 		}
 	}
 }
-
