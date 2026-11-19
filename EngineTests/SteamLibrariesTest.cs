@@ -108,6 +108,29 @@ namespace EngineTests {
 			Assert.Empty(SteamInstallFinder.RootsContainingSteamApps(baseDir));
 		}
 
+		[Fact]
+		public void Civ3HomeEnvVar_MustPointAtRealCiv3Folder() {
+			string original = Environment.GetEnvironmentVariable("CIV3_HOME");
+			string baseDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
+			try {
+				// a folder without civ3id.mb is not an install, so the env var
+				// must not short-circuit the remaining searches
+				string notCiv3 = Path.Combine(baseDir, "not-civ3");
+				Directory.CreateDirectory(notCiv3);
+				Environment.SetEnvironmentVariable("CIV3_HOME", notCiv3);
+				Assert.NotEqual(notCiv3, Civ3Location.GetCiv3Path());
+
+				// a folder with civ3id.mb is used as before
+				string civ3 = Path.Combine(baseDir, "civ3");
+				Directory.CreateDirectory(civ3);
+				File.WriteAllText(Path.Combine(civ3, "civ3id.mb"), "");
+				Environment.SetEnvironmentVariable("CIV3_HOME", civ3);
+				Assert.Equal(civ3, Civ3Location.GetCiv3Path());
+			} finally {
+				Environment.SetEnvironmentVariable("CIV3_HOME", original);
+			}
+		}
+
 		private static string MakeSteamRoot(string libraryFoldersVdf, string configVdf) {
 			string root = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
 			if (libraryFoldersVdf != null) {

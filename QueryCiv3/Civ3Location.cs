@@ -45,14 +45,23 @@ public class Civ3Location {
 		}
 
 		/// <summary>
-		/// Use CIV3_HOME env var if present
+		/// Use CIV3_HOME env var if present, but only if it actually points at a
+		/// Civ3 install. A stale or unrelated path (e.g. a dev checkout) falls
+		/// through to the registry and Steam searches instead of short-circuiting
+		/// them with a folder that has no game data.
 		/// </summary>
 		public static bool Find(out string civ3Path) {
 			civ3Path = null;
 
 			string envPath = Environment.GetEnvironmentVariable("CIV3_HOME");
-			if (envPath != null) {
-				civ3Path = GetExpandedPath(envPath);
+			if (string.IsNullOrEmpty(envPath)) {
+				return false;
+			}
+
+			string expanded = GetExpandedPath(envPath);
+			var dir = new DirectoryInfo(expanded);
+			if (dir.Exists && Civ3Location.FolderIsCiv3(dir)) {
+				civ3Path = expanded;
 				return true;
 			}
 
