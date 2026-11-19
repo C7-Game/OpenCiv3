@@ -86,7 +86,7 @@ namespace C7GameData {
 		public List<Tile> GetTilesVisibleToUnit(Tile unitLocation) {
 			// TODO: Make visibility configurable in game rules
 			// Space for current tile, 8 inner ring tiles, 16 outer ring tiles
-			List<Tile> result = new(25);
+			HashSet<Tile> result = [];
 			result.Add(unitLocation);
 			int unitHeight = unitLocation.overlayTerrainType.height;
 
@@ -97,8 +97,8 @@ namespace C7GameData {
 			// TODO: currently this checks for any unit on the tile with radar, not if it's the player's
 			var anyRadarUnits = unitLocation.unitsOnTile.Any(u => u.unitType.hasRadar);
 			if (anyRadarUnits) {
-				result.AddRange(unitLocation.GetTilesWithinTileSquare(rules.RadarTileVisibility).Where(Tile.IsTileValid).ToList());
-				return result;
+				result.UnionWith(unitLocation.GetTilesWithinTileSquare(rules.RadarTileVisibility).Where(Tile.IsTileValid));
+				return [..result];
 			}
 
 			foreach (var (innerTileDirection, innerRingNeighbor) in unitLocation.neighbors) {
@@ -170,7 +170,7 @@ namespace C7GameData {
 					}
 				}
 			}
-			return result;
+			return [..result];
 		}
 
 		// neighboring tiles should not be added when loading tile knowledge
@@ -263,4 +263,3 @@ namespace C7GameData {
 		}
 	}
 }
-
