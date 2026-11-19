@@ -86,7 +86,7 @@ namespace C7GameData {
 		public List<Tile> GetTilesVisibleToUnit(Tile unitLocation) {
 			// TODO: Make visibility configurable in game rules
 			// Space for current tile, 8 inner ring tiles, 16 outer ring tiles
-			List<Tile> result = new(25);
+			HashSet<Tile> result = [];
 			result.Add(unitLocation);
 			int unitHeight = unitLocation.overlayTerrainType.height;
 
@@ -97,15 +97,15 @@ namespace C7GameData {
 			// TODO: currently this checks for any unit on the tile with radar, not if it's the player's
 			var anyRadarUnits = unitLocation.unitsOnTile.Any(u => u.unitType.hasRadar);
 			if (anyRadarUnits) {
-				result.AddRange(unitLocation.GetTilesWithinTileSquare(rules.RadarTileVisibility).Where(Tile.IsTileValid).ToList());
-				return result;
+				result.UnionWith(unitLocation.GetTilesWithinTileSquare(rules.RadarTileVisibility).Where(Tile.IsTileValid));
+				return [..result];
 			}
 
 			foreach (var (innerTileDirection, innerRingNeighbor) in unitLocation.neighbors) {
 				if (innerRingNeighbor == Tile.NONE) {
 					continue;
 				}
-				AddIfNew(result, innerRingNeighbor);
+				result.Add(innerRingNeighbor);
 				int innerHeight = innerRingNeighbor.overlayTerrainType.height;
 
 				foreach (var (outerTileDirection, outerRingNeighbor) in innerRingNeighbor.neighbors) {
@@ -143,12 +143,12 @@ namespace C7GameData {
 					// but land tiles "block" any tiles that are in their line of sight
 
 					if ((outerRingNeighbor.IsWater() && !innerRingNeighbor.IsLand())) {
-						AddIfNew(result, outerRingNeighbor);
+						result.Add(outerRingNeighbor);
 						continue;
 					}
 
 					if ((outerRingNeighbor.IsLand() && innerRingNeighbor.IsWater())) {
-						AddIfNew(result, outerRingNeighbor);
+						result.Add(outerRingNeighbor);
 						continue;
 					}
 
@@ -157,7 +157,7 @@ namespace C7GameData {
 					// outer tile (so you can see mountains over hills, but
 					// not hills over forest).
 					if (outerHeight >= 2 && innerHeight + 2 <= outerHeight) {
-						AddIfNew(result, outerRingNeighbor);
+						result.Add(outerRingNeighbor);
 						continue;
 					}
 
@@ -165,18 +165,12 @@ namespace C7GameData {
 					// you are standing, as long as the tile in the middle has
 					// height at least 2 lower than you.
 					if (outerHeight + 1 <= unitHeight && innerHeight + 2 <= unitHeight) {
-						AddIfNew(result, outerRingNeighbor);
+						result.Add(outerRingNeighbor);
 						continue;
 					}
 				}
 			}
-			return result;
-		}
-
-		static void AddIfNew(List<Tile> list, Tile tile) {
-			if (!list.Contains(tile)) {
-				list.Add(tile);
-			}
+			return [..result];
 		}
 
 		// neighboring tiles should not be added when loading tile knowledge
