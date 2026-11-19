@@ -132,6 +132,7 @@ namespace C7GameData.Save {
 
 			data.luaBehaviorEngine = behaviors;
 			data.gameModeConfig = GameModeConfig;
+			data.LoadAgeBonusFunction(behaviors);
 
 			ConvertTerrainImprovements(data);
 			ConvertTerraforms(data);
@@ -419,7 +420,7 @@ namespace C7GameData.Save {
 		private void ConvertCities(GameData data) {
 			// cities require game map for location and players for city owner
 			data.cities = Cities.ConvertAll(city =>
-				city.ToCity(data.map, data.players, data.unitPrototypes, Civilizations, data.Buildings, CitizenTypes, data.Inflows)
+				city.ToCity(data.map, data.players, data.unitPrototypes, Civilizations, data.Buildings, CitizenTypes, data.Inflows, data.turn)
 			);
 
 			// add references to map tiles after units and cities are defined
@@ -433,6 +434,10 @@ namespace C7GameData.Save {
 			foreach (City city in data.cities) {
 				data.map.tileAt(city.location.XCoordinate, city.location.YCoordinate).cityAtTile = city;
 			}
+
+			// Culture per turn is derived from the building types and the age
+			// bonus, so recalculate it instead of loading saved values.
+			data.cities.ForEach(city => city.UpdateAgeBonuses());
 		}
 
 		private void ConvertBarbarianInfo(GameData data) {

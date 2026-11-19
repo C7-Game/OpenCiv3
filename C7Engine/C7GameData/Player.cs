@@ -796,6 +796,7 @@ namespace C7GameData {
 
 		public void HandleCityUpdates(GameData gameData) {
 			foreach (City c in cities) {
+				c.UpdateAgeBonuses();
 				// Ensure borders expand before we assign the new citizen, so that
 				// the new citizen can go on one of our new tiles.
 				if (c.UpdateCultureAndCheckForExpansion()) {

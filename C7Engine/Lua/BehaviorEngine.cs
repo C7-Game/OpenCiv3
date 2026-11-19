@@ -52,6 +52,43 @@ public class BehaviorEngine {
 		return (T)(object)del;
 	}
 
+	/// <summary>
+	/// Loads a Lua function from a rules table by a given path, if the path
+	/// resolves to a function. Returns false and leaves func null when the
+	/// path does not exist, so callers can make a function optional.
+	/// </summary>
+	public bool TryImportFunc<T>(string functionPath, out T func) where T : Delegate {
+		if (string.IsNullOrEmpty(functionPath)) {
+			func = null;
+			return false;
+		}
+
+		if (funcCache.TryGetValue(functionPath, out Delegate cachedFunc)) {
+			func = (T)(object)cachedFunc;
+			return true;
+		}
+
+		if (script == null || rules == null) {
+			func = null;
+			return false;
+		}
+
+		Closure closure;
+		try {
+			closure = ResolveFunctionPath(functionPath);
+		} catch (ArgumentException) {
+			func = null;
+			return false;
+		}
+
+		Delegate del = DelegateConverter.CreateDelegate(script, closure, typeof(T));
+
+		funcCache[functionPath] = del;
+
+		func = (T)(object)del;
+		return true;
+	}
+
 	Closure ResolveFunctionPath(string functionPath) {
 		string[] parts = functionPath.Split('.');
 		Table current = rules;

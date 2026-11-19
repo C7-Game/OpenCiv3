@@ -1299,7 +1299,6 @@ namespace C7GameData {
 					res.Add(new SaveCityBuilding {
 						building = theBiq.Bldg[buildingIndex].Name,
 						builtByPlayer = save.Players[building.BuiltByPlayer].id,
-						year = building.Year,
 						totalCulture = building.Culture,
 					});
 
@@ -1323,7 +1322,7 @@ namespace C7GameData {
 				res.Add(new SaveCityBuilding {
 					building = building.Name,
 					builtByPlayer = player,
-					year = 0,
+					turnBuilt = 0,
 					totalCulture = 0,
 				});
 
