@@ -165,6 +165,14 @@ namespace C7GameData {
 			return result;
 		}
 
+		// Per-building culture and commerce for the City screen indicators.
+		// Commerce is negative when the building costs gold (maintenance).
+		public IEnumerable<(Building building, int commerce, int culture)> GetPerBuildingYields() {
+			foreach (CityBuilding cb in GetBuildings()) {
+				yield return (cb.building, -cb.building.maintenanceCost, cb.building.culturePerTurn);
+			}
+		}
+
 		public IEnumerable<IProducible> ListProductionOptions(GameData gameData) {
 			HashSet<Resource> accessibleResources = GetAccessibleResources(gameData);
 
