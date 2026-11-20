@@ -383,9 +383,21 @@ public partial class CityScreen : Control {
 			row.AddChild(new Label() {
 				Text = building.name
 			});
-			row.AddChild(new Label() {
-				Text = $"{commerce} gold {culture} cul"
-			});
+
+			List<string> yieldTexts = new();
+			if (commerce != 0) {
+				yieldTexts.Add($"{commerce} gold");
+			}
+			if (culture != 0) {
+				yieldTexts.Add($"{culture} cul");
+			}
+			if (yieldTexts.Count > 0) {
+				row.AddChild(new Label() {
+					Text = string.Join(" ", yieldTexts),
+					HorizontalAlignment = HorizontalAlignment.Right,
+					SizeFlagsHorizontal = SizeFlags.ExpandFill
+				});
+			}
 			existingBuildings.AddChild(row);
 		}
 	}
