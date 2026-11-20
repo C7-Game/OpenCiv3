@@ -110,5 +110,10 @@ namespace C7GameData {
 		public override void Write(Utf8JsonWriter writer, ID id, JsonSerializerOptions options) => writer.WriteStringValue(id.ToString());
 
 		public override ID Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => ID.FromString(reader.GetString());
+
+		// Lets IDs be used as dictionary keys in saves.
+		public override void WriteAsPropertyName(Utf8JsonWriter writer, ID id, JsonSerializerOptions options) => writer.WritePropertyName(id.ToString());
+
+		public override ID ReadAsPropertyName(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => ID.FromString(reader.GetString());
 	}
 }
