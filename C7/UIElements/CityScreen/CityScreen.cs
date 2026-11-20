@@ -303,7 +303,7 @@ public partial class CityScreen : Control {
 		RenderFoodDetails(city.Value);
 		RenderCommerceDetails(city.Value);
 		RenderProductionDetails(gameData, city.Value);
-		RenderExistingBuildings(city.Value.GetBuildings());
+		RenderExistingBuildings(city.Value);
 		RenderStrategicResources(gameData, city.Value);
 		RenderLuxuries(gameData, city.Value);
 		EmitSignal(SignalName.CityScreenEntered, new ParameterWrapper<City>(lastInspectedCity));
@@ -373,16 +373,32 @@ public partial class CityScreen : Control {
 		}
 	}
 
-	private void RenderExistingBuildings(List<CityBuilding> buildings) {
+	private void RenderExistingBuildings(City city) {
 		foreach (var node in existingBuildings.GetChildren()) {
 			existingBuildings.RemoveChild(node);
 		}
 
-		foreach (CityBuilding building in buildings) {
-			Label label = new() {
-				Text = building.building.name
-			};
-			existingBuildings.AddChild(label);
+		foreach ((Building building, int commerce, int culture) in city.GetPerBuildingYields()) {
+			HBoxContainer row = new();
+			row.AddChild(new Label() {
+				Text = building.name
+			});
+
+			List<string> yieldTexts = new();
+			if (commerce != 0) {
+				yieldTexts.Add($"{commerce} gold");
+			}
+			if (culture != 0) {
+				yieldTexts.Add($"{culture} cul");
+			}
+			if (yieldTexts.Count > 0) {
+				row.AddChild(new Label() {
+					Text = string.Join(" ", yieldTexts),
+					HorizontalAlignment = HorizontalAlignment.Right,
+					SizeFlagsHorizontal = SizeFlags.ExpandFill
+				});
+			}
+			existingBuildings.AddChild(row);
 		}
 	}
 
