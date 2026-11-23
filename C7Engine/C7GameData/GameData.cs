@@ -352,7 +352,7 @@ namespace C7GameData {
 				CheckForCivDestructionAndNotifyUi(unit.owner);
 		}
 
-		internal void SpawnUnit(Player player, UnitPrototype proto, Tile tile) {
+		internal MapUnit SpawnUnit(Player player, UnitPrototype proto, Tile tile) {
 			// TODO: consolidate unit spawning routines (here)
 
 			var defaultExpLevel = this.defaultExperienceLevel;
@@ -370,6 +370,8 @@ namespace C7GameData {
 
 			log.Debug("New unit of type {type} added at {tile} for player {player}",
 				proto.name, tile, player);
+
+			return newUnit;
 		}
 
 		public int TechCostFor(Tech tech, Player player) {

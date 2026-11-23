@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using C7Engine.Lua;
 using C7GameData;
 using C7GameData.Save;
 using Serilog;
@@ -25,6 +26,10 @@ public class GameSetup {
 	public List<SelectedOpponent> opponents { get; init; } = [];
 	public VictoryConditions victoryConditions { get; set; }
 
+	// The game mode's Lua behaviors, for the scripted map-generation steps
+	// (goody huts). Those steps are skipped when this is null.
+	public BehaviorEngine behaviors { get; init; }
+
 	ID.Factory ids;
 
 	public void Populate(SaveGame save) {
@@ -33,7 +38,7 @@ public class GameSetup {
 		save.VictoryConditions = victoryConditions;
 
 		save.WorldCharacteristics = worldCharacteristics;
-		MapGeneratorData generatorData = new(save);
+		MapGeneratorData generatorData = new(save) { behaviors = behaviors };
 
 		if (save.Map.tiles.Count == 0) {
 			log.Information("Starting map generation");

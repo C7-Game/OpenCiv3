@@ -31,7 +31,8 @@ public class SaveGameFixture : IDisposable {
 	}
 
 	private static SaveGame LoadSave(GameMode.Config gameModeConfig) {
-		SaveGame save = LoadGameMode(gameModeConfig).GetSave();
+		GameMode gameMode = LoadGameMode(gameModeConfig);
+		SaveGame save = gameMode.GetSave();
 
 		WorldSize worldSize = new() {
 			width = 100,
@@ -59,7 +60,8 @@ public class SaveGameFixture : IDisposable {
 			difficulty = save.Difficulties.First(),
 			worldCharacteristics = wc,
 			opponents = Enumerable.Repeat(new SelectedOpponent() { isRandom = true }, worldSize.numberOfCivs - 1).ToList(),
-			victoryConditions = new VictoryConditions()
+			victoryConditions = new VictoryConditions(),
+			behaviors = gameMode.behaviors,
 		};
 
 		gameSetup.Populate(save);

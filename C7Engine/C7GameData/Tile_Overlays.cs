@@ -154,6 +154,7 @@ public partial class Tile {
 					 && i.layer != Layer.Pollution
 					 && i.layer != Layer.Ruins
 					 && i.layer != Layer.BarbarianCamp
+					 && i.layer != Layer.GoodyHut
 				);
 		}
 		public IEnumerable<TerrainImprovement> GetEffectImprovements() {
@@ -162,6 +163,7 @@ public partial class Tile {
 					 || i.layer == Layer.Pollution
 					 || i.layer == Layer.Ruins
 					 || i.layer == Layer.BarbarianCamp
+					 || i.layer == Layer.GoodyHut
 			);
 		}
 

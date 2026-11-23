@@ -245,5 +245,10 @@ internal class ScriptInitializer {
 
 	static void RegisterGlobals(Script script) {
 		script.Globals["GAME_DATA"] = () => DynValue.FromObject(script, EngineStorage.gameData);
+
+		// RNG(n) returns an integer in [0, n) from the game's RNG. Gameplay
+		// scripts must use this instead of math.random, so that results stay
+		// reproducible from the game seed.
+		script.Globals["RNG"] = (Func<int, int>)(maxExclusive => C7GameData.GameData.rng.Next(maxExclusive));
 	}
 }

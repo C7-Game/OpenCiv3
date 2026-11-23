@@ -71,6 +71,32 @@ terrain.barbarian_camp = {
   shadows = false,
 }
 
+-- goodyhuts.pcx is a 3x3 grid of 128x64 sprites holding 8 hut variants
+-- (the last cell is empty).
+terrain.goody_hut = {
+  extra_data = {
+    path = TERRAIN .. "goodyhuts.pcx",
+    variants = 8,
+    columns = 3,
+  },
+}
+
+function terrain.goody_hut:map_object_to_sprite(_)
+  -- The variant is purely cosmetic, so it is picked at random and does not
+  -- need to be reproducible from the seed (math.random is fine here, unlike
+  -- in gameplay scripts). MapView caches the texture per tile, so a hut
+  -- keeps the same look for the rest of the session; it may change after
+  -- reloading a save.
+  local variant = math.random(0, self.extra_data.variants - 1)
+  local column = variant % self.extra_data.columns
+  local row = math.floor(variant / self.extra_data.columns)
+
+  return {
+    path = self.extra_data.path,
+    crop_region = { column * 128, row * 64, 128, 64 },
+  }
+end
+
 terrain.marsh = {
   large = {
     path = TERRAIN .. "marsh.pcx",

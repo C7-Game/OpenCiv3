@@ -298,7 +298,8 @@ public partial class PlayerSetup : Control {
 			difficulty = selectedDifficulty,
 			worldCharacteristics = global.WorldCharacteristics,
 			opponents = opponents,
-			victoryConditions = victoryConditions
+			victoryConditions = victoryConditions,
+			behaviors = global.GameMode.behaviors,
 		};
 
 		PersistGameSettings(gameSetup);

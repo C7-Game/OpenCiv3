@@ -43,7 +43,8 @@ public partial class QuickStartSetup : Node {
 			difficulty = difficulty,
 			worldCharacteristics = global.WorldCharacteristics,
 			opponents = opponents,
-			victoryConditions = VictoryConditions.FromSettings()
+			victoryConditions = VictoryConditions.FromSettings(),
+			behaviors = game.behaviors,
 		};
 
 		gameSetup.Populate(save);

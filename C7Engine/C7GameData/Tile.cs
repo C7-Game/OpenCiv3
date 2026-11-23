@@ -49,6 +49,10 @@ namespace C7GameData {
 			return HasCity(out _);
 		}
 
+		public bool HasResource() {
+			return Resource != null && Resource != Resource.NONE;
+		}
+
 		private City _cityAtTile;
 		public City cityAtTile {
 			get => _cityAtTile;
@@ -355,6 +359,11 @@ namespace C7GameData {
 
 		public bool HasBarbarianCamp() {
 			return overlays.terrainImprovementByLayer.ContainsKey(Layer.BarbarianCamp);
+		}
+
+		// A goody hut ("tribal village") that a unit can pop by entering the tile.
+		public bool HasGoodyHut() {
+			return overlays.terrainImprovementByLayer.ContainsKey(Layer.GoodyHut);
 		}
 
 		public bool IsMountains() {
