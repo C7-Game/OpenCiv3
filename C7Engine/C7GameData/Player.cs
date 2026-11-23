@@ -142,6 +142,12 @@ namespace C7GameData {
 			}
 		}
 
+		// -1 if GA has not yet started, otherwise turn on which this player's GA ends
+		public int goldenAgeEnds = -1;
+		public bool HasHadGA => goldenAgeEnds > 0;
+		public bool IsInGA => HasHadGA && EngineStorage.gameData.turn < goldenAgeEnds;
+		public bool GAHasEnded => EngineStorage.gameData.turn == goldenAgeEnds;
+
 		private int lastGoldPerTurn = 0;
 
 		/// <summary>

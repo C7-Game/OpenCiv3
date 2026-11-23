@@ -65,6 +65,9 @@ namespace C7GameData.Save {
 		// to true), the turn number at which switching governments is allowed.
 		public int inAnarchyUntilTurn = 0;
 
+		// -1 if this player has not yet had a golden age, otherwise the turn on which it ends.
+		public int goldenAgeEnds = -1;
+
 		// The current government of the player.
 		public ID governmentId;
 
@@ -96,7 +99,8 @@ namespace C7GameData.Save {
 				gold = gold,
 				turnsUntilPriorityReevaluation = turnsUntilPriorityReevaluation,
 				inAnarchyUntilTurn = inAnarchyUntilTurn,
-				government = governments.Find(x => x.id == governmentId),
+				goldenAgeEnds = goldenAgeEnds,
+				government =governments.Find(x => x.id == governmentId),
 				rules = rules,
 			};
 			foreach (TileLocation tile in tileKnowledge) {
@@ -164,6 +168,7 @@ namespace C7GameData.Save {
 			beakers = player.beakers;
 			turnsResearched = player.turnsResearched;
 			inAnarchyUntilTurn = player.inAnarchyUntilTurn;
+			goldenAgeEnds = player.goldenAgeEnds;
 			governmentId = player.government.id;
 
 			foreach (KeyValuePair<ID, PlayerRelationship> keyValuePair in player.playerRelationships) {

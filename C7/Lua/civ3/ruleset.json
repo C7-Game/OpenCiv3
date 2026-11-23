@@ -11478,6 +11478,11 @@
     "city": 2
   },
   "rules": {
+    "goldenAgeDuration": 20,
+    "goldenAgeBonuses": {
+      "shields": 1,
+      "commerce": 1
+    },
     "maximumResearchTime": 50,
     "minimumResearchTime": 4,
     "shieldValueInGold": 4,
