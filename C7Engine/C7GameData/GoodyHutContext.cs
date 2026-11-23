@@ -143,10 +143,11 @@ public class GoodyHutContext {
 	public void GrantTech(Tech tech)
 		=> player.AcquireTechs(gameData, new List<Tech> { tech });
 
-	/// Shows a message to the player who popped the hut, if they are human.
-	public void Notify(string message) {
+	/// Shows an outcome's message to the player who popped the hut, if they
+	/// are human. The UI decides how to present it.
+	public void Notify(string outcome, string message) {
 		if (player.isHuman) {
-			new MsgShowTemporaryPopup(player.id, message, tile).send();
+			new MsgGoodyHutPopped(player.id, tile, outcome, message).send();
 		}
 	}
 }

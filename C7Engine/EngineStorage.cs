@@ -52,6 +52,10 @@ namespace C7Engine {
 			return pendingAnimations.Count > 0;
 		}
 
+		public static bool HasPendingMessagesToUI() {
+			return messagesToUI.Count > 0;
+		}
+
 		public static bool TryDequeueNextMessageToUI(out MessageToUI message) {
 			if (messagesToUI.Count > 0) {
 				message = messagesToUI.Dequeue();

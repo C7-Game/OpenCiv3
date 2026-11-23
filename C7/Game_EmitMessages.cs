@@ -289,6 +289,27 @@ public partial class Game {
 		));
 	}
 
+	public void EmitGoodyHutPoppedSignal(MsgGoodyHutPopped msg) {
+		// We only get a blocking modal for popping a tech
+		if (msg.outcome != "tech") {
+			TemporaryPopup.Show(this.mapView, this, msg.message, msg.location);
+			// Give the player a moment to read it before moving to the next unit.
+			unitSelector.HoldAutoselect(1.0);
+			return;
+		}
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				$"{Advisor.Science} Advisor",
+				msg.message,
+				Advisor.Science,
+				Mood.Happy,
+				350
+			)
+		));
+	}
+
 	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
 		var disposition = Mood.Sad;
 		EngineStorage.ReadGameData(data => {

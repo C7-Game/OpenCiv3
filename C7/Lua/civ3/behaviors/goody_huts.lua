@@ -255,7 +255,7 @@ goody_huts.outcomes.gold = {
       amount = config.late_amount
     end
     context:GiveGold(amount)
-    context:Notify(string.format(goody_huts.config.messages.gold, amount))
+    context:Notify("gold", string.format(goody_huts.config.messages.gold, amount))
   end,
 }
 
@@ -275,7 +275,7 @@ goody_huts.outcomes.maps = {
       end
     end
 
-    context:Notify(goody_huts.config.messages.maps)
+    context:Notify("maps", goody_huts.config.messages.maps)
   end,
 }
 
@@ -302,7 +302,7 @@ goody_huts.outcomes.city = {
       context:AddCitizens(city, RNG(config.max_extra_citizens + 1))
     end
 
-    context:Notify(string.format(goody_huts.config.messages.city, city.name))
+    context:Notify("city", string.format(goody_huts.config.messages.city, city.name))
   end,
 }
 
@@ -311,7 +311,7 @@ goody_huts.outcomes.nothing = {
     return true
   end,
   apply = function(context)
-    context:Notify(goody_huts.config.messages.nothing)
+    context:Notify("nothing", goody_huts.config.messages.nothing)
   end,
 }
 
@@ -322,7 +322,7 @@ goody_huts.outcomes.settlers = {
   end,
   apply = function(context)
     context:SpawnUnit(context.player, goody_huts.config.pop.settlers.unit, context.tile)
-    context:Notify(goody_huts.config.messages.settlers)
+    context:Notify("settlers", goody_huts.config.messages.settlers)
   end,
 }
 
@@ -340,7 +340,7 @@ goody_huts.outcomes.mercenaries = {
   end,
   apply = function(context)
     context:SpawnUnitOfType(context.player, mercenary_type(context), context.tile)
-    context:Notify(goody_huts.config.messages.mercenaries)
+    context:Notify("mercenaries", goody_huts.config.messages.mercenaries)
   end,
 }
 
@@ -363,7 +363,7 @@ goody_huts.outcomes.tech = {
     end
 
     context:GrantTech(best)
-    context:Notify(string.format(goody_huts.config.messages.tech, best.Name))
+    context:Notify("tech", string.format(goody_huts.config.messages.tech, best.Name))
   end,
 }
 
@@ -407,7 +407,7 @@ goody_huts.outcomes.barbarians = {
       end
     end
 
-    context:Notify(goody_huts.config.messages.barbarians)
+    context:Notify("barbarians", goody_huts.config.messages.barbarians)
   end,
 }
 

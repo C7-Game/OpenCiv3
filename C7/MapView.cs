@@ -239,6 +239,16 @@ public partial class MapView : Node2D {
 	// which we don't want because it distorts textures like the LED movement indicators which are only 6x6 pixels.
 	// We also don't want to be snapping all the time, as we want to keep smooth panning.
 	public void setCameraLocation(Vector2 location, CameraPosition cameraPosition = CameraPosition.Relative, CameraSnap cameraSnap = CameraSnap.Off) {
+		location = constrainCameraLocation(location, cameraPosition, cameraSnap);
+
+		internalCameraLocation = location;
+		foreach (LooseView looseView in looseViews) {
+			looseView.Position = -location;
+		}
+	}
+
+	// Returns where the camera actually ends up when asked to move to location.
+	private Vector2 constrainCameraLocation(Vector2 location, CameraPosition cameraPosition, CameraSnap cameraSnap) {
 		// Prevent the camera from moving beyond an unwrapped edge of the map. One complication here is that the viewport might actually be
 		// larger than the map (if we're zoomed far out) so in that case we must apply the constraint the other way around, i.e. constrain the
 		// map to the viewport rather than the viewport to the map.
@@ -284,10 +294,7 @@ public partial class MapView : Node2D {
 			location = location.Round();
 		}
 
-		internalCameraLocation = location;
-		foreach (LooseView looseView in looseViews) {
-			looseView.Position = -location;
-		}
+		return location;
 	}
 
 	public Vector2 screenLocationOfTileCoords(int X, int Y, bool center = true) {
@@ -344,8 +351,19 @@ public partial class MapView : Node2D {
 	}
 
 	public void centerCameraOnTile(Tile t, CameraPosition cameraPosition = CameraPosition.Relative, CameraSnap cameraSnap = CameraSnap.On) {
+		setCameraLocation(cameraTargetForTile(t), cameraPosition, cameraSnap);
+	}
+
+	// Whether centerCameraOnTile would actually move the camera. Near the
+	// map edges the camera is clamped, so it may stay where it is.
+	public bool wouldCenteringMoveCamera(Tile t) {
+		Vector2 target = constrainCameraLocation(cameraTargetForTile(t), CameraPosition.Relative, CameraSnap.On);
+		return target.DistanceTo(cameraLocation) >= 1;
+	}
+
+	private Vector2 cameraTargetForTile(Tile t) {
 		var tileCenter = new Vector2(t.XCoordinate + 1, t.YCoordinate + 1) * scaledCellSize;
-		setCameraLocation(tileCenter - 0.5f * getVisibleAreaSize(), cameraPosition, cameraSnap);
+		return tileCenter - 0.5f * getVisibleAreaSize();
 	}
 
 	public void OnCenterCameraOnUnit() {

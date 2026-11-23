@@ -385,6 +385,10 @@ public partial class Game : Node {
 				if (mBCD.controllerId == controller.id)
 					this.EmitBarbarianCampDispersedSignal(mBCD);
 				break;
+			case MsgGoodyHutPopped mGHP:
+				if (mGHP.controllerId == controller.id)
+					this.EmitGoodyHutPoppedSignal(mGHP);
+				break;
 			case MsgPlayerDefeated mPD:
 				this.EmitDefeatSignal(mPD.playerId);
 				InterestingEvent();
@@ -503,13 +507,19 @@ public partial class Game : Node {
 
 	// If "location" is not already near the center of the screen, moves the camera to bring it into view.
 	public void ensureLocationIsInView(Tile location) {
+		if (WouldMoveCameraTo(location))
+			mapView.centerCameraOnTile(location);
+	}
+
+	// Whether ensureLocationIsInView would move the camera to show the tile.
+	public bool WouldMoveCameraTo(Tile location) {
 		if (EngineStorage.gameData.observerMode)
-			return;
-		if (controller.tileKnowledge.isActiveTile(location) && location != Tile.NONE) {
-			Vector2 relativeScreenLocation = mapView.screenLocationOfTile(location, true) / mapView.getVisibleAreaSize();
-			if (relativeScreenLocation.DistanceTo(new Vector2((float)0.5, (float)0.5)) > 0.30)
-				mapView.centerCameraOnTile(location);
-		}
+			return false;
+		if (!controller.tileKnowledge.isActiveTile(location) || location == Tile.NONE)
+			return false;
+		Vector2 relativeScreenLocation = mapView.screenLocationOfTile(location, true) / mapView.getVisibleAreaSize();
+		return relativeScreenLocation.DistanceTo(new Vector2((float)0.5, (float)0.5)) > 0.30
+			&& mapView.wouldCenteringMoveCamera(location);
 	}
 
 	private void _onEndTurnButtonPressed() {
@@ -1072,7 +1082,7 @@ public partial class Game : Node {
 		}
 	}
 
-	private bool HasVisibleModal() {
+	public bool HasVisibleModal() {
 		if (popupOverlay.Visible || cityScreen.Visible || diplomacy.Visible)
 			return true;
 
@@ -1235,7 +1245,8 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.UnitWait) {
-			UnitInteractions.waitUnit(CurrentlySelectedUnit.id);
+			if (CurrentlySelectedUnit.movementPoints.canMove)
+				UnitInteractions.waitUnit(CurrentlySelectedUnit.id);
 			unitSelector.SetNextUnit();
 		}
 
