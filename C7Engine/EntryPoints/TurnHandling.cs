@@ -144,7 +144,7 @@ namespace C7Engine {
 			if (gameData.gameOver)
 				return; // Game is already over
 
-			List<Tuple<Player, IVictory>> winners = [];
+			List<(Player player, IVictory victory, VictoryStatus status)> winners = [];
 
 			foreach (Player player in gameData.players) {
 				if (player.isBarbarians || player.defeated)
@@ -153,32 +153,33 @@ namespace C7Engine {
 				foreach (IVictory victory in gameData.victories) {
 					VictoryStatus status = victory.Evaluate(player, gameData);
 					if (victory.HasVictory(status)) {
-						winners.Add(new Tuple<Player, IVictory>(player, victory));
+						winners.Add((player, victory, status));
 						break;
 					}
 				}
 			}
 
 			if (winners.Count == 1) {
-				DeclareVictory(winners[0].Item1, winners[0].Item2, gameData);
+				DeclareVictory(winners[0].player, winners[0].victory, winners[0].status, gameData);
 			} else if (winners.Count > 1) {
-				var topScoring = winners.OrderByDescending(pv => {
-					var player = pv.Item1;
-					HistTurnRecord lastTurn = gameData.history[player.id.ToString()].LastOrDefault();
+				var topScoring = winners.OrderByDescending(w => {
+					HistTurnRecord lastTurn = gameData.history[w.player.id.ToString()].LastOrDefault();
 					return lastTurn?.Score ?? 0;
 				}).First();
-				DeclareVictory(topScoring.Item1, topScoring.Item2, gameData);
+				DeclareVictory(topScoring.player, topScoring.victory, topScoring.status, gameData);
 			}
 		}
 
-		private static void DeclareVictory(Player winner, IVictory victory, GameData gameData) {
-			Log.Information("Player {Winner} has wone a {Victory} victory!",
-				winner, victory.Header());
+		private static void DeclareVictory(Player winner, IVictory victory, VictoryStatus status, GameData gameData) {
+			string detail = victory.Detail(status);
+			string detailSuffix = detail.Length == 0 ? "" : $" ({detail})";
+			Log.Information("Player {Winner} has won a {Victory} victory{Detail}!",
+				winner, victory.Header(), detailSuffix);
 
 			gameData.winner = winner;
 			gameData.gameOver = true;
 
-			new MsgVictory(winner, victory).send();
+			new MsgVictory(winner, victory, detail).send();
 		}
 	}
 }

@@ -731,8 +731,9 @@ public partial class Game {
 	}
 
 	private void EmitVictorySignal(MsgVictory msg) {
+		string detail = string.IsNullOrEmpty(msg.detail) ? "" : $" ({msg.detail})";
 		var endMsg =
-			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory!\n"
+			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory{detail}!\n"
 			+ "This game is over: No further score will be entered.\n\n";
 
 		var continueAction = controller.defeated ? "see how it plays out for" : "play";

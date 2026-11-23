@@ -8,5 +8,8 @@ public class VictoryStatus {
 	public int RivalsAlive { get; set; }
 	public float DominationArea { get; set; }
 	public float DominationPopulation { get; set; }
+	public int LargestCityCulture { get; set; }
+	public int TotalCulture { get; set; }
+	public int TopRivalCulture { get; set; }
 	public float Score { get; set; }
 }

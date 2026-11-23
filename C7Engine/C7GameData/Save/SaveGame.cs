@@ -199,6 +199,13 @@ namespace C7GameData.Save {
 				data.victories.Add(new ConquestVictory(rivalsAliveLimit: 0));
 			}
 
+			if (conditions.AllowCulturalVictory) {
+				string worldSizeName = data.worldCharacteristics?.worldSize?.name;
+				(int oneCityLimit, int allCitiesLimit) = CultureVictoryDefaults.EffectiveLimits(
+					conditions.OneCityCultureWin, conditions.AllCitiesCultureWin, worldSizeName);
+				data.victories.Add(new CultureVictory(oneCityLimit, allCitiesLimit, conditions.CultureVictoryRequiresDoubleLead));
+			}
+
 			// There is no "score victory", but we can treat score as if it were, so
 			// we can render the current score alongside the state of other conditions
 			data.victories.Add(new ScoreVictory());
