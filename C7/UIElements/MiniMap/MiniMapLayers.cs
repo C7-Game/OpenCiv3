@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using C7.Textures;
 using C7GameData;
