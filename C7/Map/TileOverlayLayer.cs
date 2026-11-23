@@ -85,6 +85,9 @@ public class TileOverlayLayer : LooseLayer {
 				case BARBARIAN_CAMP:
 					DrawBarbarianCamp(looseView, tile, tileCenter);
 					break;
+				case GOODY_HUT:
+					DrawGoodyHut(looseView, tile, tileCenter);
+					break;
 				default:
 					looseView.DrawTexture(TextureLoader.Load($"terrain_improvements.{ti.key}"), screenTarget.Position);
 					break;
@@ -204,6 +207,14 @@ public class TileOverlayLayer : LooseLayer {
 		} else {
 			looseView.DrawTextureRectRegion(cratersTexture, screenTarget, GetCratersRect(cratersIndex - 1, 2));
 		}
+	}
+
+	private void DrawGoodyHut(LooseView looseView, Tile tile, Vector2 tileCenter) {
+		if (!tile.HasGoodyHut()) return;
+		// Standalone mode has no hut art yet (see the TODO in standalone/textures.lua)
+		ImageTexture goodyHut = TextureLoader.Load("terrain.goody_hut", tile, useCache: true);
+		Rect2 screenRect = new(tileCenter - 0.5f * goodyHut.GetSize(), goodyHut.GetSize());
+		looseView.DrawTextureRect(goodyHut, screenRect, tile: false);
 	}
 
 	private void DrawBarbarianCamp(LooseView looseView, Tile tile, Vector2 tileCenter) {

@@ -15,6 +15,7 @@ namespace C7GameData {
 			Pollution,
 			Craters,
 			BarbarianCamp,
+			GoodyHut,
 		}
 
 		public readonly string key;

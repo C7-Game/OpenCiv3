@@ -9,4 +9,5 @@ return {
   terrain_improvements = require "behaviors.terrain_improvements",
   inflows = require "behaviors.inflows",
   gameplay = require "behaviors.gameplay",
+  goody_huts = require "behaviors.goody_huts",
 }

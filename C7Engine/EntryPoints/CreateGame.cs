@@ -37,6 +37,7 @@ public class CreateGame {
 
 		GameData gameData = save.ToGameData(behaviors);
 
+		EngineStorage.behaviors = behaviors;
 		EngineStorage.gameData = gameData;
 		EngineStorage.gameData.onGameCreation();
 

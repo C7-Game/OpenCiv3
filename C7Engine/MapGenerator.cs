@@ -138,12 +138,13 @@ namespace C7Engine {
 			// Tried placing barbs then players, but caused all players to spawn together
 			DetermineStartingLocations(mgd, gameMap);
 
-			// Step 11: Add barb camps. We do this towards the end to make sure
-			// that we don't have barb camps on top of resources.
-			// Previously step 10
+			// TODO: Consider removal with the barbarian camp overhaul. Civ3 never
+			// places camps during map generation; they only appear at runtime.
 			AddBarbarianCamps(mgd, gameMap);
 
-			// TODO: Goody huts, barbarian camps.
+			// Step 11: Add goody huts. Civ3 does this as the last real step of
+			// map generation, after resources, so huts avoid resource tiles.
+			AddGoodyHuts(mgd, gameMap);
 
 			// Last step: Assign the terrain file and image ids to each tile so
 			// we know which texture to use when displaying them.
@@ -1408,6 +1409,23 @@ namespace C7Engine {
 					log.Warning("Unknown Barbarian Activity at barb camps derivation.");
 					return totalCampsBaseline;
 			}
+		}
+
+		// The placement rules live in Lua ("goody_huts.placement.place" in the
+		// behaviors), so game modes and addons can change or replace them.
+		private static void AddGoodyHuts(MapGeneratorData mgd, GameMap m) {
+			if (EngineStorage.behaviors == null) {
+				log.Warning("No Lua behaviors are loaded; skipping goody hut placement.");
+				return;
+			}
+
+			Action<GoodyHutPlacementContext> place = EngineStorage.behaviors.ImportFunc<Action<GoodyHutPlacementContext>>("goody_huts.placement.place");
+
+			// A private RNG seeded from the map seed, so the huts depend only on
+			// the seed.
+			place(new GoodyHutPlacementContext(m, mgd.barbarianActivity, new Random(mgd.mapSeed + 0x600d)));
+
+			log.Information("Placed {count} goody huts", m.tiles.Count(t => t.HasGoodyHut()));
 		}
 
 		private static bool IsValidForBarbarianCamp(MapGeneratorData mgd, GameMap m, Tile t) {

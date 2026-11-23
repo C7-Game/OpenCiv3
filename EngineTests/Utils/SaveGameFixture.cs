@@ -31,7 +31,8 @@ public class SaveGameFixture : IDisposable {
 	}
 
 	private static SaveGame LoadSave(GameMode.Config gameModeConfig) {
-		SaveGame save = LoadGameMode(gameModeConfig).GetSave();
+		GameMode gameMode = LoadGameMode(gameModeConfig);
+		SaveGame save = gameMode.GetSave();
 
 		WorldSize worldSize = new() {
 			width = 100,
@@ -62,6 +63,8 @@ public class SaveGameFixture : IDisposable {
 			victoryConditions = new VictoryConditions()
 		};
 
+		// Map generation imports its scripted steps (goody huts) from here.
+		EngineStorage.behaviors = gameMode.behaviors;
 		gameSetup.Populate(save);
 
 		var nonBarbCivs = save.Civilizations.Where(c => !c.isBarbarian).Select(c => c.name).ToList();

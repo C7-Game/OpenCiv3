@@ -2,6 +2,7 @@ using System.Linq;
 
 namespace C7Engine {
 	using System;
+	using C7Engine.Lua;
 	using C7GameData;
 	using System.Collections.Generic;
 	using System.Threading.Tasks;
@@ -17,6 +18,12 @@ namespace C7Engine {
 	 **/
 	public static class EngineStorage {
 		public static GameData gameData { get; set; }
+
+		// The active game mode's Lua behaviors: the one place scripted hooks
+		// are imported from, including those that run before a GameData
+		// exists (e.g. goody hut placement during map generation). Set when a
+		// game mode is activated; scripted steps are skipped while it is null.
+		public static BehaviorEngine behaviors { get; set; }
 
 		public static ID uiControllerID;
 		internal static bool animationsEnabled = true;
@@ -43,6 +50,10 @@ namespace C7Engine {
 
 		public static bool HasPendingAnimations() {
 			return pendingAnimations.Count > 0;
+		}
+
+		public static bool HasPendingMessagesToUI() {
+			return messagesToUI.Count > 0;
 		}
 
 		public static bool TryDequeueNextMessageToUI(out MessageToUI message) {

@@ -165,7 +165,7 @@ namespace C7GameData.Save {
 			data.defaultExperienceLevelKey = DefaultExperienceLevel;
 			data.defaultExperienceLevel = data.experienceLevels.Find(el => el.key == DefaultExperienceLevel);
 
-			data.UpdateTileOwners();
+			data.UpdateTileOwners(popGoodyHuts: false);
 			data.InvalidateCachedTradeNetwork();
 
 			data.onGameCreation += OnGameCreation;

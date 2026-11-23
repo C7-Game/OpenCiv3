@@ -66,6 +66,11 @@ public class SaveTerrainImprovement {
 			Layer.BarbarianCamp,
 			zIndex: 8
 		);
+		yield return new(
+			GOODY_HUT,
+			Layer.GoodyHut,
+			zIndex: 8
+		);
 
 		// TODO: Add colony, outpost, airfield, radar tower
 	}

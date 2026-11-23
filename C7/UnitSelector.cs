@@ -1,3 +1,4 @@
+using System;
 using C7Engine;
 using C7GameData;
 using Godot;
@@ -26,10 +27,28 @@ public partial class UnitSelector : Node {
 
 	private bool NoMoreAutoselectableUnitsEmitted = false;
 
+	// Automatic selection waits until this time (Time.GetTicksMsec), so a
+	// message about the current unit can be read before the view moves on.
+	private ulong autoselectHeldUntilMsec = 0;
+
+	// Whether there has already been a pause since the current unit was
+	// selected (e.g. for a goody hut message), so moving on needs no other.
+	private bool pausedForCurrentUnit = false;
+
+	// The next unit, picked but not yet selected while the view pauses
+	// before the camera moves to it.
+	private MapUnit pendingNextUnit = null;
+
+	// How long to pause before the camera jumps to a distant next unit.
+	private const double CameraJumpPauseSeconds = 0.5;
+
 	public override void _Ready() {
 		game.PlayerTurnEnd += () => {
 			NoMoreAutoselectableUnitsEmitted = false;
 			CurrentlySelectedUnit = MapUnit.NONE;
+			autoselectHeldUntilMsec = 0;
+			pausedForCurrentUnit = false;
+			pendingNextUnit = null;
 		};
 	}
 
@@ -37,6 +56,11 @@ public partial class UnitSelector : Node {
 		if (game.CurrentState != GameState.PlayerTurn) return;
 		if (NoMoreAutoselectableUnitsEmitted) return;
 		if (EngineStorage.HasPendingAnimations()) return;
+		// Let the UI handle what just happened (e.g. a popped goody hut,
+		// which holds autoselection) before deciding to move on.
+		if (EngineStorage.HasPendingMessagesToUI()) return;
+		if (game.HasVisibleModal()) return;
+		if (Time.GetTicksMsec() < autoselectHeldUntilMsec) return;
 
 		// If no unit is selected, move to the next one
 		if (CurrentlySelectedUnit == MapUnit.NONE) {
@@ -49,7 +73,30 @@ public partial class UnitSelector : Node {
 			KeepCSUWhenFortified = false;
 
 		if (ShouldSkipUnit(CurrentlySelectedUnit))
-			SetNextUnit();
+			MoveOnToNextUnit();
+	}
+
+	// Selects the next unit, first pausing briefly if the camera would have
+	// to jump to reach it and there hasn't been a pause already.
+	private void MoveOnToNextUnit() {
+		if (pendingNextUnit != null) {
+			MapUnit next = pendingNextUnit;
+			pendingNextUnit = null;
+			if (next.movementPoints.canMove && next.hitPointsRemaining > 0) {
+				SetSelectedUnit(next);
+			} else {
+				SetNextUnit();
+			}
+			return;
+		}
+
+		MapUnit candidate = UnitInteractions.getNextSelectedUnit();
+		if (!pausedForCurrentUnit && candidate != MapUnit.NONE && game.WouldMoveCameraTo(candidate.location)) {
+			pendingNextUnit = candidate;
+			HoldAutoselect(CameraJumpPauseSeconds);
+			return;
+		}
+		SetSelectedUnit(candidate);
 	}
 
 	private bool ShouldSkipUnit(MapUnit unit) {
@@ -63,6 +110,13 @@ public partial class UnitSelector : Node {
 		bool shouldSkipAutomated = unit.isAutomated;
 
 		return shouldSkipForMovement || shouldSkipFortified || shouldSkipAutomated;
+	}
+
+	// Delays automatic selection of the next unit, keeping any longer hold
+	// already in place. Selecting a unit manually ends the hold.
+	public void HoldAutoselect(double seconds) {
+		autoselectHeldUntilMsec = Math.Max(autoselectHeldUntilMsec, Time.GetTicksMsec() + (ulong)(seconds * 1000));
+		pausedForCurrentUnit = true;
 	}
 
 	public void SetNextUnit() {
@@ -101,6 +155,9 @@ public partial class UnitSelector : Node {
 
 		this.CurrentlySelectedUnit = unit;
 		this.KeepCSUWhenFortified = unit.isFortified; // If fortified, make sure the autoselector doesn't immediately skip past the unit
+		this.autoselectHeldUntilMsec = 0;
+		this.pausedForCurrentUnit = false;
+		this.pendingNextUnit = null;
 
 		if (unit != MapUnit.NONE) {
 			game.ensureLocationIsInView(unit.location);
