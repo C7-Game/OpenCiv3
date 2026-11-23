@@ -34,7 +34,8 @@ public class GoodyHutPlacementTest {
 			},
 		};
 
-		return (save, new MapGeneratorData(save) { behaviors = gameMode.behaviors });
+		EngineStorage.behaviors = gameMode.behaviors;
+		return (save, new MapGeneratorData(save));
 	}
 
 	private static List<Tile> Huts(GameMap map) {
@@ -92,14 +93,19 @@ public class GoodyHutPlacementTest {
 	[Fact]
 	public void NoBehaviorsSkipsHutPlacement() {
 		(_, MapGeneratorData mgd) = CreateWorld(BarbarianActivity.Roaming);
-		mgd.behaviors = null;
+		BehaviorEngine loaded = EngineStorage.behaviors;
+		EngineStorage.behaviors = null;
 
-		Assert.Empty(Huts(MapGenerator.GenerateMap(mgd)));
+		try {
+			Assert.Empty(Huts(MapGenerator.GenerateMap(mgd)));
+		} finally {
+			EngineStorage.behaviors = loaded;
+		}
 	}
 
 	[Fact]
 	public void HutsSurviveSaveAndLoad() {
-		(SaveGame save, MapGeneratorData mgd) = CreateWorld(BarbarianActivity.Roaming);
+		(SaveGame save, _) = CreateWorld(BarbarianActivity.Roaming);
 
 		GameSetup gameSetup = new() {
 			playerCivilization = save.Civilizations.First(c => !c.isBarbarian),
@@ -107,7 +113,6 @@ public class GoodyHutPlacementTest {
 			worldCharacteristics = save.WorldCharacteristics,
 			opponents = [new SelectedOpponent { isRandom = true }],
 			victoryConditions = new VictoryConditions(),
-			behaviors = mgd.behaviors,
 		};
 		gameSetup.Populate(save);
 
@@ -117,7 +122,7 @@ public class GoodyHutPlacementTest {
 			.ToList();
 		Assert.NotEmpty(savedHuts);
 
-		C7GameData.GameData gameData = save.ToGameData(mgd.behaviors);
+		C7GameData.GameData gameData = save.ToGameData(EngineStorage.behaviors);
 		List<(int, int)> loadedHuts = Huts(gameData.map).Select(t => (t.XCoordinate, t.YCoordinate)).ToList();
 
 		Assert.Equal(savedHuts.OrderBy(h => h), loadedHuts.OrderBy(h => h));

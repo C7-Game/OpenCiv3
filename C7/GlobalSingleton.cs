@@ -50,6 +50,7 @@ public partial class GlobalSingleton : Node {
 		Util.ClearCaches();
 
 		GameMode = GameMode.Load(GamePaths.GameModesDir, config);
+		EngineStorage.behaviors = GameMode.behaviors;
 
 		LuaTypeRegistrations();
 

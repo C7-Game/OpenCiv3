@@ -7,7 +7,6 @@ namespace C7Engine {
 	using System.Diagnostics;
 	using C7GameData;
 	using C7GameData.Save;
-	using C7Engine.Lua;
 
 	public class WorldCharacteristics {
 		public enum Climate {
@@ -60,11 +59,6 @@ namespace C7Engine {
 
 		public int maxRankOfWorkableTiles;
 		public int maxRankOfBarbarianCampTiles;
-
-		// The Lua behaviors of the game mode, used by the map-generation steps
-		// that are scripted (e.g. goody hut placement). Those steps are skipped
-		// when this is null.
-		public BehaviorEngine behaviors;
 
 		public MapGeneratorData() { }
 
@@ -1420,12 +1414,12 @@ namespace C7Engine {
 		// The placement rules live in Lua ("goody_huts.placement.place" in the
 		// behaviors), so game modes and addons can change or replace them.
 		private static void AddGoodyHuts(MapGeneratorData mgd, GameMap m) {
-			if (mgd.behaviors == null) {
-				log.Warning("No Lua behaviors were provided to the map generator; skipping goody hut placement.");
+			if (EngineStorage.behaviors == null) {
+				log.Warning("No Lua behaviors are loaded; skipping goody hut placement.");
 				return;
 			}
 
-			Action<GoodyHutPlacementContext> place = mgd.behaviors.ImportFunc<Action<GoodyHutPlacementContext>>("goody_huts.placement.place");
+			Action<GoodyHutPlacementContext> place = EngineStorage.behaviors.ImportFunc<Action<GoodyHutPlacementContext>>("goody_huts.placement.place");
 
 			// A private RNG seeded from the map seed, so the huts depend only on
 			// the seed.

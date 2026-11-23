@@ -60,10 +60,11 @@ public class SaveGameFixture : IDisposable {
 			difficulty = save.Difficulties.First(),
 			worldCharacteristics = wc,
 			opponents = Enumerable.Repeat(new SelectedOpponent() { isRandom = true }, worldSize.numberOfCivs - 1).ToList(),
-			victoryConditions = new VictoryConditions(),
-			behaviors = gameMode.behaviors,
+			victoryConditions = new VictoryConditions()
 		};
 
+		// Map generation imports its scripted steps (goody huts) from here.
+		EngineStorage.behaviors = gameMode.behaviors;
 		gameSetup.Populate(save);
 
 		var nonBarbCivs = save.Civilizations.Where(c => !c.isBarbarian).Select(c => c.name).ToList();
