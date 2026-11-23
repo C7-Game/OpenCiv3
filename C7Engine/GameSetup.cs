@@ -30,6 +30,13 @@ public class GameSetup {
 	public void Populate(SaveGame save) {
 		save.GameDifficulty = difficulty;
 
+		// Settings supply the victory switches, but an imported BIQ/SAV owns the culture
+		// thresholds. Keep them before replacing the object; zero values fall back to the
+		// map-size defaults in SaveGame.ConvertVictoryConditions().
+		if (victoryConditions != null && save.VictoryConditions != null) {
+			victoryConditions.OneCityCultureWin = save.VictoryConditions.OneCityCultureWin;
+			victoryConditions.AllCitiesCultureWin = save.VictoryConditions.AllCitiesCultureWin;
+		}
 		save.VictoryConditions = victoryConditions;
 
 		save.WorldCharacteristics = worldCharacteristics;

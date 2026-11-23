@@ -116,6 +116,8 @@ public partial class PlayerSetup : Control {
 		rulesContainer.AddThemeConstantOverride("v_separation", 0);
 
 		// TODO: Add Civ3Checkbox in rulesContainer for each victory condition, wire up to victoryConditions
+		// TODO: Add a Game Rules screen for editing victory thresholds and the 2x rival culture rule.
+		// Until that screen exists, CultureVictoryRequiresDoubleLead stays enabled by default and is not edited here.
 
 		var dominationVictory = new Civ3Checkbox() { Text = "Allow Domination Victory" };
 		dominationVictory.SetPressed(victoryConditions.AllowDominationVictory);
@@ -126,6 +128,11 @@ public partial class PlayerSetup : Control {
 		conquestVictory.SetPressed(victoryConditions.AllowConquestVictory);
 		conquestVictory.Toggled += (state) => { victoryConditions.AllowConquestVictory = state; };
 		rulesContainer.AddChild(conquestVictory);
+
+		var culturalVictory = new Civ3Checkbox() { Text = "Allow Cultural Victory" };
+		culturalVictory.SetPressed(victoryConditions.AllowCulturalVictory);
+		culturalVictory.Toggled += (state) => { victoryConditions.AllowCulturalVictory = state; };
+		rulesContainer.AddChild(culturalVictory);
 	}
 
 	private void BackToMainMenu() {
@@ -346,6 +353,7 @@ public partial class PlayerSetup : Control {
 	private void PersistVictoryConditions(VictoryConditions vcs) {
 		C7Settings.SetValue(C7Settings.Rules.SectionName, C7Settings.Rules.AllowDominationVictory, vcs.AllowDominationVictory.ToString());
 		C7Settings.SetValue(C7Settings.Rules.SectionName, C7Settings.Rules.AllowConquestVictory, vcs.AllowConquestVictory.ToString());
+		C7Settings.SetValue(C7Settings.Rules.SectionName, C7Settings.Rules.AllowCulturalVictory, vcs.AllowCulturalVictory.ToString());
 	}
 
 	private void StartGame() {

@@ -337,10 +337,12 @@ namespace C7Engine {
 	public class MsgVictory : MessageToUI {
 		public Player winner;
 		public IVictory victory;
+		public string detail;
 
-		public MsgVictory(Player winner, IVictory victory) {
+		public MsgVictory(Player winner, IVictory victory, string detail = "") {
 			this.winner = winner;
 			this.victory = victory;
+			this.detail = detail;
 		}
 	}
 }

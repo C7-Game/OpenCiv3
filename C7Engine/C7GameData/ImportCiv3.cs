@@ -279,6 +279,7 @@ namespace C7GameData {
 			save.Seed = biq.Wmap[0].MapSeed;
 
 			ImportSharedBiqData();
+			ImportBicVictorySettings();
 			ImportBicLeaders();
 			ImportBicUnits();
 			ImportBicCities();
@@ -467,6 +468,18 @@ namespace C7GameData {
 
 		}
 
+		private void ImportBicVictorySettings() {
+			if (biq?.Game is null || biq.Game.Length == 0) {
+				return;
+			}
+
+			QueryCiv3.Biq.GAME game = biq.Game[0];
+			save.VictoryConditions ??= new VictoryConditions();
+			save.VictoryConditions.CultureVictoryRequiresDoubleLead = true;
+			save.VictoryConditions.OneCityCultureWin = game.OneCityCultureWin;
+			save.VictoryConditions.AllCitiesCultureWin = game.AllCitiesCultureWin;
+		}
+
 		private void ImportSavVictory() {
 			var game = savData.Game;
 
@@ -485,6 +498,10 @@ namespace C7GameData {
 				VictoryLocations = game.VictoryLocations,
 				CaptureTheFlag = game.CaptureTheFlag, // 'Capture the Unit', 'Capture the Princess'
 				ReverseCaptureTheFlag = game.ReverseCaptureTheFlag,
+
+				CultureVictoryRequiresDoubleLead = true,
+				OneCityCultureWin = game.OneCityCultureWin,
+				AllCitiesCultureWin = game.AllCitiesCultureWin,
 			};
 
 			if (game.Winner > -1) {

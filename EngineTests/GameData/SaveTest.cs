@@ -160,6 +160,67 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
+	public void CultureVictorySettingsSurviveSaveRoundTrip() {
+		SaveGame save = SaveGame.FromGameData(ToGameData(GetSave(SaveType.basic)));
+		save.VictoryConditions = new VictoryConditions {
+			AllowCulturalVictory = true,
+			CultureVictoryRequiresDoubleLead = false,
+			OneCityCultureWin = 25000,
+			AllCitiesCultureWin = 200000,
+		};
+
+		VictoryConditions roundTripped = save.Clone().VictoryConditions;
+
+		Assert.True(roundTripped.AllowCulturalVictory);
+		Assert.False(roundTripped.CultureVictoryRequiresDoubleLead);
+		Assert.Equal(25000, roundTripped.OneCityCultureWin);
+		Assert.Equal(200000, roundTripped.AllCitiesCultureWin);
+	}
+
+	[Fact]
+	public void SaveWithoutCultureThresholdsUsesWorldSizeDefaults() {
+		SaveGame save = SaveGame.FromGameData(ToGameData(GetSave(SaveType.basic)));
+		save.WorldCharacteristics = new WorldCharacteristics {
+			worldSize = new WorldSize { name = "Tiny" },
+		};
+		save.VictoryConditions = new VictoryConditions {
+			AllowCulturalVictory = true,
+			OneCityCultureWin = 0,
+			AllCitiesCultureWin = 0,
+		};
+
+		C7GameData.GameData data = ToGameData(save);
+		CultureVictory culture = data.victories.OfType<CultureVictory>().Single();
+
+		Assert.True(culture.HasVictory(new VictoryStatus { LargestCityCulture = 20000, TotalCulture = 0 }));
+		Assert.True(culture.HasVictory(new VictoryStatus { LargestCityCulture = 0, TotalCulture = 60000, TopRivalCulture = 30000 }));
+		Assert.False(culture.HasVictory(new VictoryStatus { LargestCityCulture = 0, TotalCulture = 59999, TopRivalCulture = 30000 }));
+	}
+
+	[Fact]
+	public void GameSetup_PreservesImportedCultureThresholds() {
+		SaveGame save = GetFreshSave(SaveType.basic);
+		save.VictoryConditions.OneCityCultureWin = 25000;
+		save.VictoryConditions.AllCitiesCultureWin = 200000;
+
+		// Settings-driven setup has zero thresholds until the imported values are carried over.
+		GameSetup setup = new() {
+			difficulty = save.GameDifficulty,
+			worldCharacteristics = save.WorldCharacteristics,
+			victoryConditions = new VictoryConditions { AllowCulturalVictory = true },
+		};
+
+		setup.Populate(save);
+
+		Assert.Equal(25000, save.VictoryConditions.OneCityCultureWin);
+		Assert.Equal(200000, save.VictoryConditions.AllCitiesCultureWin);
+
+		CultureVictory culture = ToGameData(save).victories.OfType<CultureVictory>().Single();
+		Assert.True(culture.HasVictory(new VictoryStatus { LargestCityCulture = 25000 }));
+		Assert.True(culture.HasVictory(new VictoryStatus { TotalCulture = 200000 }));
+	}
+
+	[Fact]
 	public void BaseRulesetBuildings_HaveNavalAndAirData() {
 		Dictionary<string, Building> buildings = ToGameData(fixture.saveGame).Buildings.ToDictionary(b => b.name);
 

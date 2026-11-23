@@ -51,6 +51,50 @@ public class CheckVictoryTest : IClassFixture<SaveGameFixture> {
 	private static List<MsgVictory> VictoryMessages() =>
 		EngineStorage.messagesToUI.OfType<MsgVictory>().ToList();
 
+	[Fact]
+	public void CheckVictory_CultureWinEndsGame() {
+		Player player = MakePlayer("1", "Rome");
+		Player rival = MakePlayer("2", "Greece");
+		City city = new(Tile.NONE, player, "Roma", ID.None("city"));
+		city.perPlayerCulture[player] = 20000;
+		player.cities.Add(city);
+
+		C7GameData.GameData gameData = MakeGame(1, (player, 0), (rival, 0));
+		gameData.victories.Clear();
+		gameData.victories.Add(new CultureVictory(20000, 100000, true));
+
+		TurnHandling.CheckVictory(gameData);
+
+		Assert.True(gameData.gameOver);
+		Assert.Same(player, gameData.winner);
+		MsgVictory message = Assert.Single(VictoryMessages());
+		Assert.Equal("Culture", message.victory.Header());
+		Assert.Equal("city", message.detail);
+	}
+
+	[Fact]
+	public void CheckVictory_CultureWinByEmpire_ReportsEmpireDetail() {
+		Player player = MakePlayer("1", "Rome");
+		Player rival = MakePlayer("2", "Greece");
+		// Ten cities of 10,000 each pass the empire threshold without anyone reaching the one-city threshold.
+		for (int i = 0; i < 10; i++) {
+			City city = new(Tile.NONE, player, $"Roma {i}", ID.None($"city-{i}"));
+			city.perPlayerCulture[player] = 10000;
+			player.cities.Add(city);
+		}
+
+		C7GameData.GameData gameData = MakeGame(1, (player, 0), (rival, 0));
+		gameData.victories.Clear();
+		gameData.victories.Add(new CultureVictory(20000, 100000, true));
+
+		TurnHandling.CheckVictory(gameData);
+
+		Assert.True(gameData.gameOver);
+		Assert.Same(player, gameData.winner);
+		MsgVictory message = Assert.Single(VictoryMessages());
+		Assert.Equal("empire", message.detail);
+	}
+
 	// ---------------------------------------------------------------- turn-limit boundary
 
 	[Theory]
