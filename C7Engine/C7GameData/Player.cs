@@ -724,7 +724,7 @@ namespace C7GameData {
 		//    civilizations, the formula is: 1 (2 for Conquests) + random number
 		//    between 1-4 + number between 0-3 depending on size of your empire.
 		public int GetTurnsOfAnarchyForTransition(GameData gameData) {
-			if (civilization.traits.Contains(Civilization.Trait.Religious)) {
+			if (IsReligious()) {
 				return 2;
 			}
 
@@ -811,6 +811,8 @@ namespace C7GameData {
 				// the new citizen can go on one of our new tiles.
 				if (c.UpdateCultureAndCheckForExpansion()) {
 					gameData.UpdateTileOwners();
+
+					new MsgShowTemporaryPopup(c.owner.id, "Our cultural influence is expanding!", c.location).send();
 
 					// Update the trade network if borders expanded, as a new
 					// resource may be part of the network.
@@ -1257,6 +1259,10 @@ namespace C7GameData {
 			return producible.ShieldCost(this, costFactor);
 		}
 
+		public bool HasUnitsOnTile(Tile location) {
+			return location.unitsOnTile.Count > 0 && location.unitsOnTile.Any(u => u.owner == this);
+		}
+
 		public void UpdateHistory(GameData gameData) {
 			if (!gameData.history.ContainsKey(id.ToString()))
 				return;
@@ -1292,6 +1298,17 @@ namespace C7GameData {
 				VP = 0 // TODO: victory points
 			});
 		}
+
+		public bool HasCivTrait(Civilization.Trait trait) => civilization?.traits?.Contains(trait) ?? false;
+
+		public bool IsMilitaristic() => HasCivTrait(Civilization.Trait.Militaristic);
+		public bool IsCommercial() => HasCivTrait(Civilization.Trait.Commercial);
+		public bool IsExpansionist() => HasCivTrait(Civilization.Trait.Expansionist);
+		public bool IsScientific() => HasCivTrait(Civilization.Trait.Scientific);
+		public bool IsReligious() => HasCivTrait(Civilization.Trait.Religious);
+		public bool IsIndustrious() => HasCivTrait(Civilization.Trait.Industrious);
+		public bool IsAgricultural() => HasCivTrait(Civilization.Trait.Agricultural);
+		public bool IsSeafaring() => HasCivTrait(Civilization.Trait.Seafaring);
 	}
 
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,6 +18,8 @@ namespace C7GameData {
 		private readonly string key;
 
 		private readonly int n;
+
+		public int GetN => n;
 
 		public override string ToString() {
 			return n != magicNoneIdNumber ? $"{key}-{n}" : $"{key}-none";

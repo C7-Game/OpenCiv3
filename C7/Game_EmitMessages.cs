@@ -272,6 +272,23 @@ public partial class Game {
 		));
 	}
 
+	public void EmitBarbarianCampDispersedSignal(MsgBarbarianCampDispersed msg) {
+		string message = msg.goldEarned > 0
+			? $"We cleared a barbarian encampment and earned {msg.goldEarned} gold!"
+			: "We cleared a barbarian encampment!";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Military Advisor",
+				message,
+				Advisor.Military,
+				Mood.Happy,
+				350
+			)
+		));
+	}
+
 	public void EmitCivilizationDestroyedSignal(MsgCivilizationDestroyed msg) {
 		var disposition = Mood.Sad;
 		EngineStorage.ReadGameData(data => {
@@ -520,6 +537,50 @@ public partial class Game {
 		));
 	}
 
+	private void EmitSelectTransportSignal(MsgSelectTransport msg) {
+
+		EngineStorage.ReadGameData(data => {
+			List<MapUnit> transports = msg.unit.GetTransportsToBoard(msg.unit.location);
+
+			// The load hotkey works even when there is no transport here
+			if (transports.Count == 0)
+				return;
+
+			// Nothing to choose from, load the unit right away
+			if (transports.Count == 1) {
+				new MsgLoadToTransport(msg.unit.id, transports[0].id).send();
+				return;
+			}
+
+			List<ButtonAction> options = new List<ButtonAction>();
+
+			// List out options
+			foreach (MapUnit transport in transports) {
+				int capacity = transport.unitType.capacity;
+				int free = transport.FreeCapacity();
+				options.Add(new ButtonAction() {
+					message = $"{transport.GetDisplayName()} (Space available: {free}/{capacity})",
+					action = () => {
+						new MsgLoadToTransport(msg.unit.id, transport.id).send();
+					}
+				});
+			}
+
+			EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+				new OptionsPopUp(
+					controller.id,
+					"Transports",
+					$"Select a transport for the {msg.unit.GetDisplayName()}.",
+					options,
+					Advisor.None,
+					Mood.None,
+					hSize: 350,
+					margins: new Margins(top: 100)
+				)
+			));
+		});
+	}
+
 	private void EmitAlreadyInRevolutionSignal(MsgAlreadyInRevolution msg) {
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(
@@ -700,13 +761,15 @@ public partial class Game {
 		));
 	}
 
-	public void EmitMapMenuSignal() {
-		var options = new List<ButtonAction>();
+	public void EmitMapMenuSignal(int selectedOption = 0) {
+		List<ButtonAction> options = new List<ButtonAction>();
 
 		bool gridVisible = mapView != null ? mapView.gridLayer.visible : PreferencesSettings.GetShowGrid();
-		var showGridBtn = new ButtonAction() {
-			message = $"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
-			action = () => {
+		options.Add(CreateMapMenuToggle(
+			0,
+			selectedOption,
+			$"Show Grid (Ctrl-G): {(gridVisible ? "On" : "Off")}",
+			() => {
 				if (mapView != null) {
 					bool newValue = !mapView.gridLayer.visible;
 					mapView.gridLayer.visible = newValue;
@@ -715,12 +778,20 @@ public partial class Game {
 					bool newValue = !PreferencesSettings.GetShowGrid();
 					PreferencesSettings.SetShowGrid(newValue);
 				}
-				// Re-open map menu to reflect updated state
-				EmitMapMenuSignal();
-			},
-			pressed = gridVisible,
+			}));
+
+		int zoomPercent = mapView != null ? Mathf.RoundToInt(mapView.cameraZoom * 100) : 100;
+		options.Add(CreateMapMenuToggle(
+			1,
+			selectedOption,
+			$"Zoom (Z): {zoomPercent}%",
+			ToggleCameraZoom));
+
+		var worldSettingsBtn = new ButtonAction() {
+			message = "View World Settings",
+			action = () => EmitWorldSettingsSignal(),
 		};
-		options.Add(showGridBtn);
+		options.Add(worldSettingsBtn);
 
 		var backBtn = new ButtonAction() {
 			message = "Back",
@@ -740,5 +811,82 @@ public partial class Game {
 				margins: new Margins(top: 100)
 			)
 		));
+	}
+
+	private ButtonAction CreateMapMenuToggle(int optionIndex, int selectedOption, string message, Action toggle) {
+		return new ButtonAction() {
+			message = message,
+			action = () => {
+				toggle();
+				EmitMapMenuSignal(optionIndex);
+			},
+			pressed = optionIndex == selectedOption,
+		};
+	}
+
+	public void EmitWorldSettingsSignal() {
+		WorldCharacteristics settings = EngineStorage.gameData.worldCharacteristics;
+		int seed = EngineStorage.gameData.seed;
+
+		List<string> lines = [
+			$"[b]Size:[/b] {FormatWorldSize(settings)}",
+			$"[b]Landform:[/b] {FormatValue(settings?.landform)}",
+			$"[b]Ocean Coverage:[/b] {FormatOceanCoverage(settings?.oceanCoverage)}",
+			$"[b]Climate:[/b] {FormatValue(settings?.climate)}",
+			$"[b]Temperature:[/b] {FormatValue(settings?.temperature)}",
+			$"[b]Age:[/b] {FormatAge(settings?.age)}",
+			$"[b]Seed:[/b] {seed}",
+		];
+
+		var options = new List<ButtonAction> {
+			new ButtonAction() {
+				message = "Back",
+				action = () => EmitMapMenuSignal(),
+			},
+		};
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"World Settings",
+				string.Join("\n", lines),
+				options,
+				Advisor.None,
+				Mood.None,
+				hSize: 400,
+				margins: new Margins(top: 100)
+			)
+		));
+	}
+
+	private static string FormatValue<T>(T? value) where T : struct, Enum {
+		return value.HasValue ? value.Value.ToString() : "Unknown";
+	}
+
+	private static string FormatWorldSize(WorldCharacteristics settings) {
+		WorldSize worldSize = settings?.worldSize;
+		if (worldSize == null) {
+			return "Unknown";
+		}
+
+		GameMap map = EngineStorage.gameData.map;
+		if (map != null && (worldSize.width != map.numTilesWide || worldSize.height != map.numTilesTall)) {
+			return "Custom";
+		}
+
+		return string.IsNullOrEmpty(worldSize.name) ? "Unknown" : worldSize.name;
+	}
+
+	private static string FormatOceanCoverage(WorldCharacteristics.OceanCoverage? coverage) {
+		return coverage.HasValue ? $"{(int)coverage.Value}%" : "Unknown";
+	}
+
+	private static string FormatAge(WorldCharacteristics.Age? age) {
+		return age switch {
+			WorldCharacteristics.Age.Billion_3 => "3 billion years",
+			WorldCharacteristics.Age.Billion_4 => "4 billion years",
+			WorldCharacteristics.Age.Billion_5 => "5 billion years",
+			_ => "Unknown",
+		};
 	}
 }

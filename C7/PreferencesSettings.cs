@@ -1,3 +1,4 @@
+using System;
 using C7Engine;
 
 namespace C7.UIElements;
@@ -13,6 +14,10 @@ public static class PreferencesSettings {
 	public const bool DefaultPromptForResearch = true;
 	public const string ShowGrid = nameof(ShowGrid);
 	public const bool DefaultShowGrid = false;
+	public const string AutosaveTurns = nameof(AutosaveTurns);
+	public const int DefaultAutosaveTurns = 5;
+	public const int MinAutosaveTurns = 0;
+	public const int MaxAutosaveTurns = 99;
 
 	public static bool GetPromptForResearch() {
 		return C7Settings.GetBoolOrDefault(SectionName, PromptForResearch, DefaultPromptForResearch);
@@ -29,6 +34,17 @@ public static class PreferencesSettings {
 
 	public static void SetShowGrid(bool value) {
 		C7Settings.SetBool(SectionName, ShowGrid, value);
+		C7Settings.SaveSettings();
+	}
+
+	public static int GetAutosaveTurns() {
+		return Math.Clamp(
+			C7Settings.GetIntOrDefault(SectionName, AutosaveTurns, DefaultAutosaveTurns),
+			MinAutosaveTurns, MaxAutosaveTurns);
+	}
+
+	public static void SetAutosaveTurns(int value) {
+		C7Settings.SetInt(SectionName, AutosaveTurns, Math.Clamp(value, MinAutosaveTurns, MaxAutosaveTurns));
 		C7Settings.SaveSettings();
 	}
 }

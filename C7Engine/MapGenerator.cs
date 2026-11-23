@@ -44,10 +44,15 @@ namespace C7Engine {
 		}
 		public Age age;
 
+		public WorldSize worldSize;
+	}
+
+	public class MapGeneratorData {
+		public WorldCharacteristics worldCharacteristics = new();
+
 		public BarbarianActivity barbarianActivity;
 
 		public int mapSeed = -1;
-		public WorldSize worldSize;
 		public List<TerrainType> terrainTypes;
 		public List<Resource> resources = new();
 		public Government defaultGovernment = new();
@@ -55,9 +60,10 @@ namespace C7Engine {
 		public int maxRankOfWorkableTiles;
 		public int maxRankOfBarbarianCampTiles;
 
-		public WorldCharacteristics() { }
+		public MapGeneratorData() { }
 
-		public WorldCharacteristics(SaveGame save) {
+		public MapGeneratorData(SaveGame save) {
+			mapSeed = save.Seed;
 			terrainTypes = save.TerrainTypes;
 			resources = save.Resources;
 			defaultGovernment = save.Governments.Find(g => g.defaultType);
@@ -66,6 +72,7 @@ namespace C7Engine {
 			maxRankOfBarbarianCampTiles = save.Rules.MaxRankOfBarbarianCampTiles;
 
 			barbarianActivity = save.BarbarianInfo.barbarianActivity;
+			worldCharacteristics = save.WorldCharacteristics ?? new WorldCharacteristics();
 		}
 	}
 
@@ -75,96 +82,97 @@ namespace C7Engine {
 		private const int MIN_TILES_PER_PLAYER_ISLAND = 81;
 
 		// The entry point to the overall map generation process.
-		public static GameMap GenerateMap(WorldCharacteristics wc) {
-			if (wc.mapSeed == -1) {
+		public static GameMap GenerateMap(MapGeneratorData mgd) {
+			if (mgd.mapSeed == -1) {
 				log.Information("Random seed is not specified, generating...");
-				wc.mapSeed = new Random().Next(int.MaxValue);
+				mgd.mapSeed = new Random().Next(int.MaxValue);
 			}
-			log.Information("Seed: " + wc.mapSeed);
+			log.Information("Seed: " + mgd.mapSeed);
 
 			// Step 0: Sanitize world characteristics
-			SanitizeWorldCharacteristics(wc);
+			SanitizeWorldCharacteristics(mgd);
 
 			// Step 1: generate the general shape of the terrain.
-			GameMap gameMap = GenerateTerrainShape(wc);
+			GameMap gameMap = GenerateTerrainShape(mgd);
 
 			// Step 2: ensure we have a proper continental shelf around each
 			// landmass, with land->coast->sea->ocean transitions.
-			FixContinentalShelf(wc, gameMap);
+			FixContinentalShelf(mgd, gameMap);
 
 			// Step 3: add hills and mountains.
-			AddHillsAndMountains(wc, gameMap);
+			AddHillsAndMountains(mgd, gameMap);
 
 			// Step 4: use random walks to split each landmass up into potential
 			// biome zones, which we will then assign in step 4 based on the
 			// world characteristics.
-			SplitContinentsIntoPotentialBiomes(wc, gameMap);
+			SplitContinentsIntoPotentialBiomes(mgd, gameMap);
 
 			// Step 5: Using the temperature information, assign each potential
 			// biome region a specific biome: grassland, plains, desert, tundra
-			AssignBiomes(wc, gameMap);
+			AssignBiomes(mgd, gameMap);
 
 			// Step 6: add vegetation where appropriate.
-			AddVegetation(wc, gameMap);
+			AddVegetation(mgd, gameMap);
 
 			// Step 7: Add rivers that start from high points and flow to low
 			// points.
-			AddRivers(wc, gameMap);
+			AddRivers(mgd, gameMap);
+			gameMap.computeCardinalRiverFlags();
 
 			// Step 7.5: Convert desert to flood plains. Civ3 does this after
 			// rivers are placed, so a flood plain always has a river running
 			// through it. Doing it here also means resources get placed on
 			// flood plains using the flood plain rules (e.g. only wheat).
-			AddFloodPlains(wc, gameMap);
+			AddFloodPlains(mgd, gameMap);
 
 			// Step 8: Add resources (luxury/strategic/bonus).
-			AddResources(wc, gameMap);
+			AddResources(mgd, gameMap);
 
 			// Step 9: Add bonus grassland. We do this after assigning resources
 			// to make sure resources get placed - we don't want to steal spots
 			// for resources.
-			AddBonusGrasslands(wc, gameMap);
+			AddBonusGrasslands(mgd, gameMap);
 
 			// Step 10: Place player starting locations
 			// Placing this before barb camps so barbs don't spawn <5 tiles away from players
 			// Tried placing barbs then players, but caused all players to spawn together
-			DetermineStartingLocations(wc, gameMap);
+			DetermineStartingLocations(mgd, gameMap);
 
 			// Step 11: Add barb camps. We do this towards the end to make sure
 			// that we don't have barb camps on top of resources.
 			// Previously step 10
-			AddBarbarianCamps(wc, gameMap);
+			AddBarbarianCamps(mgd, gameMap);
 
 			// TODO: Goody huts, barbarian camps.
 
 			// Last step: Assign the terrain file and image ids to each tile so
 			// we know which texture to use when displaying them.
-			TerrainTextureFiles.AssignTextureDetails(new Random(wc.mapSeed + 0xebac), wc.terrainTypes, gameMap);
+			TerrainTextureFiles.AssignTextureDetails(new Random(mgd.mapSeed + 0xebac), mgd.terrainTypes, gameMap);
 
 			return gameMap;
 		}
 
-		private static void SanitizeWorldCharacteristics(WorldCharacteristics wc) {
-			// TODO: Supporting maps of odd dimensions should be doable, but beyond current tiling implementation 
-			// As a mitigation, we simply shrink the map dimensions a bit 
+		private static void SanitizeWorldCharacteristics(MapGeneratorData mgd) {
+			// TODO: Supporting maps of odd dimensions should be doable, but beyond current tiling implementation
+			// As a mitigation, we simply shrink the map dimensions a bit
 
-			if (wc.worldSize.width % 2 == 1) {
+			if (mgd.worldCharacteristics.worldSize.width % 2 == 1) {
 				log.Warning("Uneven map width. Shrinking by one.");
-				wc.worldSize.width -= 1;
+				mgd.worldCharacteristics.worldSize.width -= 1;
 			}
 
-			if (wc.worldSize.height % 2 == 1) {
+			if (mgd.worldCharacteristics.worldSize.height % 2 == 1) {
 				log.Warning("Uneven map height. Shrinking by one.");
-				wc.worldSize.height -= 1;
+				mgd.worldCharacteristics.worldSize.height -= 1;
 			}
 		}
 
-		private static GameMap GenerateTerrainShape(WorldCharacteristics wc) {
-			int width = wc.worldSize.width;
-			int height = wc.worldSize.height;
-			WorldCharacteristics.OceanCoverage oceanCoverage = wc.oceanCoverage;
-			WorldCharacteristics.Landform landform = wc.landform;
-			int mapSeed = wc.mapSeed;
+		private static GameMap GenerateTerrainShape(MapGeneratorData mgd) {
+			int width = mgd.worldCharacteristics.worldSize.width;
+			int height = mgd.worldCharacteristics.worldSize.height;
+			WorldCharacteristics.OceanCoverage oceanCoverage = mgd.worldCharacteristics.oceanCoverage;
+			WorldCharacteristics.Landform landform = mgd.worldCharacteristics.landform;
+			int mapSeed = mgd.mapSeed;
 
 			Stopwatch stopwatch = new Stopwatch();
 			stopwatch.Start();
@@ -172,9 +180,9 @@ namespace C7Engine {
 			int maxAttempts = 30;
 			for (int attempt = 0; attempt < maxAttempts; ++attempt) {
 				HeightMap hm = new(seed: mapSeed + 0x1234 * attempt, width:width, height:height, scale:GetNoiseScale(landform));
-				GameMap m = ToLandAndWaterGameMap(wc, hm, oceanCoverage);
+				GameMap m = ToLandAndWaterGameMap(mgd, hm, oceanCoverage);
 
-				if (MapIsAcceptable(wc, m)) {
+				if (MapIsAcceptable(mgd, m)) {
 					stopwatch.Stop();
 					log.Information($"Map gen took {attempt} attempts and {stopwatch.ElapsedMilliseconds} milliseconds");
 					return m;
@@ -189,11 +197,11 @@ namespace C7Engine {
 			return null;
 		}
 
-		private static GameMap ToLandAndWaterGameMap(WorldCharacteristics wc, HeightMap hm, WorldCharacteristics.OceanCoverage oceanCoverage) {
-			TerrainType grassland = wc.terrainTypes.Find(x => x.Key == "grassland");
-			TerrainType coast = wc.terrainTypes.Find(x => x.Key == "coast");
-			TerrainType sea = wc.terrainTypes.Find(x => x.Key == "sea");
-			TerrainType ocean = wc.terrainTypes.Find(x => x.Key == "ocean");
+		private static GameMap ToLandAndWaterGameMap(MapGeneratorData mgd, HeightMap hm, WorldCharacteristics.OceanCoverage oceanCoverage) {
+			TerrainType grassland = mgd.terrainTypes.Find(x => x.Key == "grassland");
+			TerrainType coast = mgd.terrainTypes.Find(x => x.Key == "coast");
+			TerrainType sea = mgd.terrainTypes.Find(x => x.Key == "sea");
+			TerrainType ocean = mgd.terrainTypes.Find(x => x.Key == "ocean");
 
 			// Set up the game map with basic land and water tiles.
 			GameMap m = new GameMap();
@@ -201,8 +209,8 @@ namespace C7Engine {
 			m.numTilesWide = hm.mapWidth;
 			m.wrapHorizontally = hm.wrapX;
 			m.wrapVertically = hm.wrapY;
-			m.optimalNumberOfCities = wc.worldSize.optimalNumberOfCities;
-			m.techRate = wc.worldSize.techRate;
+			m.optimalNumberOfCities = mgd.worldCharacteristics.worldSize.optimalNumberOfCities;
+			m.techRate = mgd.worldCharacteristics.worldSize.techRate;
 
 			ID.Factory factory = new();
 			int seaLevel = hm.FindSeaLevel((int)oceanCoverage);
@@ -247,9 +255,9 @@ namespace C7Engine {
 			};
 		}
 
-		private static bool MapIsAcceptable(WorldCharacteristics wc, GameMap m) {
-			WorldCharacteristics.OceanCoverage oceanCoverage = wc.oceanCoverage;
-			WorldCharacteristics.Landform landform = wc.landform;
+		private static bool MapIsAcceptable(MapGeneratorData mgd, GameMap m) {
+			WorldCharacteristics.OceanCoverage oceanCoverage = mgd.worldCharacteristics.oceanCoverage;
+			WorldCharacteristics.Landform landform = mgd.worldCharacteristics.landform;
 			int totalTiles = m.tiles.Count;
 			int expectedLandTiles = (int)(totalTiles * (1 - (int)oceanCoverage/100.0));
 
@@ -304,7 +312,7 @@ namespace C7Engine {
 			if (landform == WorldCharacteristics.Landform.Archipelago) {
 				// Ensure that we have more land continents than players.
 				List<HashSet<Tile>> landContinents = m.continents.Where(x => x.First().IsLand()).ToList();
-				if (landContinents.Count < wc.worldSize.numberOfCivs * 1.2) {
+				if (landContinents.Count < mgd.worldCharacteristics.worldSize.numberOfCivs * 1.2) {
 					return false;
 				}
 
@@ -316,7 +324,7 @@ namespace C7Engine {
 
 				// Give each player at least the minimum tiles number of . Make
 				// sure that we have enough islands for that.
-				int playersLeft = wc.worldSize.numberOfCivs;
+				int playersLeft = mgd.worldCharacteristics.worldSize.numberOfCivs;
 				int islandsWithMultiplePlayers = 0;
 				foreach (var continent in landContinents) {
 					playersLeft -= continent.Count / MIN_TILES_PER_PLAYER_ISLAND;
@@ -329,7 +337,7 @@ namespace C7Engine {
 				}
 
 				// Make sure most players are by themselves on an island.
-				if (islandsWithMultiplePlayers > wc.worldSize.numberOfCivs * .4) {
+				if (islandsWithMultiplePlayers > mgd.worldCharacteristics.worldSize.numberOfCivs * .4) {
 					return false;
 				}
 
@@ -339,15 +347,15 @@ namespace C7Engine {
 			return true;
 		}
 
-		private static void AddHillsAndMountains(WorldCharacteristics wc, GameMap m) {
+		private static void AddHillsAndMountains(MapGeneratorData mgd, GameMap m) {
 			// Generate a new height map that has lots of smaller blobs, to avoid
 			// having one giant mountain range.
-			HeightMap hm = new(seed: wc.mapSeed + 0xfeed, width:wc.worldSize.width, height:wc.worldSize.height, scale:.2);
-			Random random = new Random(wc.mapSeed + 0xface);
+			HeightMap hm = new(seed: mgd.mapSeed + 0xfeed, width:mgd.worldCharacteristics.worldSize.width, height:mgd.worldCharacteristics.worldSize.height, scale:.2);
+			Random random = new Random(mgd.mapSeed + 0xface);
 
-			TerrainType hills = wc.terrainTypes.Find(x => x.Key == "hills");
-			TerrainType mountains = wc.terrainTypes.Find(x => x.Key == "mountains");
-			TerrainType volcano = wc.terrainTypes.Find(x => x.Key == "volcano");
+			TerrainType hills = mgd.terrainTypes.Find(x => x.Key == "hills");
+			TerrainType mountains = mgd.terrainTypes.Find(x => x.Key == "mountains");
+			TerrainType volcano = mgd.terrainTypes.Find(x => x.Key == "volcano");
 
 			// Figure out the height bands for hills and mountains. We use bands
 			// so that we can have "elevated grasslands" and so that we don't
@@ -359,7 +367,7 @@ namespace C7Engine {
 			// The percentage of mountains that will become volcanos.
 			int volcanoPercent;
 
-			switch (wc.age) {
+			switch (mgd.worldCharacteristics.age) {
 				case WorldCharacteristics.Age.Billion_3:
 					hillLowerBound = hm.FindSeaLevel(15);
 					hillUpperBound = hm.FindSeaLevel(30);
@@ -382,7 +390,7 @@ namespace C7Engine {
 					volcanoPercent = 1;
 					break;
 				default:
-					throw new Exception($"Unknown age: {wc.age}");
+					throw new Exception($"Unknown age: {mgd.worldCharacteristics.age}");
 			}
 
 			foreach (Tile t in m.tiles) {
@@ -396,7 +404,8 @@ namespace C7Engine {
 					continue;
 				}
 				if (height >= mountainLowerBound && height < mountainUpperBound) {
-					if (random.Next(100) < volcanoPercent) {
+					// prevent volcanoes from spawning next to each other
+					if (random.Next(100) < volcanoPercent && t.FindInRing(1, tile => tile.overlayTerrainType.isVolcano()) == null) {
 						t.overlayTerrainType = volcano;
 					} else {
 						t.overlayTerrainType = mountains;
@@ -407,9 +416,9 @@ namespace C7Engine {
 
 		// Assigns a biome id to each land tile, creating potential biome zones
 		// that will later be assigned to actual biomes.
-		private static void SplitContinentsIntoPotentialBiomes(WorldCharacteristics wc, GameMap m) {
+		private static void SplitContinentsIntoPotentialBiomes(MapGeneratorData mgd, GameMap m) {
 			// Randomize the order we iterate through the tiles.
-			Random rand = new(wc.mapSeed + 0xba11);
+			Random rand = new(mgd.mapSeed + 0xba11);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();
 			rand.Shuffle<int>(CollectionsMarshal.AsSpan(tileIndicies));
 
@@ -523,14 +532,14 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AssignBiomes(WorldCharacteristics wc, GameMap m) {
-			TerrainType tundra = wc.terrainTypes.Find(x => x.Key == "tundra");
-			TerrainType grassland = wc.terrainTypes.Find(x => x.Key == "grassland");
-			TerrainType desert = wc.terrainTypes.Find(x => x.Key == "desert");
-			TerrainType plains = wc.terrainTypes.Find(x => x.Key == "plains");
+		private static void AssignBiomes(MapGeneratorData mgd, GameMap m) {
+			TerrainType tundra = mgd.terrainTypes.Find(x => x.Key == "tundra");
+			TerrainType grassland = mgd.terrainTypes.Find(x => x.Key == "grassland");
+			TerrainType desert = mgd.terrainTypes.Find(x => x.Key == "desert");
+			TerrainType plains = mgd.terrainTypes.Find(x => x.Key == "plains");
 
 			// Like with mountains, use a very blobby scale for our temperature map.
-			HeightMap hm = new(seed: wc.mapSeed + 0xdad, width:wc.worldSize.width, height:wc.worldSize.height, scale:.4);
+			HeightMap hm = new(seed: mgd.mapSeed + 0xdad, width:mgd.worldCharacteristics.worldSize.width, height:mgd.worldCharacteristics.worldSize.height, scale:.4);
 
 			// Tundra also has a latitude threshold, not just a temperature
 			// check, to prevent equatorial tundras.
@@ -542,10 +551,10 @@ namespace C7Engine {
 
 			// While biomes are mostly affected by temperature, give plains and
 			// deserts a boost when there is less moisture.
-			int aridPlainsBoost = wc.climate == WorldCharacteristics.Climate.Arid ? 8 : 0;
-			int aridDesertBoost = wc.climate == WorldCharacteristics.Climate.Arid ? 5 : 0;
+			int aridPlainsBoost = mgd.worldCharacteristics.climate == WorldCharacteristics.Climate.Arid ? 8 : 0;
+			int aridDesertBoost = mgd.worldCharacteristics.climate == WorldCharacteristics.Climate.Arid ? 5 : 0;
 
-			switch (wc.temperature) {
+			switch (mgd.worldCharacteristics.temperature) {
 				case WorldCharacteristics.Temperature.Cool:
 					// About where Minneapolis is - in the last ice age glaciers
 					// went lower, but we don't want all tundra.
@@ -594,11 +603,11 @@ namespace C7Engine {
 					desertUpperBound = hm.FindSeaLevel(70 + aridDesertBoost);
 					break;
 				default:
-					throw new Exception($"Unknown temperature: {wc.temperature}");
+					throw new Exception($"Unknown temperature: {mgd.worldCharacteristics.temperature}");
 			}
 
 			// Randomize the order we iterate through the tiles.
-			Random rand = new(wc.mapSeed + 0xba5e);
+			Random rand = new(mgd.mapSeed + 0xba5e);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();
 			rand.Shuffle<int>(CollectionsMarshal.AsSpan(tileIndicies));
 
@@ -660,12 +669,12 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AddVegetation(WorldCharacteristics wc, GameMap m) {
-			TerrainType forest = wc.terrainTypes.Find(x => x.Key == "forest");
-			TerrainType jungle = wc.terrainTypes.Find(x => x.Key == "jungle");
-			TerrainType marsh = wc.terrainTypes.Find(x => x.Key == "marsh");
+		private static void AddVegetation(MapGeneratorData mgd, GameMap m) {
+			TerrainType forest = mgd.terrainTypes.Find(x => x.Key == "forest");
+			TerrainType jungle = mgd.terrainTypes.Find(x => x.Key == "jungle");
+			TerrainType marsh = mgd.terrainTypes.Find(x => x.Key == "marsh");
 
-			HeightMap hm = new(seed: wc.mapSeed + 0xabcde, width:wc.worldSize.width, height:wc.worldSize.height, scale:.3);
+			HeightMap hm = new(seed: mgd.mapSeed + 0xabcde, width:mgd.worldCharacteristics.worldSize.width, height:mgd.worldCharacteristics.worldSize.height, scale:.3);
 
 			// For jungle we also rely on latitude, not just moisture.
 			int jungleLatitudeThreshold;
@@ -674,7 +683,7 @@ namespace C7Engine {
 			int jungleLowerBound, jungleUpperBound;
 			int marshLowerBound, marshUpperBound;
 
-			switch (wc.climate) {
+			switch (mgd.worldCharacteristics.climate) {
 				case WorldCharacteristics.Climate.Wet:
 					jungleLatitudeThreshold = 30;
 
@@ -715,10 +724,10 @@ namespace C7Engine {
 					marshUpperBound = hm.FindSeaLevel(56);
 					break;
 				default:
-					throw new Exception($"Unknown climate: {wc.climate}");
+					throw new Exception($"Unknown climate: {mgd.worldCharacteristics.climate}");
 			}
 
-			Random rand = new(wc.mapSeed + 0xe5ab);
+			Random rand = new(mgd.mapSeed + 0xe5ab);
 			foreach (Tile t in m.tiles) {
 				// Skip water tiles and tiles that are hilly.
 				if (!t.IsLand() || t.overlayTerrainType.isHilly()) {
@@ -753,9 +762,9 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AddRivers(WorldCharacteristics wc, GameMap m) {
-			Random rand = new(wc.mapSeed + 0xabc12);
-			HeightMap hm = new(seed: wc.mapSeed + 0x21cba, width:wc.worldSize.width, height:wc.worldSize.height, scale:.1);
+		private static void AddRivers(MapGeneratorData mgd, GameMap m) {
+			Random rand = new(mgd.mapSeed + 0xabc12);
+			HeightMap hm = new(seed: mgd.mapSeed + 0x21cba, width:mgd.worldCharacteristics.worldSize.width, height:mgd.worldCharacteristics.worldSize.height, scale:.1);
 
 			// Find possible places for rivers to start and then shuffle them.
 			List<Tile> potentialSources = FindPotentialRiverSources(m);
@@ -763,7 +772,7 @@ namespace C7Engine {
 
 			// Cap the number of rivers based on the amount of land we have.
 			int totalTiles = m.tiles.Count;
-			int expectedLandTiles = (int)(totalTiles * (1 - (int)wc.oceanCoverage/100.0));
+			int expectedLandTiles = (int)(totalTiles * (1 - (int)mgd.worldCharacteristics.oceanCoverage/100.0));
 			int maxRivers = (int)(expectedLandTiles / 100.0);
 			int riversStarted = 0;
 
@@ -878,7 +887,8 @@ namespace C7Engine {
 		//
 		// Things that need to be improved:
 		//   - when corners are turned, sometimes we get a dangly edge
-		//   - the N S E W river flags aren't set
+		//   - the N S E W river flags aren't set here; GameMap.computeCardinalRiverFlags()
+		//     derives them once all rivers are placed
 		private static void setRiverFlags(Tile t, TileDirection incomingDir, int depth) {
 			//             <      >
 			//         <  NW  ><  NE  >
@@ -974,8 +984,8 @@ namespace C7Engine {
 		// In Civ3, any desert tile with a river running along it becomes a
 		// flood plain. Only tiles whose terrain is fully desert convert - hills
 		// or vegetation on the tile make it a different terrain.
-		internal static void AddFloodPlains(WorldCharacteristics wc, GameMap m) {
-			TerrainType floodPlain = wc.terrainTypes.Find(x => x.Key == "flood plain");
+		internal static void AddFloodPlains(MapGeneratorData mgd, GameMap m) {
+			TerrainType floodPlain = mgd.terrainTypes.Find(x => x.Key == "flood plain");
 			if (floodPlain == null) {
 				log.Warning("Rules have no 'flood plain' terrain; skipping flood plain generation.");
 				return;
@@ -993,9 +1003,9 @@ namespace C7Engine {
 			}
 		}
 
-		private static void FixContinentalShelf(WorldCharacteristics wc, GameMap m) {
-			TerrainType coast = wc.terrainTypes.Find(x => x.Key == "coast");
-			TerrainType sea = wc.terrainTypes.Find(x => x.Key == "sea");
+		private static void FixContinentalShelf(MapGeneratorData mgd, GameMap m) {
+			TerrainType coast = mgd.terrainTypes.Find(x => x.Key == "coast");
+			TerrainType sea = mgd.terrainTypes.Find(x => x.Key == "sea");
 
 			// Ensure that land only borders coast.
 			foreach (Tile t in m.tiles) {
@@ -1028,13 +1038,13 @@ namespace C7Engine {
 			}
 		}
 
-		private static void AddResources(WorldCharacteristics wc, GameMap m) {
-			Random rand = new(wc.mapSeed + 0x7171);
+		private static void AddResources(MapGeneratorData mgd, GameMap m) {
+			Random rand = new(mgd.mapSeed + 0x7171);
 
 			// Randomize the order resources are placed and the order we go
 			// through tiles.
 			List<Resource> resourcesToPlace = new();
-			foreach (Resource r in wc.resources) {
+			foreach (Resource r in mgd.resources) {
 				log.Information(r.Key);
 				resourcesToPlace.Add(r);
 			}
@@ -1053,7 +1063,7 @@ namespace C7Engine {
 					continue;
 				}
 
-				PlaceLuxuryResourceType(rand, wc, m, r, tileIndicies, resourceToContinentPlacement);
+				PlaceLuxuryResourceType(rand, mgd, m, r, tileIndicies, resourceToContinentPlacement);
 			}
 
 			// Strategic resources.
@@ -1062,18 +1072,18 @@ namespace C7Engine {
 					continue;
 				}
 
-				PlaceStrategicResourceType(rand, wc, m, r, tileIndicies);
+				PlaceStrategicResourceType(rand, mgd, m, r, tileIndicies);
 			}
 
 			// Bonus resources.
-			PlaceBonusResources(rand, wc, m, resourcesToPlace.Where(x => x.Category == ResourceCategory.BONUS).ToList(), tileIndicies);
+			PlaceBonusResources(rand, mgd, m, resourcesToPlace.Where(x => x.Category == ResourceCategory.BONUS).ToList(), tileIndicies);
 		}
 
 		// Determine the rate of appearance for a given resource. The rate of
 		// appearance seems to have a default of 100 for civ3, but if it isn't
 		// specified (like for luxuries) it is some random value less than 100
 		// but always larger than 50.
-		private static int GetAppearance(WorldCharacteristics wc, Random rand, Resource r, int minCount) {
+		private static int GetAppearance(MapGeneratorData mgd, Random rand, Resource r, int minCount) {
 			// The the appearance ratio, with a random number between 50 and
 			// 100 if it isn't specified. Use multiple random calls to roughly
 			// simulate a normal distribution using uniform random samples.
@@ -1083,13 +1093,13 @@ namespace C7Engine {
 			}
 
 			// Scale the appearance based on the number of civs in the game.
-			int targetCount = (wc.worldSize.numberOfCivs * baseCount) / 100;
+			int targetCount = (mgd.worldCharacteristics.worldSize.numberOfCivs * baseCount) / 100;
 			targetCount = Math.Max(minCount, targetCount);
 			return targetCount;
 		}
 
-		private static void PlaceLuxuryResourceType(Random rand, WorldCharacteristics wc, GameMap m, Resource r, List<int> tileIndicies, Dictionary<Resource, int> resourceToContinentPlacement) {
-			int targetCount = GetAppearance(wc, rand, r, minCount:1);
+		private static void PlaceLuxuryResourceType(Random rand, MapGeneratorData mgd, GameMap m, Resource r, List<int> tileIndicies, Dictionary<Resource, int> resourceToContinentPlacement) {
+			int targetCount = GetAppearance(mgd, rand, r, minCount:1);
 			int placed = 0;
 			resourceToContinentPlacement[r] = -1;
 
@@ -1113,7 +1123,7 @@ namespace C7Engine {
 				}
 
 				// Skip tiles that don't need the luxury-specific criteria.
-				if (!IsValidForLuxuryPlacement(wc, m, r, t)) {
+				if (!IsValidForLuxuryPlacement(mgd, m, r, t)) {
 					continue;
 				}
 
@@ -1156,7 +1166,7 @@ namespace C7Engine {
 			return false;
 		}
 
-		private static bool IsValidForLuxuryPlacement(WorldCharacteristics wc, GameMap m, Resource r, Tile t) {
+		private static bool IsValidForLuxuryPlacement(MapGeneratorData mgd, GameMap m, Resource r, Tile t) {
 			HashSet<Tile> continent = m.continents.First(x => x.Contains(t));
 
 			// Don't put luxuries on islands too small for players.
@@ -1179,17 +1189,17 @@ namespace C7Engine {
 
 			// If this is a water-based resource, ensure it doesn't end up in the
 			// middle of the ocean.
-			if (!t.IsLand() && !HasSufficientLandNeighborsForResource(wc, t)) {
+			if (!t.IsLand() && !HasSufficientLandNeighborsForResource(mgd, t)) {
 				return false;
 			}
 
 			return true;
 		}
 
-		private static bool HasSufficientLandNeighborsForResource(WorldCharacteristics wc, Tile t) {
+		private static bool HasSufficientLandNeighborsForResource(MapGeneratorData mgd, Tile t) {
 			int landTiles = 0;
 
-			foreach (Tile x in t.GetTilesWithinRankDistance(wc.maxRankOfWorkableTiles)) {
+			foreach (Tile x in t.GetTilesWithinRankDistance(mgd.maxRankOfWorkableTiles)) {
 				if (x.IsLand()) {
 					++landTiles;
 				}
@@ -1198,8 +1208,8 @@ namespace C7Engine {
 			return landTiles >= 1;
 		}
 
-		private static void PlaceStrategicResourceType(Random rand, WorldCharacteristics wc, GameMap m, Resource r, List<int> tileIndicies) {
-			int targetCount = GetAppearance(wc, rand, r, minCount:2);
+		private static void PlaceStrategicResourceType(Random rand, MapGeneratorData mgd, GameMap m, Resource r, List<int> tileIndicies) {
+			int targetCount = GetAppearance(mgd, rand, r, minCount:2);
 			int placed = 0;
 
 			for (int i = 0; placed < targetCount && i < tileIndicies.Count; ++i) {
@@ -1216,7 +1226,7 @@ namespace C7Engine {
 				}
 
 				// Skip tiles that don't need the strategic resource-specific criteria.
-				if (!IsValidForStrategicResourcePlacement(wc, m, r, t)) {
+				if (!IsValidForStrategicResourcePlacement(mgd, m, r, t)) {
 					continue;
 				}
 
@@ -1231,7 +1241,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static bool IsValidForStrategicResourcePlacement(WorldCharacteristics wc, GameMap m, Resource r, Tile t) {
+		private static bool IsValidForStrategicResourcePlacement(MapGeneratorData mgd, GameMap m, Resource r, Tile t) {
 			HashSet<Tile> continent = m.continents.First(x => x.Contains(t));
 
 			// Don't put strategic resources on super tiny islands - though
@@ -1256,19 +1266,19 @@ namespace C7Engine {
 
 			// If this is a water-based resource, ensure it doesn't end up in the
 			// middle of the ocean.
-			if (!t.IsLand() && !HasSufficientLandNeighborsForResource(wc, t)) {
+			if (!t.IsLand() && !HasSufficientLandNeighborsForResource(mgd, t)) {
 				return false;
 			}
 
 			return true;
 		}
 
-		private static void PlaceBonusResources(Random rand, WorldCharacteristics wc, GameMap m,
+		private static void PlaceBonusResources(Random rand, MapGeneratorData mgd, GameMap m,
 												List<Resource> bonusResources, List<int> tileIndicies) {
 			int totalPossibleBonusResources = m.tiles.Count / 32;
 			int placed = 0;
 
-			Dictionary<Resource, int> terrainScores = CalculateBonusResourceTerrainScores(wc, bonusResources);
+			Dictionary<Resource, int> terrainScores = CalculateBonusResourceTerrainScores(mgd, bonusResources);
 
 			for (int pass = 0; pass < 32 && placed < totalPossibleBonusResources; ++pass) {
 				rand.Shuffle<Resource>(CollectionsMarshal.AsSpan(bonusResources));
@@ -1294,14 +1304,14 @@ namespace C7Engine {
 						continue;
 					}
 
-					if (PlaceBonusResource(wc, m, r, tileIndicies)) {
+					if (PlaceBonusResource(mgd, m, r, tileIndicies)) {
 						++placed;
 					}
 				}
 			}
 		}
 
-		private static bool PlaceBonusResource(WorldCharacteristics wc, GameMap m, Resource r, List<int> tileIndicies) {
+		private static bool PlaceBonusResource(MapGeneratorData mgd, GameMap m, Resource r, List<int> tileIndicies) {
 			// We want to place this resource. Find the first valid tile
 			// we can stick it on.
 			//
@@ -1319,7 +1329,7 @@ namespace C7Engine {
 					continue;
 				}
 
-				if (!t.IsLand() && !HasSufficientLandNeighborsForResource(wc, t)) {
+				if (!t.IsLand() && !HasSufficientLandNeighborsForResource(mgd, t)) {
 					continue;
 				}
 
@@ -1330,12 +1340,12 @@ namespace C7Engine {
 			return false;
 		}
 
-		private static Dictionary<Resource, int> CalculateBonusResourceTerrainScores(WorldCharacteristics wc, List<Resource> bonusResources) {
+		private static Dictionary<Resource, int> CalculateBonusResourceTerrainScores(MapGeneratorData mgd, List<Resource> bonusResources) {
 			Dictionary<Resource, int> result = new();
 
 			foreach (Resource r in bonusResources) {
 				int score = 0;
-				foreach (TerrainType tt in wc.terrainTypes) {
+				foreach (TerrainType tt in mgd.terrainTypes) {
 					if (tt.allowedResources.Contains(r.Key)) {
 						// Make water bonus resources get a higher score, since
 						// land bonus resources are generally more valuable.
@@ -1352,8 +1362,8 @@ namespace C7Engine {
 			return result;
 		}
 
-		private static void AddBarbarianCamps(WorldCharacteristics wc, GameMap m) {
-			Random rand = new(wc.mapSeed + 0xba7b5);
+		private static void AddBarbarianCamps(MapGeneratorData mgd, GameMap m) {
+			Random rand = new(mgd.mapSeed + 0xba7b5);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();
 			rand.Shuffle<int>(CollectionsMarshal.AsSpan(tileIndicies));
 
@@ -1364,14 +1374,13 @@ namespace C7Engine {
 				}
 			}
 
-			int totalPossibleBarbCamps = DeriveTotalPossibleBarbCamps(wc, landTiles);
+			int totalPossibleBarbCamps = DeriveTotalPossibleBarbCamps(mgd, landTiles);
 
 			int numCamps = 0;
 			for (int i = 0; i < tileIndicies.Count && numCamps < totalPossibleBarbCamps; ++i) {
 				Tile t = m.tiles[tileIndicies[i]];
-				if (IsValidForBarbarianCamp(wc, m, t)) {
+				if (IsValidForBarbarianCamp(mgd, m, t)) {
 					m.barbarianCamps.Add(t);
-					t.hasBarbarianCamp = true;
 					++numCamps;
 				}
 			}
@@ -1380,11 +1389,11 @@ namespace C7Engine {
 		/// <summary>
 		/// Apply barbarian activity level to barbarian camp spawn rate. Currently NOT based on Civ3 values.
 		/// TODO: Make configurable
-		/// TODO: Determine what these values are in Civ3 
+		/// TODO: Determine what these values are in Civ3
 		/// </summary>
-		private static int DeriveTotalPossibleBarbCamps(WorldCharacteristics wc, int landTiles) {
+		private static int DeriveTotalPossibleBarbCamps(MapGeneratorData mgd, int landTiles) {
 			var totalCampsBaseline = landTiles / 100;
-			switch (wc.barbarianActivity) {
+			switch (mgd.barbarianActivity) {
 				case BarbarianActivity.None:
 					return 0;
 				case BarbarianActivity.Sedentary:
@@ -1401,7 +1410,7 @@ namespace C7Engine {
 			}
 		}
 
-		private static bool IsValidForBarbarianCamp(WorldCharacteristics wc, GameMap m, Tile t) {
+		private static bool IsValidForBarbarianCamp(MapGeneratorData mgd, GameMap m, Tile t) {
 			// No barbarian camps on water, volcanos, or mountains.
 			if (!t.IsLand() || t == Tile.NONE || t.overlayTerrainType.Key == "volcano" || t.overlayTerrainType.Key == "mountains") {
 				return false;
@@ -1421,8 +1430,8 @@ namespace C7Engine {
 			}
 
 			// No barbarian camps within the big fat cross of another camp.
-			foreach (Tile n in t.GetTilesWithinRankDistance(wc.maxRankOfBarbarianCampTiles)) {
-				if (n.hasBarbarianCamp) {
+			foreach (Tile n in t.GetTilesWithinRankDistance(mgd.maxRankOfBarbarianCampTiles)) {
+				if (m.barbarianCamps.Contains(n)) {
 					return false;
 				}
 			}
@@ -1433,8 +1442,8 @@ namespace C7Engine {
 			return true;
 		}
 
-		private static void DetermineStartingLocations(WorldCharacteristics wc, GameMap m) {
-			Random rand = new(wc.mapSeed + 0x1337);
+		private static void DetermineStartingLocations(MapGeneratorData mgd, GameMap m) {
+			Random rand = new(mgd.mapSeed + 0x1337);
 			List<HashSet<Tile>> landContinents = m.continents.Where(x => x.First().IsLand()).ToList();
 
 			// Count how many luxuries each continent has.
@@ -1451,7 +1460,7 @@ namespace C7Engine {
 			// Find all viable city locations.
 			Dictionary<Tile, int> scoredTiles = new();
 			foreach (Tile t in m.tiles) {
-				int score = ScorePossibleCityLocation(wc, t);
+				int score = ScorePossibleCityLocation(mgd, m, t);
 				if (score > 0) {
 					scoredTiles[t] = score;
 				}
@@ -1462,9 +1471,9 @@ namespace C7Engine {
 			List<Tile> startingLocations = new();
 			Dictionary<int, int> continentStartingLocationCount = new();
 
-			for (int attempt = 0; attempt < 10 && startingLocations.Count < wc.worldSize.numberOfCivs; ++attempt) {
+			for (int attempt = 0; attempt < 10 && startingLocations.Count < mgd.worldCharacteristics.worldSize.numberOfCivs; ++attempt) {
 				foreach (Tile t in orderedTiles) {
-					if (startingLocations.Count == wc.worldSize.numberOfCivs) {
+					if (startingLocations.Count == mgd.worldCharacteristics.worldSize.numberOfCivs) {
 						break;
 					}
 
@@ -1479,7 +1488,7 @@ namespace C7Engine {
 						continue;
 					}
 
-					if (TileIsTooCloseToOtherStarts(t, startingLocations, wc.worldSize.distanceBetweenCivs, attempt)) {
+					if (TileIsTooCloseToOtherStarts(t, startingLocations, mgd.worldCharacteristics.worldSize.distanceBetweenCivs, attempt)) {
 						continue;
 					}
 
@@ -1494,7 +1503,7 @@ namespace C7Engine {
 				}
 			}
 
-			if (wc.worldSize.numberOfCivs > startingLocations.Count)
+			if (mgd.worldCharacteristics.worldSize.numberOfCivs > startingLocations.Count)
 				log.Error("More civs than available starting locations.");
 
 			// Before using the starting locations, shuffle them, so that the
@@ -1557,7 +1566,7 @@ namespace C7Engine {
 		}
 
 		// TODO: merge this with the ai logic
-		private static int ScorePossibleCityLocation(WorldCharacteristics wc, Tile t) {
+		private static int ScorePossibleCityLocation(MapGeneratorData mgd, GameMap m, Tile t) {
 			if (!t.IsAllowCities()) {
 				return int.MinValue;
 			}
@@ -1571,7 +1580,7 @@ namespace C7Engine {
 			const int BarbarianCampPoints = -50;
 
 			Player player = new();
-			player.government = wc.defaultGovernment;
+			player.government = mgd.defaultGovernment;
 
 			// Calculate the score for tiles in the immediate area.
 			int score = 0;
@@ -1579,7 +1588,7 @@ namespace C7Engine {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 
@@ -1590,11 +1599,11 @@ namespace C7Engine {
 
 			// Then do it again for the full big fat cross, effectively weighting
 			// the immediate neighbors at a 2x rate.
-			foreach (Tile n in t.GetTilesWithinRankDistance(wc.maxRankOfWorkableTiles)) {
+			foreach (Tile n in t.GetTilesWithinRankDistance(mgd.maxRankOfWorkableTiles)) {
 				score += CommercePoints * n.CommerceYield(player).yield;
 				score += ShieldPoints * n.ProductionYield(player).yield;
 				score += FoodPoints * n.FoodYield(player).yield;
-				if (n.hasBarbarianCamp) {
+				if (m.barbarianCamps.Contains(n)) {
 					score += BarbarianCampPoints;
 				}
 			}
@@ -1617,9 +1626,9 @@ namespace C7Engine {
 			return score;
 		}
 
-		public static void AddBonusGrasslands(WorldCharacteristics wc, GameMap m) {
+		public static void AddBonusGrasslands(MapGeneratorData mgd, GameMap m) {
 			// Randomize the order we iterate through the tiles.
-			Random rand = new(wc.mapSeed + 0x7361);
+			Random rand = new(mgd.mapSeed + 0x7361);
 			List<int> tileIndicies = Enumerable.Range(0, m.tiles.Count).ToList();
 			rand.Shuffle<int>(CollectionsMarshal.AsSpan(tileIndicies));
 

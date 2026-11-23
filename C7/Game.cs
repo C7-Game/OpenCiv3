@@ -8,9 +8,7 @@ using C7.UIElements;
 using C7Engine.Pathing;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using C7.UIElements;
 using C7.UIElements.Popups;
 using static AdvisorHead;
 using static C7GameData.MapUnit;
@@ -236,11 +234,20 @@ public partial class Game : Node {
 		EmitSignal(SignalName.GameInitialized);
 
 		if (Global.LoadGamePath == null) {
+			Autosave.Clear();
+		}
+		PerformAutosave(EngineStorage.gameData);
+
+		if (Global.LoadGamePath == null) {
 			new MsgNewGame(controller.id).send();
 			await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
 		}
 
 		Global.ResetLoadGameFields();
+	}
+
+	private void PerformAutosave(GameData gameData) {
+		Autosave.Perform(gameData, controller, PreferencesSettings.GetAutosaveTurns());
 	}
 
 	private GameParams CreateGameParams() {
@@ -374,16 +381,13 @@ public partial class Game : Node {
 				this.EmitCivilizationDestroyedSignal(mCivD);
 				InterestingEvent();
 				break;
+			case MsgBarbarianCampDispersed mBCD:
+				if (mBCD.controllerId == controller.id)
+					this.EmitBarbarianCampDispersedSignal(mBCD);
+				break;
 			case MsgPlayerDefeated mPD:
 				this.EmitDefeatSignal(mPD.playerId);
 				InterestingEvent();
-				break;
-			case MsgShowMilitaryAdvisorPopup mSMAP:
-				if (!popupOverlay.Visible) {
-					var mood = mSMAP.happy ? Mood.Happy : Mood.Angry;
-					var pop = new InformationalPopup(mSMAP.message, Advisor.Military, mood);
-					popupOverlay.ShowPopup(pop, PopupOverlay.PopupCategory.Info);
-				}
 				break;
 			case MsgShowScienceAdvisor mSSA:
 				EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowScienceAdvisor);
@@ -437,6 +441,9 @@ public partial class Game : Node {
 			case MsgSelectGovernment mSG:
 				EmitSelectGovernmentSignal(mSG);
 				break;
+			case MsgSelectTransport mSelT:
+				EmitSelectTransportSignal(mSelT);
+				break;
 			case MsgConfirmStartRevolution mSR:
 				EmitStartARevolutionSignal(mSR);
 				break;
@@ -447,8 +454,9 @@ public partial class Game : Node {
 				EmitAlreadyInRevolutionSignal(mAIR);
 				break;
 			case MsgShowTemporaryPopup mSTP:
-				Vector2 pos = mapView.screenLocationOfTile(mSTP.location, true);
-				TemporaryPopup.Show(this, mSTP.message, pos);
+				if (mSTP.controllerId != this.controller.id) return;
+				if (EngineStorage.gameData.observerMode) return; // TODO: make configurable
+				TemporaryPopup.Show(this.mapView, this, mSTP.message, mSTP.location);
 				break;
 			case MsgUnitMoved mUUAAB:
 				EmitSignal(SignalName.UnitMoved, new ParameterWrapper<MapUnit>(mUUAAB.Unit));
@@ -549,6 +557,7 @@ public partial class Game : Node {
 	private void OnPlayerStartTurn() {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			log.Information("Starting player turn");
+			PerformAutosave(gameData);
 
 			// TODO: Before we call this method to automatically end obsolete deals, we could make this more versatile.
 			// For example unless we have a good reason, as a human, receiving luxuries, gpt,
@@ -588,16 +597,14 @@ public partial class Game : Node {
 		// Prompt the user if they would have a city riot when the turn ended.
 		bool doEndTurn = true;
 		EngineStorage.ReadGameData((GameData gameData) => {
-			foreach (City city in controller.cities) {
-				if (!controller.isHuman) {
-					continue;
-				}
-
-				City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
-				if (cityMood == City.Mood.Unhappy) {
-					new MsgCityRiotWarning(this.controller.id, city).send();
-					doEndTurn = false;
-					return;
+			if (controller.isHuman) {
+				foreach (City city in controller.cities) {
+					City.Mood cityMood = city.RecalculateCitizenMoods(gameData);
+					if (cityMood == City.Mood.Unhappy) {
+						new MsgCityRiotWarning(this.controller.id, city).send();
+						doEndTurn = false;
+						return;
+					}
 				}
 			}
 		});
@@ -621,16 +628,16 @@ public partial class Game : Node {
 	}
 
 	public void OnSaveGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForSaving(@"Conquests/Saves");
+		SavePaths.EnsureSaveFolderExists();
+		FileDialog.SetDirectoryForSaving(SavePaths.SaveFolder);
+		FileDialog.PrefillFileName(SaveNameGenerator.GenerateSaveFileName(EngineStorage.gameData, controller));
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
 	}
 
 	public void OnLoadGame() {
-		// TODO: this should go to our own saves directory.
-		FileDialog.SetDirectoryForLoading(@"Conquests/Saves");
+		FileDialog.PrefillLoadWithLatestSave();
 
 		// TODO: sound -- see MainMenu.PlayButtonPressedSound();
 		FileDialog.Popup();
@@ -794,7 +801,7 @@ public partial class Game : Node {
 		Tile tile = PositionToTile(screenPosition);
 
 		if (!canMove) {
-			new MsgShowTemporaryPopup("This unit has already moved.", tile).send();
+			new MsgShowTemporaryPopup(controller.id, "This unit has already moved.", tile).send();
 		}
 	}
 
@@ -839,7 +846,7 @@ public partial class Game : Node {
 	public void ShowTileInfo(Tile tile) {
 		tileInfo = new TileInfo(tile);
 		var zoom = mapView.cameraZoom;
-		var tileCenter = mapView.screenLocationOfTile(tile, true);
+		var tileCenter = mapView.screenLocationOfTileAbsolute(tile, true);
 		var tileInfoPopup = new TileInfoPopup(this, tile, tileCenter, zoom);
 		popupOverlay.ShowPopup(tileInfoPopup, PopupOverlay.PopupCategory.TileInfo);
 	}
@@ -913,6 +920,11 @@ public partial class Game : Node {
 			ToggleObserverMode();
 		}
 
+		if (eventKeyDown.Keycode == Godot.Key.M && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
+			ToggleRevealMap();
+			return;
+		}
+
 		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
 			if (preferences.Visible) {
 				preferences.HidePreferences();
@@ -974,7 +986,14 @@ public partial class Game : Node {
 		});
 	}
 
+	private void ToggleRevealMap() {
+		EngineStorage.ReadGameData((GameData gameData) => {
+			gameData.revealMap = !gameData.revealMap;
+		});
+	}
+
 	private void SetObserverModeOn(GameData gameData) {
+		gameData.revealMap = true;
 		foreach (Player player in gameData.players) {
 			player.isHuman = false;
 		}
@@ -988,6 +1007,7 @@ public partial class Game : Node {
 	}
 
 	private void SetObserverModeOff(GameData gameData) {
+		gameData.revealMap = false;
 		foreach (Player player in gameData.players) {
 			if (player.id == EngineStorage.uiControllerID) {
 				player.isHuman = true;
@@ -999,6 +1019,17 @@ public partial class Game : Node {
 		EngineStorage.ReadGameData((GameData gameData) => {
 			gameData.showGridCoordinates = !gameData.showGridCoordinates;
 		});
+	}
+
+	private void ToggleCameraZoom() {
+		if (mapView == null) {
+			return;
+		}
+		if (mapView.cameraZoom != 1) {
+			mapView.setCameraZoomFromMiddle(1.0f);
+		} else {
+			mapView.setCameraZoomFromMiddle(0.5f);
+		}
 	}
 
 	private void HandleMagnifyGesture(InputEventMagnifyGesture magnifyGesture) {
@@ -1164,11 +1195,7 @@ public partial class Game : Node {
 		}
 
 		if (currentAction == C7Action.ToggleZoom) {
-			if (mapView.cameraZoom != 1) {
-				mapView.setCameraZoomFromMiddle(1.0f);
-			} else {
-				mapView.setCameraZoomFromMiddle(0.5f);
-			}
+			ToggleCameraZoom();
 		}
 
 		if (currentAction == C7Action.ToggleAnimations) {
@@ -1246,8 +1273,7 @@ public partial class Game : Node {
 
 
 		if (currentAction == C7Action.UnitLoad) {
-			// TODO: Which transport?
-			new MsgLoadToTransport(CurrentlySelectedUnit.id).send();
+			new MsgSelectTransport(CurrentlySelectedUnit).send();
 		}
 		if (currentAction == C7Action.UnitUnload) {
 			new MsgUnloadTransport(CurrentlySelectedUnit.id).send();
@@ -1297,15 +1323,15 @@ public partial class Game : Node {
 		log.Debug($"Resolve movement intent: {info.intent}");
 
 		if (info.intent == Intent.NoticeUnit) {
-			new MsgShowTemporaryPopup($"Non-combat units may not attack.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"Non-combat units may not attack.", info.destinationTile).send();
 			return;
 		}
 		if (info.intent == Intent.NoticeCity) {
-			new MsgShowTemporaryPopup($"Only combat units can capture cities and improvements.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"Only combat units can capture cities and improvements.", info.destinationTile).send();
 			return;
 		}
 		if (info.intent == Intent.NoticeAlliance) {
-			new MsgShowTemporaryPopup($"No aggression against alliance.", info.destinationTile).send();
+			new MsgShowTemporaryPopup(controller.id, $"No aggression against alliance.", info.destinationTile).send();
 			return;
 		}
 
