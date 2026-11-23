@@ -115,6 +115,18 @@ namespace C7GameData {
 			}
 		}
 
+		// Winning combat against another civ's unit with this flag starts the owner's golden age.
+		public bool startsGoldenAge {
+			get => flags.Contains(SaveUnitPrototype.Flag.StartsGoldenAge);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.StartsGoldenAge);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.StartsGoldenAge);
+				}
+			}
+		}
+
 		// Wheeled units cannot enter terrain that Civ3 marks as impassable to
 		// wheeled units (mountains, jungle, marsh and volcano in the base game).
 		public bool wheeled {

@@ -148,6 +148,15 @@ namespace C7GameData {
 		public bool IsInGA => HasHadGA && EngineStorage.gameData.turn < goldenAgeEnds;
 		public bool GAHasEnded => EngineStorage.gameData.turn == goldenAgeEnds;
 
+		// Starts this player's golden age, if they haven't already had one. Returns whether it started.
+		public bool TryStartGoldenAge() {
+			if (HasHadGA || isBarbarians) {
+				return false;
+			}
+			goldenAgeEnds = EngineStorage.gameData.turn + rules.GoldenAgeDuration;
+			return true;
+		}
+
 		private int lastGoldPerTurn = 0;
 
 		/// <summary>
