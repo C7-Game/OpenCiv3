@@ -176,7 +176,9 @@ namespace C7GameData {
 			return AreInSameAlliance(one.alliance, other.alliance) && one != other;
 		}
 
-		public void UpdateTileOwners() {
+		// popGoodyHuts: whether huts now inside a civ's borders are consumed,
+		// which shouldn't happen when merely loading a game.
+		public void UpdateTileOwners(bool popGoodyHuts = true) {
 			// We do this at the end of the method - we don't need to do this
 			// for each tile we add in the loop below.
 			bool recomputeActiveTiles = false;
@@ -213,6 +215,24 @@ namespace C7GameData {
 					// Law VIII
 					TryResolveOpposingNeighbors(t, TileDirection.NORTHEAST, TileDirection.SOUTHWEST);
 				}
+			}
+
+			if (popGoodyHuts) {
+				PopGoodyHutsInsideBorders();
+			}
+		}
+
+		// A hut inside a civ's borders is consumed by that civ, as if one of
+		// its units had entered it.
+		private void PopGoodyHutsInsideBorders() {
+			List<Tile> huts = map.tiles.Where(t => t.HasGoodyHut() && t.owningCity != null).ToList();
+			foreach (Tile hut in huts) {
+				// A hut outcome can found a city and re-run this, popping
+				// other huts in the meantime.
+				if (!hut.HasGoodyHut() || hut.owningCity == null || hut.owningCity.owner.isBarbarians) {
+					continue;
+				}
+				GoodyHutInteractions.PopHut(this, hut.owningCity.owner, hut);
 			}
 		}
 

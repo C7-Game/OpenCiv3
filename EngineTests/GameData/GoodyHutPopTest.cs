@@ -38,7 +38,7 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 	}
 
 	private City FoundCityNextTo(Tile tile, int distance) {
-		Tile site = gameData.map.tiles.First(t => t.IsLand() && t.ManhattanDistanceTo(tile) == distance && t.IsAllowCities());
+		Tile site = gameData.map.tiles.First(t => t.IsLand() && t.DistanceTo(tile) == distance && t.IsAllowCities());
 		return CityInteractions.BuildCity(site, human, human.GetNextCityName());
 	}
 
@@ -67,6 +67,19 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 		unit.OnEnterTile(tile);
 
 		Assert.False(tile.HasGoodyHut());
+	}
+
+	[Fact]
+	public void BordersSpreadingOverAHutConsumeIt() {
+		Tile site = gameData.map.tiles.First(t => t.IsLand() && t.IsAllowCities() && t.unitsOnTile.Count == 0
+			&& t.neighbors.Values.All(n => n.IsLand() && n.unitsOnTile.Count == 0));
+		Tile hut = site.neighbors[TileDirection.NORTHEAST];
+		PlaceHut(hut);
+
+		CityInteractions.BuildCity(site, human, human.GetNextCityName());
+
+		Assert.Equal(human, hut.owningCity?.owner);
+		Assert.False(hut.HasGoodyHut());
 	}
 
 	// Like a dispersed camp, a popped hut leaves every player's map.
@@ -210,6 +223,48 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 		Assert.True(CanApply("barbarians", Context(hut)));
 	}
 
+	// Huts on any of the 8 tiles next to a newly founded city are consumed by
+	// its borders. Whatever the civ, that must never give barbarians or a
+	// city.
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public void HutsNextToANewCityNeverGiveBarbariansOrACity(bool expansionist) {
+		SetExpansionist(expansionist);
+		GiveCombatUnit();
+		// Make the human the only civ, so the city outcome isn't ruled out by
+		// the human being ahead of the average city count.
+		foreach (Player p in gameData.players.Where(p => !p.isBarbarians && p != human)) {
+			p.defeated = true;
+		}
+		Player barbarians = gameData.players.First(p => p.isBarbarians);
+
+		Tile site = gameData.map.tiles.First(t => t.IsLand() && t.IsAllowCities() && t.unitsOnTile.Count == 0
+			&& t.GetTilesWithinTileSquare(2).All(n => n.IsLand() && n.unitsOnTile.Count == 0 && !n.HasCity()));
+		List<Tile> neighbors = site.neighbors.Values.ToList();
+		Assert.Equal(8, neighbors.Count);
+
+		// The preconditions alone rule both outcomes out on every neighbor.
+		City city = CityInteractions.BuildCity(site, human, human.GetNextCityName());
+		foreach (Tile neighbor in neighbors) {
+			GoodyHutContext borderPop = new(gameData, human, neighbor);
+			Assert.False(CanApply("barbarians", borderPop), $"barbarians possible at {neighbor}");
+			Assert.False(CanApply("city", borderPop), $"city possible at {neighbor}");
+		}
+
+		// And founding a city with huts on every neighbor consumes them all
+		// without either outcome.
+		CityInteractions.DestroyCity(city);
+		foreach (Tile neighbor in neighbors) {
+			PlaceHut(neighbor);
+		}
+		CityInteractions.BuildCity(site, human, human.GetNextCityName());
+
+		Assert.All(neighbors, n => Assert.False(n.HasGoodyHut()));
+		Assert.Single(human.cities);
+		Assert.DoesNotContain(site.GetTilesWithinTileSquare(2), t => t.unitsOnTile.Any(u => u.owner == barbarians));
+	}
+
 	[Fact]
 	public void NoBarbariansForExpansionistsOrExplorers() {
 		GiveCombatUnit();
@@ -283,12 +338,12 @@ public class GoodyHutPopTest : IClassFixture<SaveGameFixture> {
 		Assert.Equal(human, hut.cityAtTile.owner);
 	}
 
+	// The hut distance rules rely on every tile next to a city, corners
+	// included, being 1 away.
 	[Fact]
-	public void ManhattanDistanceCountsCornerNeighborsAsTwo() {
+	public void EveryNeighborIsOneTileAway() {
 		Tile tile = gameData.map.tiles.First(t => t.neighbors.Values.All(Tile.IsTileValid));
 
-		Assert.Equal(1, tile.ManhattanDistanceTo(tile.neighbors[TileDirection.NORTHEAST]));
-		Assert.Equal(2, tile.ManhattanDistanceTo(tile.neighbors[TileDirection.NORTH]));
-		Assert.Equal(2, tile.ManhattanDistanceTo(tile.neighbors[TileDirection.EAST]));
+		Assert.All(tile.neighbors.Values, n => Assert.Equal(1, tile.DistanceTo(n)));
 	}
 }

@@ -15,14 +15,19 @@ namespace C7GameData;
 /// Random numbers come from the global RNG(n), not from this context.
 public class GoodyHutContext {
 	public GameData gameData { get; }
+	// The unit that entered the hut, or null (nil in Lua) when the hut was
+	// consumed by the player's borders spreading over it.
 	public MapUnit unit { get; }
 	public Player player { get; }
 	public Tile tile { get; }
 
-	public GoodyHutContext(GameData gameData, MapUnit unit, Tile tile) {
+	public GoodyHutContext(GameData gameData, MapUnit unit, Tile tile)
+		: this(gameData, unit.owner, tile, unit) { }
+
+	public GoodyHutContext(GameData gameData, Player player, Tile tile, MapUnit unit = null) {
 		this.gameData = gameData;
 		this.unit = unit;
-		this.player = unit.owner;
+		this.player = player;
 		this.tile = tile;
 	}
 
@@ -52,12 +57,13 @@ public class GoodyHutContext {
 	public bool HasTrait(Civilization.Trait trait)
 		=> player.civilization.traits.Contains(trait);
 
-	/// The Manhattan distance from the hut to the nearest city of the player
-	/// who popped it, or int.MaxValue if they have no cities.
+	/// The distance (Tile.DistanceTo) from the hut to the nearest city of the
+	/// player who popped it, or int.MaxValue if they have no cities. Every
+	/// tile next to a city is 1 away.
 	public int DistanceToNearestOwnCity() {
 		int nearest = int.MaxValue;
 		foreach (City city in player.cities) {
-			nearest = Math.Min(nearest, tile.ManhattanDistanceTo(city.location));
+			nearest = Math.Min(nearest, tile.DistanceTo(city.location));
 		}
 		return nearest;
 	}

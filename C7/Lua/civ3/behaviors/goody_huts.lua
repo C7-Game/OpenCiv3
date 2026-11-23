@@ -75,7 +75,7 @@ goody_huts.config = {
       -- Only civs with the Expansionist trait get cities from huts.
       requires_expansionist = true,
       -- No city from a hut that is closer than this to one of the player's
-      -- own cities (Manhattan distance).
+      -- own cities (Tile.DistanceTo: every adjacent tile is 1 away).
       min_own_city_distance = 4,
       -- After this turn, the new city gets RNG(max_extra_citizens + 1)
       -- extra citizens.
@@ -108,7 +108,7 @@ goody_huts.config = {
 
     barbarians = {
       -- No barbarians from a hut that is closer than this to one of the
-      -- player's own cities (Manhattan distance).
+      -- player's own cities (Tile.DistanceTo: every adjacent tile is 1 away).
       min_own_city_distance = 2,
       -- Up to this many barbarians appear next to the hut. The first gets a
       -- 3/4 chance per free tile, the next 2/3, then 1/2.
@@ -381,8 +381,9 @@ goody_huts.outcomes.barbarians = {
     if context:DistanceToNearestOwnCity() < config.min_own_city_distance then
       return false
     end
-    -- Units that treat all terrain as roads (explorers) are safe.
-    if context.unit.unitType.allTerrainAsRoads then
+    -- Units that treat all terrain as roads (explorers) are safe. There's no
+    -- unit when the hut is consumed by the player's borders.
+    if context.unit ~= nil and context.unit.unitType.allTerrainAsRoads then
       return false
     end
     return context.barbarianPlayer ~= nil
