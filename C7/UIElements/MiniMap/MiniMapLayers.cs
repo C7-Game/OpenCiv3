@@ -43,11 +43,15 @@ public class TerrainMiniLayer : MiniMapLayer {
 }
 
 public class PlayerColorMiniLayer : MiniMapLayer {
+	/// Returns the fully saturated version of the colour.
+	public static Color Intensify(Color colour) => Color.FromHsv(colour.H, 1, colour.V, colour.A);
+
 	public override void DrawTile(Image mapImage, Tile tile, int x, int y) {
 		if (visible && tile.OwningPlayer() != null) {
 			var civColor = TextureLoader.LoadColor(tile.OwningPlayer().GetPlayerColor());
+			var intenseCivColor = Intensify(civColor);
 			var currentColor = mapImage.GetPixel(x, y);
-			var newColor = civColor.Lerp(currentColor, 0.2f); // blend civ color with underlying map
+			var newColor = intenseCivColor.Lerp(currentColor, 0.25f); // blend civ color with underlying map
 			mapImage.SetPixel(x, y, newColor);
 		}
 	}
