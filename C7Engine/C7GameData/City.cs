@@ -348,6 +348,20 @@ namespace C7GameData {
 				if (building.greatWonderProperties != null) {
 					gameData.GreatWondersBuilt.Add(building.name);
 
+					// Check if we meet the Wonder trait criteria to trigger a golden age
+					// Don't use the GetActiveWonders method because it excludes obsolete wonders
+					// TODO: A civ with no traits will get a golden age immediately upon completing
+					// any great wonder. Determine if this behavior is acceptable.
+					HashSet<Civilization.Trait> wonderTraits = owner.cities
+						.SelectMany(city => city.constructed_buildings)
+						.Where(cb => cb.building.greatWonderProperties != null)
+						.SelectMany(cb => cb.building.ToSaveBuilding().traits)
+						.ToHashSet();
+
+					if (owner.civilization.traits.IsSubsetOf(wonderTraits)) {
+						owner.TryStartGoldenAge();
+					}
+
 					foreach (Player p in gameData.players) {
 						if (p == this.owner) {
 							continue;
