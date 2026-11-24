@@ -50,18 +50,25 @@ public partial class MapUnit {
 			}
 		});
 
-		// Destroy the enemy city on the tile unless we're the barbarians,
-		// in which case we'll just take some gold.
-		if (tile.HasCity() && !owner.IsAtPeaceWith(tile.cityAtTile.owner)) {
+		// Capture or destroy the enemy city on the tile unless we're the
+		// barbarians, in which case we'll just take some gold.
+		City city = tile.cityAtTile;
+		if (tile.HasCity() && !owner.IsAtPeaceWith(city.owner)) {
 			if (owner.isBarbarians) {
-				int goldTaken = RansackGold(tile.cityAtTile);
-				tile.cityAtTile.owner.gold -= goldTaken;
+				int goldTaken = RansackGold(city);
+				city.owner.gold -= goldTaken;
 				this.RemoveFromPlay();
-				if (tile.cityAtTile.owner.isHuman) {
-					new MsgCityRansacked(tile.cityAtTile.owner.id, tile.cityAtTile, this.owner.civilization.adjective, goldTaken).send();
+				if (city.owner.isHuman) {
+					new MsgCityRansacked(city.owner.id, city, this.owner.civilization.adjective, goldTaken).send();
 				}
+			} else if (owner.isHuman && city.residents.Count > 1) {
+				new MsgCityCaptureOrDestroy(
+					owner.id, city.owner.id, city, true,
+					onCapture: () => new MsgDoCaptureCity(owner, city).send(),
+					onDestroy: () => new MsgDoRazeCity(owner, city).send()
+				).send();
 			} else {
-				CityInteractions.DestroyCity(tile);
+				CityInteractions.CaptureCity(owner, city);
 			}
 		}
 

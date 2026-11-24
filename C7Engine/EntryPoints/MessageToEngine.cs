@@ -446,6 +446,18 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgDoCaptureCity(Player attacker, City city) : MessageToEngine {
+		public override void process() {
+			CityInteractions.CaptureCity(attacker, city);
+		}
+	}
+
+	public class MsgDoRazeCity(Player attacker, City city) : MessageToEngine {
+		public override void process() {
+			CityInteractions.RazeCity(attacker, city);
+		}
+	}
+
 	public class MsgDoStopWorkerAction : MessageToEngine {
 		private MapUnit worker;
 		public MsgDoStopWorkerAction(MapUnit worker) {
