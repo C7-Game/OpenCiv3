@@ -324,6 +324,20 @@ public partial class MapUnit {
 
 		CombatResult result = CombatResult.Impossible;
 
+		// If defending unit is not a combat unit, play the surrender animation and do not proceed to battle
+		if (!defender.IsCombatUnit() && defender.location.unitsOnTile.All(u => !u.IsCombatUnit())) {
+			// Iterate over a copy: RemoveFromPlay mutates location.unitsOnTile, which would otherwise break the enumeration.
+			foreach (MapUnit mu in defender.location.unitsOnTile.ToList()) {
+				// Await so each animation plays out, in order, before the unit is removed.
+				await mu.animateAsync(MapUnit.AnimatedAction.CAPTURE);
+				// TODO: Capture if relevant, don't just kill
+				mu.RemoveFromPlay();
+			}
+			// TODO: Make defender surrendered in enum?
+			result = CombatResult.DefenderKilled;
+			return result;
+		}
+
 		double attackerOdds = attackerStrength / (attackerStrength + defenderStrength);
 		if (Double.IsNaN(attackerOdds))
 			return result;
