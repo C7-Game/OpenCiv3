@@ -414,10 +414,10 @@ public partial class MapUnit {
 		return result;
 	}
 
-	// A unit that starts golden ages starts one for its owner by winning against another civ's unit.
-	// Barbarians don't count, either as the winner or the loser.
+	// A unit that starts golden ages starts one for its owner by killing another civ's combat unit.
+	// Barbarians and non-combat units (e.g. settlers, workers) don't count as the loser.
 	internal static void StartGoldenAgeIfEarned(MapUnit winner, MapUnit loser) {
-		if (winner.unitType.startsGoldenAge && !loser.owner.isBarbarians) {
+		if (winner.unitType.startsGoldenAge && loser.IsCombatUnit() && !loser.owner.isBarbarians) {
 			winner.owner.TryStartGoldenAge();
 		}
 	}

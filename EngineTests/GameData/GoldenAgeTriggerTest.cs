@@ -21,8 +21,8 @@ public class GoldenAgeTriggerTest : MapBase {
 		};
 	}
 
-	private MapUnit MakeUnit(Player owner, bool startsGoldenAge) {
-		MapUnit unit = new(ID.None("")) { unitType = new UnitPrototype(), owner = owner };
+	private MapUnit MakeUnit(Player owner, bool startsGoldenAge, int defense = 1) {
+		MapUnit unit = new(ID.None("")) { unitType = new UnitPrototype() { defense = defense }, owner = owner };
 		unit.unitType.startsGoldenAge = startsGoldenAge;
 		return unit;
 	}
@@ -41,6 +41,15 @@ public class GoldenAgeTriggerTest : MapBase {
 	public void WinningAgainstBarbariansDoesNotStartGoldenAge() {
 		Player winnerOwner = MakeCivPlayer();
 		MapUnit.StartGoldenAgeIfEarned(MakeUnit(winnerOwner, true), MakeUnit(MakeCivPlayer(barbarian: true), false));
+
+		Assert.False(winnerOwner.HasHadGA);
+	}
+
+	[Fact]
+	public void KillingNonCombatUnitDoesNotStartGoldenAge() {
+		Player winnerOwner = MakeCivPlayer();
+		MapUnit settler = MakeUnit(MakeCivPlayer(), false, defense: 0);
+		MapUnit.StartGoldenAgeIfEarned(MakeUnit(winnerOwner, true), settler);
 
 		Assert.False(winnerOwner.HasHadGA);
 	}
