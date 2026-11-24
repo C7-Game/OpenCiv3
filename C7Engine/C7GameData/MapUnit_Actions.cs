@@ -358,7 +358,8 @@ public partial class MapUnit {
 				}
 				// If the attacker knows the tech to build this unit (not necessarily has the resources)
 				// We can capture. This includes workers.
-				else if (attacker.owner.HasRequiredTechnology(mu.unitType)) {
+				else if (attacker.owner.HasRequiredTechnology(mu.unitType) &&
+				mu.unitType.producibleBy.Contains(attacker.owner.civilization)) {
 					Player previousOwner = mu.owner;
 
 					// Detach the unit from its previous owner's AI and unit list, and hand it to the attacker.
@@ -413,7 +414,7 @@ public partial class MapUnit {
 			defensiveBombarder.facingDirection = dBOriginalDirection;
 		}
 
-		bool defenderEligibleToRetreat = defender.hitPointsRemaining > 1 && ! defender.location.HasCity();
+		bool defenderEligibleToRetreat = defender.IsCombatUnit() && defender.hitPointsRemaining > 1 && ! defender.location.HasCity();
 
 		// Do combat rounds
 		while (true) {
