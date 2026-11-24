@@ -241,7 +241,9 @@ public partial class MapUnit {
 			// but still pay one movement point for the combat.
 			if (combatResult == CombatResult.DefenderKilled || combatResult == CombatResult.DefenderRetreated) {
 				this.movementPoints.onUnitMove(1);
-				if (newLoc.FindTopDefender(this) != MapUnit.NONE) {
+				// Only hostile defenders block the move. Units we just captured (or spawned from a captured settler) are ours now.
+				MapUnit remainingDefender = newLoc.FindTopDefender(this);
+				if (remainingDefender != MapUnit.NONE && !owner.IsAtPeaceWith(remainingDefender.owner)) {
 					this.facingDirection = this.facingDirection.Reversed();
 					return true;
 				}
@@ -325,13 +327,54 @@ public partial class MapUnit {
 		CombatResult result = CombatResult.Impossible;
 
 		// If defending unit is not a combat unit, play the surrender animation and do not proceed to battle
-		if (!defender.IsCombatUnit() && defender.location.unitsOnTile.All(u => !u.IsCombatUnit())) {
+		// Barbarians just destroy non-combat units, no capture
+		if (!attacker.owner.isBarbarians &&
+		!defender.IsCombatUnit() &&
+		defender.location.unitsOnTile.All(u => !u.IsCombatUnit())
+		) {
 			// Iterate over a copy: RemoveFromPlay mutates location.unitsOnTile, which would otherwise break the enumeration.
 			foreach (MapUnit mu in defender.location.unitsOnTile.ToList()) {
 				// Await so each animation plays out, in order, before the unit is removed.
 				await mu.animateAsync(MapUnit.AnimatedAction.CAPTURE);
-				// TODO: Capture if relevant, don't just kill
-				mu.RemoveFromPlay();
+
+				// Settler case, make workers equal to population cost
+				if (mu.unitType.isSettler) {
+					GameData gameData = EngineStorage.gameData;
+					// Use the cheapest worker the attacker is able to build.
+					UnitPrototype workerProto = gameData.unitPrototypes
+						.Where(p => p.isWorker && !p.unproducible && attacker.owner.HasRequiredTechnology(p))
+						.OrderBy(p => p.shieldCost)
+						.FirstOrDefault();
+					if (workerProto != null) {
+						Tile captureTile = mu.location;
+						for (int _ = 0; _ < Math.Max(mu.unitType.populationCost, 1); ++_) {
+							MapUnit worker = gameData.SpawnUnit(attacker.owner, workerProto, captureTile);
+							worker.nationality = mu.nationality;
+						}
+					} else {
+						log.Warning("No worker prototype available to create from captured settler");
+					}
+					mu.RemoveFromPlay();
+				}
+				// If the attacker knows the tech to build this unit (not necessarily has the resources)
+				// We can capture. This includes workers.
+				else if (attacker.owner.HasRequiredTechnology(mu.unitType)) {
+					Player previousOwner = mu.owner;
+
+					// Detach the unit from its previous owner's AI and unit list, and hand it to the attacker.
+					if (mu.currentAI != null) {
+						mu.currentAI.UpdateOnDeath();
+						mu.currentAI = null;
+					}
+					previousOwner.units.Remove(mu);
+					mu.owner = attacker.owner;
+					attacker.owner.AddUnit(mu);
+
+					previousOwner.tileKnowledge.RecomputeActiveTiles();
+					attacker.owner.tileKnowledge.RecomputeActiveTiles();
+				}
+				// Otherwise, destroy the unit
+				else mu.RemoveFromPlay();
 			}
 			// TODO: Make defender surrendered in enum?
 			result = CombatResult.DefenderKilled;
