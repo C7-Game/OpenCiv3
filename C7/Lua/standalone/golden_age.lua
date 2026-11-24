@@ -7,7 +7,8 @@ local golden_age = {
 }
 
 return function(ruleset)
-  ruleset.rules.goldenAgeDuration = golden_age.duration
+  -- Clamped so a negative value can't be loaded; 0 disables golden ages
+  ruleset.rules.goldenAgeDuration = math.max(0, golden_age.duration)
   ruleset.rules.goldenAgeBonuses = {
     shields = golden_age.shields,
     commerce = golden_age.commerce,

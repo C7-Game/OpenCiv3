@@ -150,10 +150,12 @@ namespace C7GameData {
 
 		// Starts this player's golden age, if they haven't already had one. Returns whether it started.
 		public bool TryStartGoldenAge() {
-			if (HasHadGA || isBarbarians) {
+			// Do not trigger GA if GA already occurred, player is barbarians, or golden age duration is 0
+			if (HasHadGA || isBarbarians || rules.GoldenAgeDuration == 0) {
 				return false;
 			}
 			goldenAgeEnds = EngineStorage.gameData.turn + rules.GoldenAgeDuration;
+			new MsgGoldenAgeStarted(id).send();
 			return true;
 		}
 

@@ -264,6 +264,22 @@ namespace C7Engine {
 		}
 	}
 
+	public class MsgGoldenAgeStarted : MessageToUI {
+		public ID controllerId;
+
+		public MsgGoldenAgeStarted(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+
+	public class MsgGoldenAgeEnded : MessageToUI {
+		public ID controllerId;
+
+		public MsgGoldenAgeEnded(ID controllerId) {
+			this.controllerId = controllerId;
+		}
+	}
+
 	public class MsgShowTemporaryPopup : MessageToUI {
 		public ID controllerId;
 		public string message;

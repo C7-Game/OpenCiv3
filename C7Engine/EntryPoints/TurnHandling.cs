@@ -61,6 +61,10 @@ namespace C7Engine {
 
 				gameData.turn++;
 				foreach (Player player in gameData.players) {
+					if (player.GAHasEnded) {
+						new MsgGoldenAgeEnded(player.id).send();
+					}
+
 					player.MaybeSpawnBonusUnits(gameData);
 					player.DecrementCityUnhappinessPenalties(gameData);
 					player.RecalculateCitizenMoods(gameData, goIntoDisorderIfUnhappy: true);
