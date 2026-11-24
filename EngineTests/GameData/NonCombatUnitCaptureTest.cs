@@ -480,6 +480,21 @@ public class NonCombatUnitCaptureTest : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
+	public async Task LoneCombatDefenderStillRetreatsWhenThereIsNothingToProtect() {
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit horseman = SpawnCertainRetreater(victim);
+		attacker.hitPointsRemaining = 1000;
+		Tile retreatDestination = target.neighbors[direction];
+		Assert.True(retreatDestination != Tile.NONE && horseman.CanEnter(retreatDestination), "test world has nowhere to retreat to");
+
+		CombatResult result = await attacker.Fight(horseman);
+
+		Assert.Equal(CombatResult.DefenderRetreated, result);
+		Assert.True(IsAlive(horseman));
+		Assert.Equal(retreatDestination, horseman.location);
+	}
+
+	[Fact]
 	public async Task CombatDefenderMayStillRetreatWhenAnotherCombatUnitCoversTheTile() {
 		MapUnit attacker = SpawnAttacker(human);
 		MapUnit horseman = SpawnCertainRetreater(victim);

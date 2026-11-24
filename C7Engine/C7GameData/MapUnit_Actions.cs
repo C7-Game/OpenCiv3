@@ -366,14 +366,18 @@ public partial class MapUnit {
 			defensiveBombarder.facingDirection = dBOriginalDirection;
 		}
 
-		bool defenderEligibleToRetreat =
-		defender.IsCombatUnit() &&
-		defender.hitPointsRemaining > 1 &&
-		!defender.location.HasCity() &&
 		// Retreating must not leave non-combat units without a combat unit protecting them
 		// TODO: In regular Civ 3, land unit defenders is the 99% case, but we'll want this for
 		// sea and air units potentially too depending on the battle if there are non-combat water units, etc.
-		defender.location.unitsOnTile.Count(u => u.IsCombatUnit() && u.IsLandUnit()) > 1;
+		bool wouldLeaveNonCombatUnitsUnprotected =
+			defender.location.unitsOnTile.Any(u => !u.IsCombatUnit()) &&
+			defender.location.unitsOnTile.Count(u => u.IsCombatUnit() && u.IsLandUnit()) <= 1;
+
+		bool defenderEligibleToRetreat =
+			defender.IsCombatUnit() &&
+			defender.hitPointsRemaining > 1 &&
+			!defender.location.HasCity() &&
+			!wouldLeaveNonCombatUnitsUnprotected;
 
 		// Do combat rounds
 		while (true) {
