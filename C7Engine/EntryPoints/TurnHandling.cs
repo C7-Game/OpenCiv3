@@ -61,6 +61,7 @@ namespace C7Engine {
 
 				gameData.turn++;
 				foreach (Player player in gameData.players) {
+					player.ResetUnitPromotionFlags();
 					player.MaybeSpawnBonusUnits(gameData);
 					player.DecrementCityUnhappinessPenalties(gameData);
 					player.RecalculateCitizenMoods(gameData, goIntoDisorderIfUnhappy: true);

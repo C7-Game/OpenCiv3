@@ -82,6 +82,13 @@ namespace C7GameData {
 		public bool canBePicked = true;
 
 		public List<MapUnit> units = new List<MapUnit>();
+
+		public void ResetUnitPromotionFlags() {
+			foreach (var unit in units) {
+				unit.guaranteedPromotion = false;
+			}
+		}
+
 		public List<City> cities = new List<City>();
 		public TileKnowledge tileKnowledge { get; private set; }
 

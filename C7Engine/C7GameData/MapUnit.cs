@@ -45,6 +45,8 @@ namespace C7GameData {
 
 		public bool isAutomated { get; set; }
 
+		public bool guaranteedPromotion = false;
+
 		//sentry, etc. will come later.  For now, let's just have a couple things so we can cycle through units that aren't fortified.
 		public int defensiveBombardsRemaining;
 
@@ -322,8 +324,8 @@ namespace C7GameData {
 
 
 		public void RollToPromote(MapUnit opponent) {
-			// Barbarians can't promote.
-			if (owner.isBarbarians) {
+			// Barbarians can't promote. No promotions when killing non-combat unit
+			if (owner.isBarbarians || !opponent.IsCombatUnit()) {
 				return;
 			}
 
@@ -332,13 +334,15 @@ namespace C7GameData {
 				promotionChance /= 2.0;
 			if (owner.IsMilitaristic())
 				promotionChance *= 2;
-			if (GameData.rng.NextDouble() < promotionChance) {
+			if (guaranteedPromotion || GameData.rng.NextDouble() < promotionChance) {
 				if (Promote()) {
 					var previousRank = EngineStorage.gameData.GetExperienceLevelBefore(this.experienceLevel).key;
 					new MsgShowTemporaryPopup(this.owner.id, $"Our {previousRank} {this.name} is now a {experienceLevelKey}!", this.location).send();
 					animate(AnimatedAction.VICTORY);
 				}
 			}
+			// If we didn't enter the inner if clause due to failure to promote, set the victory flag for this turn
+			else guaranteedPromotion = true;
 		}
 
 		public bool Promote() {
