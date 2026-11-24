@@ -97,15 +97,16 @@ namespace C7Engine {
 				.ToList()
 				.ForEach(city.RemoveBuilding);
 
-			// Change production to something the attacking player would be able to build
-			city.SetItemBeingProduced(ChooseProducible.Choose(city, warmonger));
-
 			// Clear and recompute border ownership, which also updates what each
 			// player knows and the resources inside their borders.
 			gameData.UpdateTileOwnersOnCityDestruction(city);
 
-			// Resource access may have changed for both players.
+			// Resource access may have changed for both players. This has to
+			// happen before choosing production, which looks at the network.
 			gameData.InvalidateCachedTradeNetwork();
+
+			// Change production to something the attacking player would be able to build
+			city.SetItemBeingProduced(ChooseProducible.Choose(city, warmonger));
 
 			gameData.CheckForCivDestructionAndNotifyUi(previousOwner);
 			RelocateCapitalIfLost(previousOwner, palace);
