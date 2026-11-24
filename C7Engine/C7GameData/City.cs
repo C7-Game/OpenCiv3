@@ -79,6 +79,7 @@ namespace C7GameData {
 
 		public bool isInCivilDisorder = false;
 		public bool hasFreshwaterAccess => location.BordersRiver() || location.NeighborsFreshWater();
+		public int goldOnDestruction => (int)((float)owner.gold * residents.Count / owner.cities.Sum(c => c.residents.Count()));
 
 		public static City NONE = new City(Tile.NONE, null, "Dummy City", ID.None("city"));
 

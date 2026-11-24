@@ -371,6 +371,55 @@ public partial class Game {
 		));
 	}
 
+	public void EmitCityCaptureOrDestroySignal(MsgCityCaptureOrDestroy msg) {
+		if (!msg.controllerWon) {
+			Player attacker = null;
+			EngineStorage.ReadGameData(data => {
+				attacker = data.players.First(p => p.id == msg.controllerId);
+			});
+
+			EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+				new InformationPopup(
+					controller.id,
+					"Military Advisor",
+					$"Terrible news, Sir!\n" +
+					$"The evil {attacker.civilization.adjective} have captured {msg.city.name} " +
+					$"and stole [i]{msg.goldTaken} gold[/i] from its vaults!\n" +
+					$"They should pay dearly for this atrocity!",
+					Advisor.Military,
+					Mood.Angry,
+					350
+				)
+			));
+			return;
+		}
+
+		var options = new List<ButtonAction>() {
+			new ButtonAction() {
+				message = "Great! Install a new governor.",
+				action = msg.onCapture,
+				pressed = true
+			},
+			new ButtonAction() {
+				message = "We don't want it. Raze the city!",
+				action = msg.onDestroy
+			}
+		};
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new OptionsPopUp(
+				controller.id,
+				"Military Advisor",
+				"Master, once again our magnificent armies are victorious!\n" +
+				$"We captured {msg.city.name} and \"liberated\" {msg.goldTaken} gold.",
+				options,
+				Advisor.Military,
+				Mood.Happy,
+				hSize: 400
+			)
+		));
+	}
+
 	private void EmitWarDeclarationNotificationSignal(MsgWarDeclarationNotification msg) {
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(

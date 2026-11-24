@@ -1,7 +1,6 @@
 namespace C7Engine {
 	using C7GameData;
 	using System;
-	using System.Collections.Generic;
 
 	public interface IMessageToUI {
 		public void send();
@@ -157,12 +156,33 @@ namespace C7Engine {
 		public int goldTaken;
 		public bool controllerWon;
 
-		public MsgCityRaised(ID controllerId, ID ownerId, City city, int goldTaken, bool controllerWon) {
+		public MsgCityRaised(ID controllerId, ID ownerId, City city, bool controllerWon) {
 			this.controllerId = controllerId;
 			this.ownerId = ownerId;
 			this.city = city;
-			this.goldTaken = goldTaken;
+			this.goldTaken = city.goldOnDestruction;
 			this.controllerWon = controllerWon;
+		}
+	}
+
+	public class MsgCityCaptureOrDestroy : MessageToUI {
+		public ID controllerId;
+		public ID ownerId;
+		public City city;
+		public int goldTaken;
+		public bool controllerWon;
+		public Action onCapture;
+		public Action onDestroy;
+
+		public MsgCityCaptureOrDestroy(ID controllerId, ID ownerId, City city, bool controllerWon,
+			Action onCapture = null, Action onDestroy = null) {
+			this.controllerId = controllerId;
+			this.ownerId = ownerId;
+			this.city = city;
+			this.goldTaken = city.goldOnDestruction;
+			this.controllerWon = controllerWon;
+			this.onCapture = onCapture;
+			this.onDestroy = onDestroy;
 		}
 	}
 

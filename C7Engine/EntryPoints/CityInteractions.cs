@@ -51,6 +51,88 @@ namespace C7Engine {
 			return newCity;
 		}
 
+		public static void CaptureCity(Player warmonger, City city) {
+			GameData gameData = EngineStorage.gameData;
+			Player previousOwner = city.owner;
+			if (previousOwner == warmonger) {
+				return;
+			}
+
+			// Capturing costs a citizen, so a size 1 city can't survive it.
+			if (city.residents.Count <= 1) {
+				MsgCityRaised attackerNotice = warmonger.isHuman
+					? new MsgCityRaised(warmonger.id, previousOwner.id, city, true)
+					: null;
+				RazeCity(warmonger, city);
+				attackerNotice?.send();
+				return;
+			}
+
+			// Both must be computed before the owner changes.
+			MsgCityCaptureOrDestroy victimNotice = previousOwner.isHuman
+				? new MsgCityCaptureOrDestroy(warmonger.id, previousOwner.id, city, false)
+				: null;
+			int goldTransferred = city.goldOnDestruction;
+			previousOwner.gold -= goldTransferred;
+			warmonger.gold += goldTransferred;
+
+			// TODO: capture non-combat units instead of disbanding them (see DestroyCity).
+			city.location.DisbandNonDefendingUnits(previousOwner);
+
+			// Remove a citizen, then remove food and shields from storage, then re-assign
+			city.RemoveCitizens(1);
+			city.foodStored = 0;
+			city.SetStoredShields(0);
+
+			previousOwner.cities.Remove(city);
+			warmonger.cities.Add(city);
+			city.owner = warmonger;
+			city.perPlayerCulture.TryAdd(warmonger, 0);
+
+			// The palace is destroyed when its city is taken.
+			Building palace = gameData.Buildings.Find(x => x.isCenterOfEmpire);
+			city.capital = false;
+			city.constructed_buildings
+				.Where(b => b.building == palace)
+				.ToList()
+				.ForEach(city.RemoveBuilding);
+
+			// Change production to something the attacking player would be able to build
+			city.SetItemBeingProduced(ChooseProducible.Choose(city, warmonger));
+
+			// Clear and recompute border ownership, which also updates what each
+			// player knows and the resources inside their borders.
+			gameData.UpdateTileOwnersOnCityDestruction(city);
+
+			// Resource access may have changed for both players.
+			gameData.InvalidateCachedTradeNetwork();
+
+			gameData.CheckForCivDestructionAndNotifyUi(previousOwner);
+			RelocateCapitalIfLost(previousOwner, palace);
+
+			previousOwner.DoCorruptionCalculations(gameData);
+			warmonger.DoCorruptionCalculations(gameData);
+
+			victimNotice?.send();
+		}
+
+		// Destroys a city that an enemy took, with the attacker taking the owner's gold.
+		public static void RazeCity(Player attacker, City city) {
+			Player previousOwner = city.owner;
+
+			// Both must be computed before DestroyCity removes the citizens.
+			MsgCityRaised victimNotice = previousOwner.isHuman
+				? new MsgCityRaised(attacker.id, previousOwner.id, city, false)
+				: null;
+			int goldTransferred = city.goldOnDestruction;
+			previousOwner.gold -= goldTransferred;
+			attacker.gold += goldTransferred;
+
+			DestroyCity(city);
+
+			victimNotice?.send();
+		}
+
 		public static void DestroyCity(City city) {
 			DestroyCity(city.location);
 		}

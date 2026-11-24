@@ -372,6 +372,12 @@ public partial class Game : Node {
 				this.mapView.cityLayer.UpdateAfterCityDestruction(mCR.city);
 				this.EmitCityRaisedSignal(mCR);
 				break;
+			case MsgCityCaptureOrDestroy mCCD:
+				if (mCCD.city.owner.id == controller.id || mCCD.controllerId == controller.id)
+					this.ensureLocationIsInView(mCCD.city.location);
+				this.EmitCityCaptureOrDestroySignal(mCCD);
+				InterestingEvent();
+				break;
 			case MsgCityRansacked mCRS:
 				if (mCRS.city.owner.id == controller.id)
 					this.ensureLocationIsInView(mCRS.city.location);
