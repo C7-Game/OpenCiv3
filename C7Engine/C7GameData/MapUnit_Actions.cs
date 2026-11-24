@@ -241,7 +241,9 @@ public partial class MapUnit {
 			// but still pay one movement point for the combat.
 			if (combatResult == CombatResult.DefenderKilled || combatResult == CombatResult.DefenderRetreated) {
 				this.movementPoints.onUnitMove(1);
-				if (newLoc.FindTopDefender(this) != MapUnit.NONE) {
+				// Only hostile defenders block the move. Units we just captured (or spawned from a captured settler) are ours now.
+				MapUnit remainingDefender = newLoc.FindTopDefender(this);
+				if (remainingDefender != MapUnit.NONE && !owner.IsAtPeaceWith(remainingDefender.owner)) {
 					this.facingDirection = this.facingDirection.Reversed();
 					return true;
 				}
@@ -324,6 +326,14 @@ public partial class MapUnit {
 
 		CombatResult result = CombatResult.Impossible;
 
+		// If defending unit is not a combat unit, play the surrender animation and do not proceed to battle
+		if (defender.location.unitsOnTile.All(u => !u.IsCombatUnit())) {
+			await attacker.CaptureOrDestroyNonCombatUnits(defender.location);
+			// TODO: Make defender surrendered in enum?
+			result = CombatResult.DefenderKilled;
+			return result;
+		}
+
 		double attackerOdds = attackerStrength / (attackerStrength + defenderStrength);
 		if (Double.IsNaN(attackerOdds))
 			return result;
@@ -356,7 +366,18 @@ public partial class MapUnit {
 			defensiveBombarder.facingDirection = dBOriginalDirection;
 		}
 
-		bool defenderEligibleToRetreat = defender.hitPointsRemaining > 1 && ! defender.location.HasCity();
+		// Retreating must not leave non-combat units without a combat unit protecting them
+		// TODO: In regular Civ 3, land unit defenders is the 99% case, but we'll want this for
+		// sea and air units potentially too depending on the battle if there are non-combat water units, etc.
+		bool wouldLeaveNonCombatUnitsUnprotected =
+			defender.location.unitsOnTile.Any(u => !u.IsCombatUnit()) &&
+			defender.location.unitsOnTile.Count(u => u.IsCombatUnit() && u.IsLandUnit()) <= 1;
+
+		bool defenderEligibleToRetreat =
+			defender.IsCombatUnit() &&
+			defender.hitPointsRemaining > 1 &&
+			!defender.location.HasCity() &&
+			!wouldLeaveNonCombatUnitsUnprotected;
 
 		// Do combat rounds
 		while (true) {
@@ -404,7 +425,72 @@ public partial class MapUnit {
 		if (result.DefenderWon())
 			defender.facingDirection = defenderOriginalDirection;
 
+		// If that was the last combat unit able to defend the tile, any non-combat units still on it surrender too.
+		if (result.AttackerWon() && !attacker.HasHostileCombatDefender(defender.location))
+			await attacker.CaptureOrDestroyNonCombatUnits(defender.location);
+
 		return result;
+	}
+
+	// Whether the tile still holds a combat unit hostile to this unit that is able to defend against it.
+	private bool HasHostileCombatDefender(Tile tile) {
+		return tile.unitsOnTile.Any(u => u.IsCombatUnit() && !u.owner.IsAtPeaceWith(owner) && u.CanDefendAgainst(this));
+	}
+
+	/// <summary>
+	/// Handles the hostile non-combat units on a tile after this unit has taken control of it, one after the other:
+	/// settlers become workers for this unit's owner, other units are captured if the owner knows their technology and
+	/// can produce them, and everything else is destroyed. Barbarians never capture, they destroy everything.
+	/// </summary>
+	private async Task CaptureOrDestroyNonCombatUnits(Tile tile) {
+		var attacker = this;
+		bool canCapture = !attacker.owner.isBarbarians;
+
+		// Iterate over a copy: RemoveFromPlay mutates tile.unitsOnTile, which would otherwise break the enumeration.
+		foreach (MapUnit mu in tile.unitsOnTile.Where(u => !u.IsCombatUnit() && !u.owner.IsAtPeaceWith(attacker.owner)).ToList()) {
+			// Await so each animation plays out, in order, before the unit is removed or changes hands.
+			await mu.animateAsync(canCapture ? MapUnit.AnimatedAction.CAPTURE : MapUnit.AnimatedAction.DEATH);
+
+			// Settler case, make workers equal to population cost
+			if (canCapture && mu.unitType.isSettler) {
+				GameData gameData = EngineStorage.gameData;
+				// Use the cheapest worker the attacker is able to build.
+				UnitPrototype workerProto = gameData.unitPrototypes
+					.Where(p => p.isWorker && !p.unproducible && attacker.owner.HasRequiredTechnology(p))
+					.OrderBy(p => p.shieldCost)
+					.FirstOrDefault();
+				if (workerProto != null) {
+					for (int _ = 0; _ < Math.Max(mu.unitType.populationCost, 1); ++_) {
+						MapUnit worker = gameData.SpawnUnit(attacker.owner, workerProto, mu.location);
+						worker.nationality = mu.nationality;
+					}
+				} else {
+					log.Warning("No worker prototype available to create from captured settler");
+				}
+				mu.RemoveFromPlay();
+			}
+			// If the attacker knows the tech to build this unit (not necessarily has the resources)
+			// and its civ can produce it, we can capture. This includes workers.
+			else if (canCapture &&
+				attacker.owner.HasRequiredTechnology(mu.unitType) &&
+				mu.unitType.producibleBy.Contains(attacker.owner.civilization)) {
+				Player previousOwner = mu.owner;
+
+				// Detach the unit from its previous owner's AI and unit list, and hand it to the attacker.
+				if (mu.currentAI != null) {
+					mu.currentAI.UpdateOnDeath();
+					mu.currentAI = null;
+				}
+				previousOwner.units.Remove(mu);
+				mu.owner = attacker.owner;
+				attacker.owner.AddUnit(mu);
+
+				previousOwner.tileKnowledge.RecomputeActiveTiles();
+				attacker.owner.tileKnowledge.RecomputeActiveTiles();
+			}
+			// Otherwise, destroy the unit
+			else mu.RemoveFromPlay();
+		}
 	}
 
 	public async Task<City?> BuildCity(string cityName) {
