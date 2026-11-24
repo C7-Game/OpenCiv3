@@ -436,20 +436,179 @@ public class NonCombatUnitCaptureTest : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
-	public async Task NonCombatUnitsProtectedByACombatUnitAreNotCaptured() {
-		// Warrior defends, so a regular battle happens instead of a surrender.
+	public async Task NonCombatUnitsAreNotCapturedWhileAnotherCombatUnitStillDefendsTheTile() {
 		MapUnit attacker = SpawnAttacker(human);
-		MapUnit guard = SpawnDefender("Warrior");
+		MapUnit guard1 = SpawnDefender("Warrior");
+		MapUnit guard2 = SpawnDefender("Warrior");
 		MapUnit worker = SpawnDefender("Worker");
+		// Always win the first battle, which only kills one of the guards
+		attacker.hitPointsRemaining = 1000;
+		guard1.hitPointsRemaining = 1;
+		guard2.hitPointsRemaining = 1;
 
 		await attacker.Move(direction);
 
-		// Whatever the dice say, nothing was handed over to the human, and the worker only
-		// disappears if the whole tile fell, never by being captured.
-		Assert.DoesNotContain(human.units, u => u == worker || u == guard);
-		Assert.DoesNotContain(target.unitsOnTile, u => u.owner == human && u != attacker);
+		Assert.Single(OwnedBy(victim).Where(u => u.unitType.name == "Warrior"));
 		Assert.Equal(victim, worker.owner);
 		Assert.Equal(victim.civilization, worker.nationality);
+		Assert.Contains(worker, target.unitsOnTile);
+		Assert.Equal(attackFrom, attacker.location);
+	}
+
+	// A fast unit (more than 1 movement point) which retreats from slow attackers with certainty, if it may.
+	private MapUnit SpawnCertainRetreater(Player owner) {
+		MapUnit horseman = gameData.SpawnUnit(owner, Proto("Horseman"), target);
+		horseman.experienceLevel = new ExperienceLevel("test", "Test", 3, 1.0, 0.0);
+		horseman.hitPointsRemaining = 3;
+		return horseman;
+	}
+
+	[Fact]
+	public async Task LastCombatDefenderProtectingNonCombatUnitsNeverRetreats() {
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit horseman = SpawnCertainRetreater(victim);
+		MapUnit worker = SpawnDefender("Worker");
+		Civilization victimCiv = victim.civilization;
+		attacker.hitPointsRemaining = 1000;
+
+		CombatResult result = await attacker.Fight(horseman);
+
+		// Retreating would leave the worker undefended, so the horseman fights to the death instead.
+		Assert.Equal(CombatResult.DefenderKilled, result);
+		AssertDestroyed(horseman, victim);
+		AssertFullyCaptured(worker, human, victimCiv);
+	}
+
+	[Fact]
+	public async Task CombatDefenderMayStillRetreatWhenAnotherCombatUnitCoversTheTile() {
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit horseman = SpawnCertainRetreater(victim);
+		MapUnit otherGuard = SpawnDefender("Warrior");
+		MapUnit worker = SpawnDefender("Worker");
+		attacker.hitPointsRemaining = 1000;
+		Tile retreatDestination = target.neighbors[direction];
+		Assert.True(retreatDestination != Tile.NONE && horseman.CanEnter(retreatDestination), "test world has nowhere to retreat to");
+
+		CombatResult result = await attacker.Fight(horseman);
+
+		Assert.Equal(CombatResult.DefenderRetreated, result);
+		Assert.True(IsAlive(horseman));
+		Assert.Equal(retreatDestination, horseman.location);
+		// The other guard still defends, so the worker is untouched
+		Assert.Contains(otherGuard, target.unitsOnTile);
+		Assert.Equal(victim, worker.owner);
+	}
+
+	[Fact]
+	public async Task NonCombatUnitsAreCapturedAfterTheLastCombatUnitIsKilled() {
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit guard = SpawnDefender("Warrior");
+		MapUnit worker = SpawnDefender("Worker");
+		Civilization victimCiv = victim.civilization;
+		attacker.hitPointsRemaining = 1000;
+		guard.hitPointsRemaining = 1;
+
+		await attacker.Move(direction);
+
+		AssertDestroyed(guard, victim);
+		AssertFullyCaptured(worker, human, victimCiv);
+		Assert.True(worker.IsCaptive());
+		Assert.Empty(OwnedBy(victim));
+		AssertAttackerTookTile(attacker);
+	}
+
+	[Fact]
+	public async Task SettlersAreConvertedAfterTheLastCombatUnitIsKilled() {
+		Proto("Settler").populationCost = 2;
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit guard = SpawnDefender("Warrior");
+		MapUnit settler = SpawnDefender("Settler");
+		attacker.hitPointsRemaining = 1000;
+		guard.hitPointsRemaining = 1;
+
+		await attacker.Move(direction);
+
+		AssertDestroyed(guard, victim);
+		AssertDestroyed(settler, victim);
+		List<MapUnit> workers = OwnedBy(human).Where(u => u != attacker).ToList();
+		Assert.Equal(2, workers.Count);
+		Assert.All(workers, w => {
+			Assert.True(w.unitType.isWorker);
+			Assert.Equal(victim.civilization, w.nationality);
+		});
+		AssertAttackerTookTile(attacker);
+	}
+
+	[Fact]
+	public async Task NonCombatUnitsAreDestroyedAfterTheLastCombatUnitIsKilledIfTheAttackerCannotCaptureThem() {
+		UnitPrototype explorer = Proto("Explorer");
+		human.knownTechs.Remove(explorer.requiredTech.id);
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit guard = SpawnDefender("Warrior");
+		MapUnit unit = SpawnDefender("Explorer");
+		attacker.hitPointsRemaining = 1000;
+		guard.hitPointsRemaining = 1;
+
+		await attacker.Move(direction);
+
+		AssertDestroyed(guard, victim);
+		AssertDestroyed(unit, victim);
+		Assert.Empty(OwnedBy(human).Where(u => u != attacker));
+		AssertAttackerTookTile(attacker);
+	}
+
+	[Fact]
+	public async Task BarbariansDestroyNonCombatUnitsAfterTheLastCombatUnitIsKilled() {
+		MapUnit attacker = SpawnAttacker(barbarians);
+		MapUnit guard = SpawnDefender("Warrior", human);
+		MapUnit worker = SpawnDefender("Worker", human);
+		MapUnit settler = SpawnDefender("Settler", human);
+		int barbarianUnitsBefore = barbarians.units.Count;
+		attacker.hitPointsRemaining = 1000;
+		guard.hitPointsRemaining = 1;
+
+		await attacker.Move(direction);
+
+		AssertDestroyed(guard, human);
+		AssertDestroyed(worker, human);
+		AssertDestroyed(settler, human);
+		Assert.Equal(barbarianUnitsBefore, barbarians.units.Count);
+		AssertAttackerTookTile(attacker);
+	}
+
+	[Fact]
+	public async Task FriendlyNonCombatUnitsOnTheTileAreLeftAloneWhenTheLastCombatUnitIsKilled() {
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit guard = SpawnDefender("Warrior");
+		MapUnit ownWorker = SpawnDefender("Worker", human);
+		Civilization humanCiv = human.civilization;
+		attacker.hitPointsRemaining = 1000;
+		guard.hitPointsRemaining = 1;
+
+		await attacker.Move(direction);
+
+		AssertFullyCaptured(ownWorker, human, humanCiv);
+		Assert.False(ownWorker.IsCaptive());
+		AssertAttackerTookTile(attacker);
+	}
+
+	[Fact]
+	public async Task NonCombatUnitsAreNotTouchedWhenTheAttackerLosesTheBattle() {
+		MapUnit attacker = SpawnAttacker(human);
+		MapUnit guard = SpawnDefender("Warrior");
+		MapUnit worker = SpawnDefender("Worker");
+		// Always lose
+		attacker.hitPointsRemaining = 1;
+		guard.hitPointsRemaining = 1000;
+		attacker.unitType.attack = 1;
+		guard.unitType.defense = 1000;
+
+		await attacker.Move(direction);
+
+		Assert.False(IsAlive(attacker));
+		Assert.True(IsAlive(guard));
+		Assert.Equal(victim, worker.owner);
+		Assert.Contains(worker, target.unitsOnTile);
 	}
 
 	[Fact]
