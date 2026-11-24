@@ -85,6 +85,53 @@ public class GoldenAgeTriggerTest : MapBase {
 		Assert.Contains(SaveUnitPrototype.Flag.StartsGoldenAge, new SaveUnitPrototype(proto).flags);
 	}
 
+	// ---- Unit obsolescence ----
+	//
+	// A unit that starts golden ages is never obsolete until its owner has had a golden age, even if the unit it
+	// upgrades to can be built.
+
+	private (UnitPrototype oldUnit, UnitPrototype newUnit, City city) MakeUpgradeScenario() {
+		C7Engine.EngineStorage.gameData.rules = new Rules();
+
+		Civilization civ = new Civilization() { name = "Testland" };
+		Player player = new Player() { civilization = civ, rules = new Rules() { GoldenAgeDuration = Duration } };
+		City city = new City(new Tile(ID.None("tile")), player, "Testville", ID.None("city"));
+
+		UnitPrototype newUnit = new UnitPrototype() { name = "New Unit", producibleBy = [civ] };
+		UnitPrototype oldUnit = new UnitPrototype() { name = "Old Unit", producibleBy = [civ], upgradesTo = [newUnit] };
+		oldUnit.startsGoldenAge = true;
+		C7Engine.EngineStorage.gameData.unitPrototypes.AddRange([oldUnit, newUnit]);
+
+		return (oldUnit, newUnit, city);
+	}
+
+	[Fact]
+	public void ObsoleteGoldenAgeUnit_IsNotObsolete_IfPlayerHasNotHadGoldenAge() {
+		var (oldUnit, newUnit, city) = MakeUpgradeScenario();
+		HashSet<Resource> noResources = [];
+		Assert.False(city.owner.HasHadGA);
+
+		Assert.True(newUnit.CanProduce(city, noResources));
+		Assert.True(oldUnit.CanProduce(city, noResources));
+	}
+
+	[Fact]
+	public void ObsoleteGoldenAgeUnit_IsObsolete_OnceThePlayerHasHadGoldenAge() {
+		var (oldUnit, newUnit, city) = MakeUpgradeScenario();
+		HashSet<Resource> noResources = [];
+		Assert.True(oldUnit.CanProduce(city, noResources));
+
+		city.owner.TryStartGoldenAge();
+		Assert.True(city.owner.IsInGA);
+		Assert.False(oldUnit.CanProduce(city, noResources));
+
+		// Still obsolete after the golden age has ended
+		C7Engine.EngineStorage.gameData.turn = city.owner.goldenAgeEnds + 1;
+		Assert.False(city.owner.IsInGA);
+		Assert.False(oldUnit.CanProduce(city, noResources));
+		Assert.True(newUnit.CanProduce(city, noResources));
+	}
+
 	// ---- Great wonder trigger (City.HandleCityProduction) ----
 	//
 	// Completing a great wonder starts the owner's golden age if the traits of all great wonders the owner

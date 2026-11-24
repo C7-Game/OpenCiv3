@@ -77,6 +77,12 @@ public class UnitPrototypeConquestsTest : RemoteSaveLoader {
 		var spanish = gd.civilizations.FirstOrDefault(c => c.name == "Spain");
 		var span = new Player() { civilization = spanish };
 
+		// Units that start golden ages are not obsolete until their owner has had a golden age (see GoldenAgeTriggerTest),
+		// so give every player one in order to test general unit obsolescence.
+		foreach (Player p in new[] { nether, amer, otto, rus, kor, hit, per, sum, span }) {
+			p.goldenAgeEnds = 1;
+		}
+
 		Assert.NotNull(netherlands);
 		Assert.NotNull(americans);
 		Assert.NotNull(ottomans);
