@@ -25,6 +25,7 @@ namespace C7GameData {
 		public int ShieldCostPerGold;
 		public float ShieldRateForDisbanding; // per cent
 		public bool AllowLesserUnitProduction; // for example, allow building a Spearman/Pikeman when we can build a Musketman (simultaneously)
+		public int? BorderFactor; // culture cost N of border expansion tier 1, tier k costs N^k; null until set from Lua (new games) or a Civ 3 file
 		public int RadarTileVisibility; // how many tiles, a unit with the Radar ability, can see ahead
 	}
 }

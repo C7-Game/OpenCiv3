@@ -132,6 +132,8 @@ namespace C7GameData.Save {
 
 			data.luaBehaviorEngine = behaviors;
 			data.gameModeConfig = GameModeConfig;
+			// New games and older C7 saves have no border factor; take the default from Lua.
+			data.rules.BorderFactor ??= behaviors.ImportFunc<Func<int>>("gameplay.culture.border_factor").Invoke();
 
 			ConvertTerrainImprovements(data);
 			ConvertTerraforms(data);

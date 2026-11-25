@@ -31,6 +31,7 @@ public partial class CityScreen : Control {
 	[Export] private VBoxContainer existingBuildings;
 	[Export] private Label culturePerTurn;
 	[Export] private Label totalCulture;
+	[Export] private Label expandsInLabel;
 	[Export] private Label cityName;
 	[Export] private Label foundedLabel;
 
@@ -715,8 +716,11 @@ public partial class CityScreen : Control {
 	private void RenderCulture(City city) {
 		culturePerTurn.Text = $"{city.GetCulturePerTurn()}/turn";
 
-		int nextCultureExpansion = (int)Math.Pow(10, city.GetBorderExpansionLevel());
+		long nextCultureExpansion = city.CultureForNextBorderExpansion();
 		totalCulture.Text = $"Total: {city.GetCulture()}/{nextCultureExpansion}";
+
+		int turnsUntilExpansion = city.TurnsUntilBorderExpansion();
+		expandsInLabel.Text = turnsUntilExpansion == int.MaxValue ? "--" : $"Expands in {turnsUntilExpansion} turns";
 	}
 
 	private void RenderPopHeads(City city) {

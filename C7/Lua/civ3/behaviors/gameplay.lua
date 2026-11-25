@@ -137,6 +137,13 @@ gameplay = {
       return ransack_gold(barbarian, city)
     end,
   },
+  culture = {
+    -- The culture cost N of the first border expansion tier. Reaching tier k costs N^k culture.
+    -- Used for new games and older saves; Civ 3 BIQ and SAV files supply their own value.
+    border_factor = function()
+      return 10
+    end,
+  },
   time = {
     -- Context = int time
     display_text = function(context)

@@ -26,12 +26,13 @@ font = ExtResource("5_hld1k")
 font_size = 28
 font_color = Color(0, 0, 0, 1)
 
-[node name="CityScreen" node_paths=PackedStringArray("background", "existingBuildings", "culturePerTurn", "totalCulture", "cityName", "foundedLabel", "productionButton", "close", "previousCity", "nextCity", "productionMenu", "strategicResources", "luxuriesContainer", "productionLabel", "completeInLabel", "growthInLabel", "foodLabel", "granaryLabel", "shieldsInBoxContainer", "foodInBoxContainer", "foodInGranaryContainer", "shieldRowContainer", "foodRowContainer") instance=ExtResource("1_hl43g")]
+[node name="CityScreen" node_paths=PackedStringArray("background", "existingBuildings", "culturePerTurn", "totalCulture", "expandsInLabel", "cityName", "foundedLabel", "productionButton", "close", "previousCity", "nextCity", "productionMenu", "strategicResources", "luxuriesContainer", "productionLabel", "completeInLabel", "growthInLabel", "foodLabel", "granaryLabel", "shieldsInBoxContainer", "foodInBoxContainer", "foodInGranaryContainer", "shieldRowContainer", "foodRowContainer") instance=ExtResource("1_hl43g")]
 script = ExtResource("1_e5kig")
 background = NodePath("HBoxContainer/Background")
 existingBuildings = NodePath("HBoxContainer/Background/ScrollContainerBuildings/ExistingBuildings")
 culturePerTurn = NodePath("HBoxContainer/Background/CulturePerTurn")
 totalCulture = NodePath("HBoxContainer/Background/TotalCulture")
+expandsInLabel = NodePath("HBoxContainer/Background/ExpandsInLabel")
 cityName = NodePath("HBoxContainer/Background/CityName")
 foundedLabel = NodePath("HBoxContainer/Background/FoundedLabel")
 productionButton = NodePath("HBoxContainer/Background/ProductionButton")
@@ -297,3 +298,12 @@ offset_right = 630.0
 offset_bottom = 79.0
 text = "Founded: 4000 BC"
 horizontal_alignment = 1
+
+[node name="ExpandsInLabel" type="Label" parent="HBoxContainer/Background" index="24"]
+layout_mode = 0
+offset_left = 720.0
+offset_top = 37.0
+offset_right = 906.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 10
+text = "Expands in 35 turns"

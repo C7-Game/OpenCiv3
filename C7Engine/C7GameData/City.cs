@@ -758,16 +758,38 @@ namespace C7GameData {
 			return result;
 		}
 
-		public int GetBorderExpansionLevel() {
-			// Give ourselves a minimum of 1 culture to avoid taking the log of 0
-			int culture = Math.Max(1, GetCulture());
+		private long BorderFactor => owner.rules.BorderFactor
+			?? throw new InvalidOperationException("Rules.BorderFactor has not been set.");
 
-			// Take the log10 of culture, rounding down (so a culture of 123
-			// would be 2, a culture of 5 would be 0, etc) and then add one to
-			// get the expansion level. With 0-9 culture our culture goal is 10^1
-			// and we have one tile of borders, with 10-99 our culture goal is
-			// 10^2 and we have two tiles of borders.
-			return (int)Math.Floor(Math.Log10(culture)) + 1;
+		// With a border factor of N, culture 0 to N-1 gives level 1, N to N^2-1 gives level 2, and so on.
+		// Level k means k tiles of borders.
+		public int GetBorderExpansionLevel() {
+			int level = 1;
+			long threshold = BorderFactor;
+			while (GetCulture() >= threshold) {
+				threshold *= BorderFactor;
+				level++;
+			}
+			return level;
+		}
+
+		// The culture at which this city will expand to the next border level (N^level for a border factor of N).
+		public long CultureForNextBorderExpansion() {
+			long threshold = BorderFactor;
+			for (int i = 1; i < GetBorderExpansionLevel(); i++) {
+				threshold *= BorderFactor;
+			}
+			return threshold;
+		}
+
+		// Estimates the turns until culture reaches the next border expansion threshold at the current
+		// culture per turn. Returns int.MaxValue if culture is not growing.
+		public int TurnsUntilBorderExpansion() {
+			int culturePerTurn = GetCulturePerTurn();
+			if (culturePerTurn <= 0) {
+				return int.MaxValue;
+			}
+			return (int)Math.Ceiling((CultureForNextBorderExpansion() - GetCulture()) / (double)culturePerTurn);
 		}
 
 		public void AddBuilding(Building building) {
