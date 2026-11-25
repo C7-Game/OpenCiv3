@@ -34,6 +34,10 @@ public partial class CityScreen : Control {
 	[Export] private Label expandsInLabel;
 	[Export] private Label cityName;
 	[Export] private Label foundedLabel;
+	[Export] private Label goldLabel;
+	[Export] private Label governmentLabel;
+	[Export] private Label yearLabel;
+	[Export] private Label populationLabel;
 
 	[Export] private TextureButton productionButton;
 	[Export] private TextureButton close;
@@ -301,6 +305,10 @@ public partial class CityScreen : Control {
 		tileAssignmentLayer.city = city.Value;
 		cityName.Text = city.Value.name;
 		foundedLabel.Text = $"Founded: {gameData.timeOptions.GetDisplayTime(city.Value.turnFounded)}";
+		goldLabel.Text = $"{city.Value.owner.gold} GOLD";
+		populationLabel.Text = $"POP {city.Value.Population:N0}";
+		governmentLabel.Text = city.Value.owner.government.name.ToUpper();
+		yearLabel.Text = gameData.timeOptions.GetDisplayTime(gameData.turn);
 		RenderPopHeads(city.Value);
 		RenderCulture(city.Value);
 		RenderFoodDetails(city.Value);
