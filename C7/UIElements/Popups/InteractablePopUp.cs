@@ -24,6 +24,10 @@ public class InteractablePopUp {
 	public List<ButtonAction> buttonActions { get; init; }
 	public bool hasConfirm { get; init; }
 	public bool hasCancel { get; init; }
+	// When true, Esc won't dismiss the popup, so the player has to choose one of its options
+	public bool disallowEscape { get; init; }
+	// Invoked after the popup has closed because the player pressed the confirm (OK) button or Enter
+	public Action confirmAction { get; init; }
 
 	protected InteractablePopUp(ID controllerId, string header, LayoutPreset layoutPreset, Margins margins) {
 		this.controllerId = controllerId;

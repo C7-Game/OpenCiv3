@@ -1102,7 +1102,11 @@ public partial class Game : Node {
 
 	private void ProcessAction(string currentAction) {
 		if (currentAction == C7Action.Escape && interactablePopUpController.Visible) {
-			interactablePopUpController.Visible = false;
+			// Some popups (e.g. the defeat ones) must be answered, since closing them this way
+			// skips their actions and would leave the player stuck in a finished game.
+			if (interactablePopUpController.CanDismissWithEscape) {
+				interactablePopUpController.Visible = false;
+			}
 			return;
 		}
 

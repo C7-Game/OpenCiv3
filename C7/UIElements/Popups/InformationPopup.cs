@@ -1,3 +1,4 @@
+using System;
 using C7GameData;
 using Serilog;
 using static AdvisorHead;
@@ -15,8 +16,10 @@ public class InformationPopup : InteractablePopUp {
 	public InformationPopup(
 		ID controllerId, string header, string message,
 		Advisor advisor, Mood mood, int hSize = 400,
-		LayoutPreset layoutPreset = DEFAULT_LAYOUT_PRESET, Margins margins = null)
+		LayoutPreset layoutPreset = DEFAULT_LAYOUT_PRESET, Margins margins = null,
+		Action onConfirm = null)
 		: base(controllerId, header, layoutPreset, margins) {
+		this.confirmAction = onConfirm;
 		this.controllerId = controllerId;
 		this.hSize = hSize;
 		this.message = message;

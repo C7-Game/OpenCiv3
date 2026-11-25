@@ -152,13 +152,11 @@ public partial class Game {
 	/// Shown after the player confirms retiring, matching the base game's "We are disgraced!" popup.
 	/// Dismissing it returns to the main menu.
 	/// </summary>
-	private async void EmitRetireDefeatSignal() {
+	private void EmitRetireDefeatSignal() {
 		var elapsed = TimeSpan.FromSeconds(EngineStorage.gameData.timePlayedSeconds);
 		var message = "You have suffered a humiliating loss.\n\n"
 			+ $"Time Spent: {Pluralize((int)elapsed.TotalHours, "hour")}, "
 			+ $"{Pluralize(elapsed.Minutes, "minute")}, and {Pluralize(elapsed.Seconds, "second")}.";
-
-		var disengaged = EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
 
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new InformationPopup(
@@ -168,13 +166,13 @@ public partial class Game {
 				Advisor.None,
 				Mood.None,
 				hSize: 375,
-				margins: new Margins(top: 50)
-			)
+				margins: new Margins(top: 50),
+				onConfirm: () => {
+					// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
+					OnRetire();
+				}
+			) { disallowEscape = true }
 		));
-
-		await disengaged;
-		// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
-		OnRetire();
 	}
 
 	private static string Pluralize(int count, string noun) {
@@ -370,8 +368,12 @@ public partial class Game {
 		var options = new List<ButtonAction>() {
 			new ButtonAction() {
 				message = "Return to the main menu",
-				// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
-				action = () => OnRetire()
+				// Wait for this popup to close before showing the defeat popup, otherwise
+				// closing this one would also close the new one.
+				action = async () => {
+					await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
+					EmitRetireDefeatSignal();
+				}
 			},
 			new ButtonAction() {
 				message = "Let the game play on without me",
@@ -390,7 +392,7 @@ public partial class Game {
 				Mood.Sad,
 				hSize: 600,
 				margins: new Margins(top: 100)
-			) { hasCancel = false }
+			) { hasCancel = false, disallowEscape = true }
 		));
 	}
 
@@ -798,7 +800,7 @@ public partial class Game {
 		var options = new List<ButtonAction> {
 			new ButtonAction() {
 				message = "Good! I’m Done!",
-				// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
+				// TODO: Show the victory screen and end-of-game score graphs here once they exist (see OnRetire)
 				action = () => OnRetire()
 			},
 			new ButtonAction() {
