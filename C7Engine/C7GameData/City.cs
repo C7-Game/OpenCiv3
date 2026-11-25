@@ -206,7 +206,7 @@ namespace C7GameData {
 
 		// The population shown on the city screen: the people in the city by size,
 		// plus the fraction of the next size's population that the food box represents.
-		public int Population => 10000 * (residents.Count * (residents.Count + 1) / 2 + foodStored / FoodNeededToGrow());
+		public int Population => residents.Count * (residents.Count + 1) / 2 * 10000 + foodStored * 10000 / FoodNeededToGrow();
 
 		public int TurnsUntilGrowth() {
 			int foodGrowthPerTurn = FoodGrowthPerTurn();
