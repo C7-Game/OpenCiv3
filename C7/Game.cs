@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Diagnostics;
 using C7Engine;
+using C7Engine.GameAction;
 using C7GameData;
 using Serilog;
 using C7.UIElements;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 using C7.UIElements.Popups;
 using static AdvisorHead;
 using static C7GameData.MapUnit;
+using C7;
 
 public class GotoInfo {
 	public Tile destinationTile = null;
@@ -123,8 +125,6 @@ public partial class Game : Node {
 	[Export]
 	private InteractablePopUpController interactablePopUpController;
 	[Export]
-	private DoubleClickHandler doubleClickHandler;
-	[Export]
 	public AnimationController animationController;
 	[Export]
 	public UnitSelector unitSelector;
@@ -163,6 +163,8 @@ public partial class Game : Node {
 	public int turnsLeftToFastForward = 0;
 
 	bool errorOnLoad = false;
+
+	readonly LeftClickHandler leftClickHandler = new();
 
 	public override void _EnterTree() {
 		loadTimer.Start();
@@ -215,6 +217,7 @@ public partial class Game : Node {
 
 		InitializeMapView();
 		InitializeAudio();
+		InitializeMouseHandler();
 	}
 
 	private void InitializeAudio() {
@@ -483,6 +486,7 @@ public partial class Game : Node {
 	}
 
 	public override void _Process(double delta) {
+		leftClickHandler.NotifyProcessFrame(delta);
 		ProcessActions();
 
 		if (!EngineStorage.HasPendingAnimations())
@@ -712,17 +716,8 @@ public partial class Game : Node {
 		GetViewport().SetInputAsHandled();
 		Control uiHover = GetViewport().GuiGetHoveredControl();
 		// Can't drag the map when the mouse is over a ui element
-		if (eventMouseButton.IsPressed() && uiHover is not TextureButton) {
-			OldPosition = eventMouseButton.Position;
-			IsMovingCamera = true;
-
-			if (CanDoubleClick(eventMouseButton)) {
-				doubleClickHandler.Accept(eventMouseButton);
-			} else {
-				OnSingleLeftMouseButtonClick(eventMouseButton);
-			}
-		} else {
-			IsMovingCamera = false;
+		if (uiHover is not TextureButton) {
+			leftClickHandler.HandleLeftMouseButton(eventMouseButton);
 		}
 	}
 
@@ -734,6 +729,28 @@ public partial class Game : Node {
 		return tile;
 	}
 
+	void InitializeMouseHandler() {
+		leftClickHandler
+			.On(MouseAction.Event.Drag, HandleMouseDrag)
+			.On(MouseAction.Event.LongPress, HandleMouseLongPress)
+			.Can(MouseAction.Event.LongPress, _ => HasCurrentlySelectedUnit())
+			.On(MouseAction.Event.LeftClick, OnSingleLeftMouseButtonClick)
+			.On(MouseAction.Event.DoubleClick, OnDoubleLeftMouseButtonClick)
+			.Can(MouseAction.Event.DoubleClick, CanDoubleClick);
+	}
+
+	void HandleMouseLongPress(InputEventMouseButton input) {
+		if (gotoInfo == null) {
+			SetGotoMode(true);
+			gotoInfo = GetGotoInfo(input.Position);
+		}
+	}
+
+	void HandleMouseDrag(InputEventMouseButton input) {
+		IsMovingCamera = true;
+		OldPosition = input.Position;
+	}
+
 	private bool CanDoubleClick(InputEventMouseButton eventMouseButton) {
 		Tile tile = PositionToTile(eventMouseButton.Position);
 
@@ -741,7 +758,9 @@ public partial class Game : Node {
 	}
 
 	private void OnSingleLeftMouseButtonClick(InputEventMouseButton eventMouseButton) {
-		if (gotoInfo != null) {
+		if (IsMovingCamera) {
+			IsMovingCamera = false;
+		} else if (gotoInfo != null) {
 			this.ResolveMovement(gotoInfo);
 			this.SetGotoMode(false);
 		} else if (bombardInfo != null) {
@@ -876,6 +895,7 @@ public partial class Game : Node {
 	}
 
 	private void HandleMouseMotionInput(InputEventMouseMotion eventMouseMotion) {
+		leftClickHandler.NotifyMouseMotion(eventMouseMotion);
 		if (IsMovingCamera) {
 			GetViewport().SetInputAsHandled();
 			mapView.cameraLocation += OldPosition - eventMouseMotion.Position;
