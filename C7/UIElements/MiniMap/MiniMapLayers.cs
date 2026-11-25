@@ -43,15 +43,11 @@ public class TerrainMiniLayer : MiniMapLayer {
 }
 
 public class PlayerColorMiniLayer : MiniMapLayer {
-	/// Returns the fully saturated version of the colour.
-	public static Color Intensify(Color colour) => Color.FromHsv(colour.H, 1, colour.V, colour.A);
-
 	public override void DrawTile(Image mapImage, Tile tile, int x, int y) {
 		if (visible && tile.OwningPlayer() != null) {
 			var civColor = TextureLoader.LoadColor(tile.OwningPlayer().GetPlayerColor());
-			var intenseCivColor = Intensify(civColor);
 			var currentColor = mapImage.GetPixel(x, y);
-			var newColor = intenseCivColor.Lerp(currentColor, 0.25f); // blend civ color with underlying map
+			var newColor = civColor.Lerp(currentColor, 0.2f); // blend civ color with underlying map
 			mapImage.SetPixel(x, y, newColor);
 		}
 	}
@@ -81,14 +77,8 @@ public class FogOfWarMiniLayer : MiniMapLayer {
 	}
 
 	public override void DrawTile(Image mapImage, Tile tile, int x, int y) {
-		if (visible && !_revealMap) {
-			if (_tileKnowledge.borderTiles.Contains(tile)) {
-				var currentColor = mapImage.GetPixel(x, y);
-				var newColor = Colors.Black.Lerp(currentColor, 0.50f); // blend with underlying map
-				mapImage.SetPixel(x, y, newColor);
-			} else if (!_tileKnowledge.knownTiles.Contains(tile)) {
-				mapImage.SetPixel(x, y, Colors.Black);
-			}
+		if (visible && !_revealMap && !_tileKnowledge.knownTiles.Contains(tile)) {
+			mapImage.SetPixel(x, y, Colors.Black);
 		}
 	}
 }
