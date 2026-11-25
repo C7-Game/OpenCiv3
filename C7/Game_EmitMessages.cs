@@ -84,7 +84,11 @@ public partial class Game {
 		};
 		options.Add(loadGameBtn);
 
-		// TODO: add New Game option. This seems to do exactly the same as Retire in the original game
+		var newGameBtn = new ButtonAction() {
+			message = "New Game (Ctrl-Shift-Q)",
+			action = () => EmitNewGameConfirmationSignal(),
+		};
+		options.Add(newGameBtn);
 
 		var preferencesBtn = new ButtonAction() {
 			message = "Preferences (Ctrl-P)",
@@ -136,7 +140,58 @@ public partial class Game {
 				Mood.None,
 				"Yes, retire from this game",
 				"No, let me keep playing",
-				() => OnRetire(),
+				() => { },
+				// Wait for this popup to close before showing the defeat popup
+				yesCallback: () => EmitRetireDefeatSignal(),
+				hSize: 500
+			)
+		));
+	}
+
+	/// <summary>
+	/// Shown after the player confirms retiring, matching the base game's "We are disgraced!" popup.
+	/// Dismissing it returns to the main menu.
+	/// </summary>
+	private void EmitRetireDefeatSignal() {
+		var elapsed = TimeSpan.FromSeconds(EngineStorage.gameData.timePlayedSeconds);
+		var message = "You have suffered a humiliating loss.\n\n"
+			+ $"Time Spent: {Pluralize((int)elapsed.TotalHours, "hour")}, "
+			+ $"{Pluralize(elapsed.Minutes, "minute")}, and {Pluralize(elapsed.Seconds, "second")}.";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"We are disgraced!",
+				message,
+				Advisor.None,
+				Mood.None,
+				hSize: 375,
+				margins: new Margins(top: 50),
+				onConfirm: () => {
+					// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
+					OnRetire();
+				}
+			) { disallowEscape = true }
+		));
+	}
+
+	private static string Pluralize(int count, string noun) {
+		return $"{count} {noun}{(count == 1 ? "" : "s")}";
+	}
+
+	public void EmitNewGameConfirmationSignal() {
+		var message = "Leave this game and start a new one? All progress since your last save will be lost.";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Do you want to start a new game?",
+				message,
+				Advisor.None,
+				Mood.None,
+				"Yes, start a new game",
+				"No, let me keep playing",
+				() => OnNewGame(),
 				hSize: 500
 			)
 		));
@@ -310,10 +365,17 @@ public partial class Game {
 	}
 
 	private void EmitDefeatSignal(ID playerId) {
+		// TODO: Consider adding the time played (gameData.timePlayedSeconds) to this popup's message.
+		// It is currently only shown on the "We are disgraced!" popup (see EmitRetireDefeatSignal).
 		var options = new List<ButtonAction>() {
 			new ButtonAction() {
 				message = "Return to the main menu",
-				action = () => OnRetire()
+				// Wait for this popup to close before showing the defeat popup, otherwise
+				// closing this one would also close the new one.
+				action = async () => {
+					await EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
+					EmitRetireDefeatSignal();
+				}
 			},
 			new ButtonAction() {
 				message = "Let the game play on without me",
@@ -332,7 +394,7 @@ public partial class Game {
 				Mood.Sad,
 				hSize: 600,
 				margins: new Margins(top: 100)
-			) { hasCancel = false }
+			) { hasCancel = false, disallowEscape = true }
 		));
 	}
 
@@ -731,6 +793,8 @@ public partial class Game {
 	}
 
 	private void EmitVictorySignal(MsgVictory msg) {
+		// TODO: Consider adding the time played (gameData.timePlayedSeconds) to this popup's message,
+		// sharing the formatting used by EmitRetireDefeatSignal.
 		var endMsg =
 			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory!\n"
 			+ "This game is over: No further score will be entered.\n\n";
@@ -740,6 +804,7 @@ public partial class Game {
 		var options = new List<ButtonAction> {
 			new ButtonAction() {
 				message = "Good! I’m Done!",
+				// TODO: Show the victory screen and end-of-game score graphs here once they exist (see OnRetire)
 				action = () => OnRetire()
 			},
 			new ButtonAction() {

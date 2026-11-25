@@ -393,6 +393,7 @@ visible = false
 [connection signal="DiplomacySelection" from="CanvasLayer/PopupOverlay" to="." method="OnDiplomacySelected"]
 [connection signal="HidePopup" from="CanvasLayer/PopupOverlay" to="CanvasLayer/PopupOverlay" method="OnHidePopup"]
 [connection signal="LoadGame" from="CanvasLayer/PopupOverlay" to="." method="OnLoadGame"]
+[connection signal="NewGame" from="CanvasLayer/PopupOverlay" to="." method="EmitNewGameConfirmationSignal"]
 [connection signal="OpenPreferences" from="CanvasLayer/PopupOverlay" to="." method="OnOpenPreferences"]
 [connection signal="Quit" from="CanvasLayer/PopupOverlay" to="." method="OnQuitTheGame"]
 [connection signal="Retire" from="CanvasLayer/PopupOverlay" to="." method="OnRetire"]

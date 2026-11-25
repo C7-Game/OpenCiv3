@@ -492,6 +492,11 @@ public partial class Game : Node {
 	}
 
 	public override void _Process(double delta) {
+		// Persisted with the save so time played carries across saves and loads
+		if (EngineStorage.gameData != null) {
+			EngineStorage.gameData.timePlayedSeconds += delta;
+		}
+
 		ProcessActions();
 
 		if (!EngineStorage.HasPendingAnimations())
@@ -623,7 +628,15 @@ public partial class Game : Node {
 	}
 
 	public void OnRetire() {
+		// TODO: Retire should also show the end-of-game results (score graphs, etc.) before returning
+		// to the main menu. That screen doesn't exist yet; per-turn score data is already recorded in
+		// gameData.history (HistTurnRecord). The defeat popup is shown by EmitRetireDefeatSignal.
 		// Quit to main menu, freeing previous scene data
+		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
+	}
+
+	public void OnNewGame() {
+		// Same as the original game: return to the main entry screen
 		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
 	}
 
@@ -910,15 +923,6 @@ public partial class Game : Node {
 			return;
 		}
 
-		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
-			if (preferences.Visible) {
-				preferences.HidePreferences();
-			} else {
-				preferences.ShowPreferences();
-			}
-			return;
-		}
-
 		if (eventKeyDown.Keycode == Godot.Key.F1) {
 			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor);
 		}
@@ -1098,7 +1102,11 @@ public partial class Game : Node {
 
 	private void ProcessAction(string currentAction) {
 		if (currentAction == C7Action.Escape && interactablePopUpController.Visible) {
-			interactablePopUpController.Visible = false;
+			// Some popups (e.g. the defeat ones) must be answered, since closing them this way
+			// skips their actions and would leave the player stuck in a finished game.
+			if (interactablePopUpController.CanDismissWithEscape) {
+				interactablePopUpController.Visible = false;
+			}
 			return;
 		}
 
@@ -1126,10 +1134,12 @@ public partial class Game : Node {
 			return;
 		}
 
+		// Ctrl-P is handled only here (not in HandleKeyboardInput), otherwise the
+		// key event and the action poll both toggle in the same frame and cancel out.
 		if (currentAction == C7Action.OpenPreferences) {
 			if (preferences.Visible) {
 				preferences.HidePreferences();
-			} else {
+			} else if (!HasVisibleModal()) {
 				preferences.ShowPreferences();
 			}
 			return;
@@ -1172,6 +1182,11 @@ public partial class Game : Node {
 
 		if (currentAction == C7Action.LoadGame) {
 			OnLoadGame();
+			return;
+		}
+
+		if (currentAction == C7Action.NewGame) {
+			EmitNewGameConfirmationSignal();
 			return;
 		}
 

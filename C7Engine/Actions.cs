@@ -28,6 +28,7 @@ public static class C7Action {
 	public const string SaveGame = "save_game"; // Ctrl-S
 	public const string LoadGame = "load_game"; // Ctrl-L
 	public const string Retire = "retire"; // Ctrl-Q
+	public const string NewGame = "new_game"; // Ctrl-Shift-Q
 
 	public const string ShowDomesticAdvisor = "show_domestic_advisor"; // F1
 	public const string ShowTradeAdvisor = "show_trade_advisor";

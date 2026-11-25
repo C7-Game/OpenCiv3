@@ -72,6 +72,10 @@ namespace C7GameData {
 		public int healRateInHostileField;
 		public int healRateInCity;
 
+		// Real-world time the player has spent in this game, accumulated by the UI
+		// and persisted across saves and loads.
+		public double timePlayedSeconds = 0;
+
 		public bool observerMode = false;
 		public bool showGridCoordinates = false;
 		public bool revealMap = false;

@@ -311,6 +311,22 @@ public class SaveTests : IClassFixture<SaveGameFixture> {
 	}
 
 	[Fact]
+	public async Task TimePlayedSurvivesSaveAndLoad() {
+		await CreateHeadlessGame(fixture.saveGame);
+		WaitForStartTurnMessage();
+
+		C7GameData.GameData game = null;
+		EngineStorage.ReadGameData((C7GameData.GameData gameData) => { game = gameData; });
+		game.timePlayedSeconds = 3723.5;
+
+		string savePath = PathUtils.getDataPath("output/time-played-save.json");
+		SaveGame.FromGameData(game).Save(savePath);
+
+		C7GameData.GameData loaded = ToGameData(SaveGame.Load(savePath, (string unused) => { return unused; }, (string unused) => { return unused; }));
+		Assert.Equal(3723.5, loaded.timePlayedSeconds);
+	}
+
+	[Fact]
 	public async Task WorldWrapDetails() {
 		Player human = await CreateHeadlessGame(fixture.saveGame);
 		WaitForStartTurnMessage();

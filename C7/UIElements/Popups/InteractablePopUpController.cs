@@ -43,6 +43,10 @@ public partial class InteractablePopUpController : Control {
 	private LayoutPreset layoutPreset = DEFAULT_LAYOUT_PRESET;
 
 	private LineEditComponent lineEditComponent;
+	private Action confirmAction;
+
+	// Whether Esc may dismiss the popup that is currently showing
+	public bool CanDismissWithEscape { get; private set; } = true;
 
 	private float defaultOffsetTop;
 	private float defaultOffsetBottom;
@@ -82,6 +86,22 @@ public partial class InteractablePopUpController : Control {
 		this.confirm.Pressed += this.OnConfirm;
 		this.cancel.Pressed += this.OnCancel;
 		this.lineEdit.TextSubmitted += this.LineTextSubmitted;
+		this.mainBgContainer.Resized += this.RefreshBackground;
+	}
+
+	// The message label finishes wrapping (and so changes the content height) after the popup is first shown.
+	// Redraw the background whenever the content resizes, otherwise the box can end up shorter than its
+	// content and leave the confirm button hanging below it.
+	private void RefreshBackground() {
+		if (!this.Visible || this.bgTextureRect.Texture == null) {
+			return;
+		}
+
+		int width = (int)this.mainBgContainer.GetSize().X;
+		int height = (int)this.mainBgContainer.GetSize().Y;
+		if (width > 0 && height > 0) {
+			this.bgTextureRect.Texture = this.CreateTextureBackGround(width, height);
+		}
 	}
 
 	// An intermediary method so that we can edit and submit text without having to grab/release focus
@@ -91,8 +111,11 @@ public partial class InteractablePopUpController : Control {
 
 	public override void _UnhandledInput(InputEvent @event) {
 		base._UnhandledInput(@event);
-		if (this.Visible && @event is InputEventKey eventKey && eventKey.Pressed) {
+		// Echo events are key repeats from a held key. Ignoring them means only a fresh key press acts, so
+		// the Enter that confirmed the previous popup can't also confirm the popup that replaces it.
+		if (this.Visible && @event is InputEventKey eventKey && eventKey.Pressed && !eventKey.Echo) {
 			if (eventKey.Keycode == Key.Enter || eventKey.Keycode == Key.KpEnter) {
+				GetViewport().SetInputAsHandled();
 				this.OnConfirm();
 			}
 			if (eventKey.Keycode == Key.Up) {
@@ -148,6 +171,8 @@ public partial class InteractablePopUpController : Control {
 		this.mainTextContainer.Visible = true;
 		this.mainTextLabel.Visible = true;
 		this.mainTextLabel.Text = value.message;
+		this.confirmAction = value.confirmAction;
+		this.CanDismissWithEscape = !value.disallowEscape;
 
 		if (string.IsNullOrEmpty(this.mainTextLabel.Text)) {
 			this.mainTextContainer.Visible = false;
@@ -281,10 +306,15 @@ public partial class InteractablePopUpController : Control {
 			this.lineEditComponent.callback.Invoke(this.lineEdit.Text.StripEdges());
 		}
 
+		// Take the action before closing, since closing clears it
+		Action action = this.confirmAction;
+
 		this.audioManager.PlayUIAudio("buttons.button_ok");
 		this.Hide();
 		this.CloseAndDelete();
 		new MsgUiDisengaged().send();
+
+		action?.Invoke();
 	}
 
 	private void AddCancelButton() {
@@ -328,6 +358,8 @@ public partial class InteractablePopUpController : Control {
 		this.advisorTextureRect.Texture = null;
 		this.lineEditContainer.Hide();
 		this.lineEditComponent = null;
+		this.confirmAction = null;
+		this.CanDismissWithEscape = true;
 
 		foreach (var child in buttonContainer.GetChildren()) {
 			buttonContainer.RemoveChild(child);
@@ -342,6 +374,7 @@ public partial class InteractablePopUpController : Control {
 		base._ExitTree();
 		this.confirm.Pressed -= this.OnConfirm;
 		this.cancel.Pressed -= this.OnCancel;
+		this.mainBgContainer.Resized -= this.RefreshBackground;
 	}
 
 	const int HTILE_SIZE = 61;

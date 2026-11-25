@@ -55,6 +55,7 @@ namespace C7GameData.Save {
 				Seed = data.seed,
 				WorldCharacteristics = data.worldCharacteristics,
 				TurnNumber = data.turn,
+				TimePlayedSeconds = data.timePlayedSeconds,
 				Civilizations = data.civilizations,
 				CultureGroups = data.cultureGroups,
 				Alliances = data.alliances,
@@ -237,6 +238,7 @@ namespace C7GameData.Save {
 			// copy data without references
 			var data = new GameData(Seed) {
 				turn = TurnNumber,
+				timePlayedSeconds = TimePlayedSeconds,
 				worldCharacteristics = WorldCharacteristics,
 				terrainTypes = TerrainTypes,
 				Resources = Resources,
@@ -508,6 +510,8 @@ namespace C7GameData.Save {
 		public int Seed = -1;
 		public WorldCharacteristics WorldCharacteristics;
 		public int TurnNumber = 0;
+		// Real-world seconds the player has spent in this game. Absent in older saves, so defaults to 0.
+		public double TimePlayedSeconds = 0;
 		public SaveMap Map = new SaveMap();
 		public List<TerrainType> TerrainTypes = new List<TerrainType>();
 		public List<SaveTerrainImprovement> TerrainImprovements = [];

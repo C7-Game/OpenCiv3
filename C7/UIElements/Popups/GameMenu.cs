@@ -22,7 +22,7 @@ public partial class GameMenu : Popup {
 		Tuple<string, Action>[] buttons = [
 			new("Map", ShowMap),
 			new("Load Game", Load),
-			// new("New Game (Ctrl-Shift-Q)", NewGame),
+			new("New Game (Ctrl-Shift-Q)", NewGame),
 			// TODO: Quick Start?
 			new("Preferences (Ctrl-P)", OpenPreferences),
 			new("Retire", Retire),
@@ -63,7 +63,7 @@ public partial class GameMenu : Popup {
 	}
 
 	private void NewGame() {
-		// TODO: Wire to a NewGame scene
+		GetParent().EmitSignal(PopupOverlay.SignalName.NewGame);
 	}
 
 	private void OpenPreferences() {
