@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Serilog;
+using C7GameData;
 using C7GameData.Save;
 using MoonSharp.Interpreter;
 using System.Reflection;
@@ -37,7 +38,16 @@ public class GameMode {
 	// copy we make it possible to reuse the ruleset for creating
 	// other games
 	public SaveGame GetSave() {
-		return ruleset.Clone();
+		SaveGame save = ruleset.Clone();
+
+		// Golden age settings come from Lua for new games only. Loaded saves and imported BIQs/SAVs keep their own.
+		save.Rules.GoldenAgeDuration = behaviors.ImportFunc<Func<int>>("gameplay.golden_age.duration")();
+		save.Rules.GoldenAgeBonuses = new GoldenAgeBonus {
+			Shields = behaviors.ImportFunc<Func<int>>("gameplay.golden_age.shields")(),
+			Commerce = behaviors.ImportFunc<Func<int>>("gameplay.golden_age.commerce")(),
+		};
+
+		return save;
 	}
 
 	// gameModesDir is a directory where game mode definitions are located.

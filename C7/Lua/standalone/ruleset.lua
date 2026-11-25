@@ -3,8 +3,6 @@ The art replacements for units in the standalone mode.
 A key represents a name of a unit prototype,
 a value refers to a directory with unit art in C7/Assets/Art/Units
 ]]
-local apply_golden_age = require "golden_age"
-
 local unit_replacement_art_map = {
   ["Settler"] = "Carthaginian Settler",
   ["Worker"] = "Carthaginian Worker",
@@ -70,5 +68,5 @@ return function(civ3_game_mode)
 
   civ3_game_mode.unitPrototypes = updated_unit_prototypes
 
-  return apply_golden_age(civ3_game_mode)
+  return civ3_game_mode
 end
