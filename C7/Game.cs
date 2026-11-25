@@ -627,6 +627,11 @@ public partial class Game : Node {
 		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
 	}
 
+	public void OnNewGame() {
+		// Same as the original game: return to the main entry screen
+		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
+	}
+
 	public void OnSaveGame() {
 		SavePaths.EnsureSaveFolderExists();
 		FileDialog.SetDirectoryForSaving(SavePaths.SaveFolder);
@@ -1172,6 +1177,11 @@ public partial class Game : Node {
 
 		if (currentAction == C7Action.LoadGame) {
 			OnLoadGame();
+			return;
+		}
+
+		if (currentAction == C7Action.NewGame) {
+			EmitNewGameConfirmationSignal();
 			return;
 		}
 

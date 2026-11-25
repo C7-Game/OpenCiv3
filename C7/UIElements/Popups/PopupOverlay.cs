@@ -21,6 +21,7 @@ public partial class PopupOverlay : HBoxContainer {
 	[Signal] public delegate void SaveGameEventHandler();
 	[Signal] public delegate void LoadGameEventHandler();
 	[Signal] public delegate void RetireEventHandler();
+	[Signal] public delegate void NewGameEventHandler();
 	[Signal] public delegate void QuitEventHandler();
 	[Signal] public delegate void OpenPreferencesEventHandler();
 

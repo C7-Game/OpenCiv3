@@ -84,7 +84,11 @@ public partial class Game {
 		};
 		options.Add(loadGameBtn);
 
-		// TODO: add New Game option. This seems to do exactly the same as Retire in the original game
+		var newGameBtn = new ButtonAction() {
+			message = "New Game (Ctrl-Shift-Q)",
+			action = () => EmitNewGameConfirmationSignal(),
+		};
+		options.Add(newGameBtn);
 
 		var preferencesBtn = new ButtonAction() {
 			message = "Preferences (Ctrl-P)",
@@ -137,6 +141,24 @@ public partial class Game {
 				"Yes, retire from this game",
 				"No, let me keep playing",
 				() => OnRetire(),
+				hSize: 500
+			)
+		));
+	}
+
+	public void EmitNewGameConfirmationSignal() {
+		var message = "Leave this game and start a new one? All progress since your last save will be lost.";
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new ConfirmPopUp(
+				controller.id,
+				"Do you want to start a new game?",
+				message,
+				Advisor.None,
+				Mood.None,
+				"Yes, start a new game",
+				"No, let me keep playing",
+				() => OnNewGame(),
 				hSize: 500
 			)
 		));
