@@ -365,6 +365,8 @@ public partial class Game {
 	}
 
 	private void EmitDefeatSignal(ID playerId) {
+		// TODO: Consider adding the time played (gameData.timePlayedSeconds) to this popup's message.
+		// It is currently only shown on the "We are disgraced!" popup (see EmitRetireDefeatSignal).
 		var options = new List<ButtonAction>() {
 			new ButtonAction() {
 				message = "Return to the main menu",
@@ -791,6 +793,8 @@ public partial class Game {
 	}
 
 	private void EmitVictorySignal(MsgVictory msg) {
+		// TODO: Consider adding the time played (gameData.timePlayedSeconds) to this popup's message,
+		// sharing the formatting used by EmitRetireDefeatSignal.
 		var endMsg =
 			$"The {msg.winner.civilization.noun} have won a {msg.victory.Header()} victory!\n"
 			+ "This game is over: No further score will be entered.\n\n";
