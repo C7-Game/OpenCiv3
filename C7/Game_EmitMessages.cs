@@ -140,10 +140,45 @@ public partial class Game {
 				Mood.None,
 				"Yes, retire from this game",
 				"No, let me keep playing",
-				() => OnRetire(),
+				() => { },
+				// Wait for this popup to close before showing the defeat popup
+				yesCallback: () => EmitRetireDefeatSignal(),
 				hSize: 500
 			)
 		));
+	}
+
+	/// <summary>
+	/// Shown after the player confirms retiring, matching the base game's "We are disgraced!" popup.
+	/// Dismissing it returns to the main menu.
+	/// </summary>
+	private async void EmitRetireDefeatSignal() {
+		var elapsed = TimeSpan.FromSeconds(EngineStorage.gameData.timePlayedSeconds);
+		var message = "You have suffered a humiliating loss.\n\n"
+			+ $"Time Spent: {Pluralize((int)elapsed.TotalHours, "hour")}, "
+			+ $"{Pluralize(elapsed.Minutes, "minute")}, and {Pluralize(elapsed.Seconds, "second")}.";
+
+		var disengaged = EngineStorage.WaitForMessageToEngine<MsgUiDisengaged>();
+
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"We are disgraced!",
+				message,
+				Advisor.None,
+				Mood.None,
+				hSize: 375,
+				margins: new Margins(top: 50)
+			)
+		));
+
+		await disengaged;
+		// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
+		OnRetire();
+	}
+
+	private static string Pluralize(int count, string noun) {
+		return $"{count} {noun}{(count == 1 ? "" : "s")}";
 	}
 
 	public void EmitNewGameConfirmationSignal() {
@@ -335,6 +370,7 @@ public partial class Game {
 		var options = new List<ButtonAction>() {
 			new ButtonAction() {
 				message = "Return to the main menu",
+				// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
 				action = () => OnRetire()
 			},
 			new ButtonAction() {
@@ -762,6 +798,7 @@ public partial class Game {
 		var options = new List<ButtonAction> {
 			new ButtonAction() {
 				message = "Good! I’m Done!",
+				// TODO: Show the end-of-game score graphs here once they exist (see OnRetire)
 				action = () => OnRetire()
 			},
 			new ButtonAction() {

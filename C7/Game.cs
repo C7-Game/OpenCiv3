@@ -492,6 +492,11 @@ public partial class Game : Node {
 	}
 
 	public override void _Process(double delta) {
+		// Persisted with the save so time played carries across saves and loads
+		if (EngineStorage.gameData != null) {
+			EngineStorage.gameData.timePlayedSeconds += delta;
+		}
+
 		ProcessActions();
 
 		if (!EngineStorage.HasPendingAnimations())
@@ -623,6 +628,9 @@ public partial class Game : Node {
 	}
 
 	public void OnRetire() {
+		// TODO: Retire should also show the end-of-game results (score graphs, etc.) before returning
+		// to the main menu. That screen doesn't exist yet; per-turn score data is already recorded in
+		// gameData.history (HistTurnRecord). The defeat popup is shown by EmitRetireDefeatSignal.
 		// Quit to main menu, freeing previous scene data
 		GetTree().ChangeSceneToFile("res://UIElements/MainMenu/main_menu.tscn");
 	}
