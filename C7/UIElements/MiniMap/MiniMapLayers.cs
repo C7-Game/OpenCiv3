@@ -77,14 +77,8 @@ public class FogOfWarMiniLayer : MiniMapLayer {
 	}
 
 	public override void DrawTile(Image mapImage, Tile tile, int x, int y) {
-		if (visible && !_revealMap) {
-			if (_tileKnowledge.borderTiles.Contains(tile)) {
-				var currentColor = mapImage.GetPixel(x, y);
-				var newColor = Colors.Black.Lerp(currentColor, 0.50f); // blend with underlying map
-				mapImage.SetPixel(x, y, newColor);
-			} else if (!_tileKnowledge.knownTiles.Contains(tile)) {
-				mapImage.SetPixel(x, y, Colors.Black);
-			}
+		if (visible && !_revealMap && !_tileKnowledge.knownTiles.Contains(tile)) {
+			mapImage.SetPixel(x, y, Colors.Black);
 		}
 	}
 }
