@@ -268,21 +268,9 @@ public partial class CityScreen : Control {
 		// If we've clicked the city center, re-assign all the citizens using
 		// the basic AI, but specify that we want to manage moods by using
 		// entertainers if necessary.
-		//
-		// TODO: This throws away existing nationalities, fix that.
-		if (tile.cityAtTile == city) {
-			int numResidents = city.residents.Count;
-			city.RemoveAllCitizens();
 
-			for (int i = 0; i < numResidents; ++i) {
-				CityResident newResident = new() {
-					citizenType = citizenTypes.Find(x => x.IsDefaultCitizen),
-					nationality = city.owner.civilization,
-					city = city
-				};
-				city.AddCitizen(newResident);
-				CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident, manageMoods: true, totalResidents: numResidents);
-			}
+		if (tile.cityAtTile == city) {
+			PlayerAI.ReassignCitizens(gameData, city);
 		}
 	}
 
