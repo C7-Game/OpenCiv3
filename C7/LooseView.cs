@@ -40,8 +40,24 @@ public partial class LooseView : Node2D {
 			stopwatch.Start();
 			foreach (LooseLayer layer in layers.FindAll(L => L.visible && !(L is FogOfWarLayer) && !(L is GridLayer))) {
 				layer.onBeginDraw(this, gD);
-				foreach (VisibleTile vT in visibleKnownTiles) {
-					layer.drawObject(this, gD, vT.tile, vT.tileCenter);
+				if (layer is TileOverlayLayer) {
+					// Hills and mountains are taller than a tile, so their sprites extend over the tiles to the
+					// north (NW, N, NE). HillsLayer has already drawn them, but the overlay layer then draws roads
+					// on those northern tiles over the top. Tiles are visited north to south, so redraw each hilly
+					// tile right before its own overlays: it covers the overlays of the tiles above it, and its
+					// own roads still draw on top of it. Redrawing in this order also keeps mountains correctly
+					// ordered relative to each other.
+					HillsLayer hillsLayer = layers.OfType<HillsLayer>().FirstOrDefault(L => L.visible);
+					foreach (VisibleTile vT in visibleKnownTiles) {
+						if (hillsLayer != null && vT.tile.overlayTerrainType.isHilly()) {
+							hillsLayer.drawObject(this, gD, vT.tile, vT.tileCenter);
+						}
+						layer.drawObject(this, gD, vT.tile, vT.tileCenter);
+					}
+				} else {
+					foreach (VisibleTile vT in visibleKnownTiles) {
+						layer.drawObject(this, gD, vT.tile, vT.tileCenter);
+					}
 				}
 
 				layer.onEndDraw(this, gD);
