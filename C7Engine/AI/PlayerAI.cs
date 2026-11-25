@@ -432,22 +432,28 @@ namespace C7Engine {
 
 		// In each city, reassign citizens, managing moods, to ensure that we
 		// don't have any cities that will riot.
-		private static void FixRemainingUnhappyCities(Player player) {
+		internal static void FixRemainingUnhappyCities(Player player) {
 			foreach (City city in player.cities) {
-				// TODO: This throws away existing nationalities, fix that.
-				int numResidents = city.residents.Count;
-				city.RemoveAllCitizens();
-
-				for (int i = 0; i < numResidents; ++i) {
-					CityResident newResident = new() {
-						citizenType = EngineStorage.gameData.citizenTypes.Find(x => x.IsDefaultCitizen),
-						nationality = city.owner.civilization,
-						city = city
-					};
-					city.AddCitizen(newResident);
-					CityTileAssignmentAI.AssignNewCitizenToTile(EngineStorage.gameData, newResident, manageMoods: true, totalResidents: numResidents);
-				}
+				ReassignCitizens(EngineStorage.gameData, city);
 			}
+		}
+
+		// Re-assigns all of a city's citizens using the basic AI, managing moods
+		// by using entertainers if necessary. Each citizen keeps their nationality.
+		public static void ReassignCitizens(GameData gameData, City city) {
+			Civilization[] nationalities = city.residents.Select(res => res.nationality).ToArray();
+			city.RemoveAllCitizens();
+
+			for (int i = 0; i < nationalities.Length; ++i) {
+				CityResident newResident = new() {
+					citizenType = gameData.citizenTypes.Find(x => x.IsDefaultCitizen),
+					nationality = nationalities[i],
+					city = city
+				};
+				city.AddCitizen(newResident);
+				CityTileAssignmentAI.AssignNewCitizenToTile(gameData, newResident, manageMoods: true, totalResidents: nationalities.Length);
+			}
+			nationalities = null;
 		}
 
 		public static bool BudgetIsTolerable(Player player) {
