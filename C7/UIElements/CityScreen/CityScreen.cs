@@ -32,6 +32,7 @@ public partial class CityScreen : Control {
 	[Export] private Label culturePerTurn;
 	[Export] private Label totalCulture;
 	[Export] private Label cityName;
+	[Export] private Label foundedLabel;
 
 	[Export] private TextureButton productionButton;
 	[Export] private TextureButton close;
@@ -298,6 +299,7 @@ public partial class CityScreen : Control {
 		mapView.centerCameraOnTile(city.Value.location.neighbors[TileDirection.SOUTH], MapView.CameraPosition.Absolute);
 		tileAssignmentLayer.city = city.Value;
 		cityName.Text = city.Value.name;
+		foundedLabel.Text = $"Founded: {gameData.timeOptions.GetDisplayTime(city.Value.turnFounded)}";
 		RenderPopHeads(city.Value);
 		RenderCulture(city.Value);
 		RenderFoodDetails(city.Value);

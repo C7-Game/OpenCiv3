@@ -11,7 +11,7 @@ namespace C7Engine {
 
 		public static City BuildCity(Tile tileWithNewCity, Player owner, string name) {
 			GameData gameData = EngineStorage.gameData;
-			City newCity = new City(tileWithNewCity, owner, name, gameData.ids.CreateID("city"));
+			City newCity = new City(tileWithNewCity, owner, name, gameData.ids.CreateID("city"), gameData.turn);
 			if (owner.cities.Count == 0) {
 				newCity.capital = true;
 				newCity.AddBuilding(gameData.Buildings.Find(x => x.isCenterOfEmpire));

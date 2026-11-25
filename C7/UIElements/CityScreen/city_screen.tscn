@@ -26,13 +26,14 @@ font = ExtResource("5_hld1k")
 font_size = 28
 font_color = Color(0, 0, 0, 1)
 
-[node name="CityScreen" node_paths=PackedStringArray("background", "existingBuildings", "culturePerTurn", "totalCulture", "cityName", "productionButton", "close", "previousCity", "nextCity", "productionMenu", "strategicResources", "luxuriesContainer", "productionLabel", "completeInLabel", "growthInLabel", "foodLabel", "granaryLabel", "shieldsInBoxContainer", "foodInBoxContainer", "foodInGranaryContainer", "shieldRowContainer", "foodRowContainer") instance=ExtResource("1_hl43g")]
+[node name="CityScreen" node_paths=PackedStringArray("background", "existingBuildings", "culturePerTurn", "totalCulture", "cityName", "foundedLabel", "productionButton", "close", "previousCity", "nextCity", "productionMenu", "strategicResources", "luxuriesContainer", "productionLabel", "completeInLabel", "growthInLabel", "foodLabel", "granaryLabel", "shieldsInBoxContainer", "foodInBoxContainer", "foodInGranaryContainer", "shieldRowContainer", "foodRowContainer") instance=ExtResource("1_hl43g")]
 script = ExtResource("1_e5kig")
 background = NodePath("HBoxContainer/Background")
 existingBuildings = NodePath("HBoxContainer/Background/ScrollContainerBuildings/ExistingBuildings")
 culturePerTurn = NodePath("HBoxContainer/Background/CulturePerTurn")
 totalCulture = NodePath("HBoxContainer/Background/TotalCulture")
 cityName = NodePath("HBoxContainer/Background/CityName")
+foundedLabel = NodePath("HBoxContainer/Background/FoundedLabel")
 productionButton = NodePath("HBoxContainer/Background/ProductionButton")
 close = NodePath("HBoxContainer/Background/Close")
 previousCity = NodePath("HBoxContainer/Background/PreviousCity")
@@ -287,3 +288,12 @@ offset_left = 287.0
 offset_top = 571.0
 offset_right = 767.0
 offset_bottom = 598.0
+
+[node name="FoundedLabel" type="Label" parent="HBoxContainer/Background" index="23"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 56.0
+offset_right = 630.0
+offset_bottom = 79.0
+text = "Founded: 4000 BC"
+horizontal_alignment = 1

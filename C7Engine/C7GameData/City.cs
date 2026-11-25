@@ -46,6 +46,7 @@ namespace C7GameData {
 		public ID id { get; set; }
 		public Tile location { get; internal set; }
 		public string name;
+		public int turnFounded { get; set; }
 		public Dictionary<Player, int> perPlayerCulture = new();
 
 		//Temporary production code because production is fun.
@@ -86,11 +87,12 @@ namespace C7GameData {
 			return city != null && city != City.NONE;
 		}
 
-		public City(Tile location, Player owner, string name, ID id) {
+		public City(Tile location, Player owner, string name, ID id, int turnFounded = 0) {
 			this.id = id;
 			this.location = location;
 			this.owner = owner;
 			this.name = name;
+			this.turnFounded = turnFounded;
 			if (owner != null) {
 				this.perPlayerCulture.Add(owner, 0);
 			}
