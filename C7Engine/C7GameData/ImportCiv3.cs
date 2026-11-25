@@ -2214,6 +2214,7 @@ namespace C7GameData {
 			save.Rules.ShieldRateForDisbanding = 0.25f;
 			save.Rules.AllowLesserUnitProduction = false;
 			save.Rules.RadarTileVisibility = 2;
+			save.Rules.BorderFactor = rule.BorderFactor;
 		}
 
 		private static void SetWorldWrap(SavData civ3Save, SaveGame save) {

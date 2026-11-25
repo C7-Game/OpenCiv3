@@ -81,9 +81,15 @@ internal class GameModeLoader {
 		Table textures = LoadWithAddons(ScriptType.Textures).Table;
 		Table audio = LoadWithAddons(ScriptType.Audio).Table;
 
+		BehaviorEngine behaviorEngine = new(lua, behaviors);
+		SaveGame ruleset = LoadRuleset();
+		// A new game starts from this ruleset, so it gets the default border factor from Lua.
+		// Civ 3 BIQ and SAV imports set their own value instead.
+		ruleset.Rules.BorderFactor ??= behaviorEngine.ImportFunc<Func<int>>("gameplay.culture.border_factor").Invoke();
+
 		return new() {
-			ruleset = LoadRuleset(),
-			behaviors = new(lua, behaviors),
+			ruleset = ruleset,
+			behaviors = behaviorEngine,
 			textures = (lua, textures),
 			audio = (lua, audio)
 		};

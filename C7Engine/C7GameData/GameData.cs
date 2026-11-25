@@ -445,8 +445,8 @@ namespace C7GameData {
 
 			// Law V
 			// If the cultures are equal the oldest city gets the tile.
-			// TODO: track city age - for now we are going to skip this.
-			// return a;
+			if (a.turnFounded < b.turnFounded) { owner = a; return true; }
+			if (a.turnFounded > b.turnFounded) { owner = b; return true; }
 
 			// Law VI
 			// Starting North of the disputed tile, we go counter-clockwise
