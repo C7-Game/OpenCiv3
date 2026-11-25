@@ -142,6 +142,23 @@ namespace C7GameData {
 			}
 		}
 
+		// -1 if GA has not yet started, otherwise turn on which this player's GA ends
+		public int goldenAgeEnds = -1;
+		public bool HasHadGA => goldenAgeEnds > 0;
+		public bool IsInGA => HasHadGA && EngineStorage.gameData.turn < goldenAgeEnds;
+		public bool GAHasEnded => EngineStorage.gameData.turn == goldenAgeEnds;
+
+		// Starts this player's golden age, if they haven't already had one. Returns whether it started.
+		public bool TryStartGoldenAge() {
+			// Do not trigger GA if GA already occurred, player is barbarians, or golden age duration is 0
+			if (HasHadGA || isBarbarians || rules.GoldenAgeDuration == 0) {
+				return false;
+			}
+			goldenAgeEnds = EngineStorage.gameData.turn + rules.GoldenAgeDuration;
+			new MsgGoldenAgeStarted(id).send();
+			return true;
+		}
+
 		private int lastGoldPerTurn = 0;
 
 		/// <summary>

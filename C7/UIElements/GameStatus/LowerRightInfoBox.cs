@@ -252,8 +252,14 @@ public partial class LowerRightInfoBox : Civ3TextureRect {
 				yearAndGold.SetTextAndCenterLabel($"{turnText}  {gold} Gold ({gptText} per turn)").AddXOffset(extraXOffset);
 			}
 
-			// Tech progress.
-			scienceProgress.SetTextAndCenterLabel(player.SummarizeScience(gD)).AddXOffset(extraXOffset);
+			// Tech progress, prefixed with the golden age duration while one lasts. A golden age ends on the turn
+			// player.goldenAgeEnds, so that turn is not part of it.
+			string goldenAgePrefix = "";
+			if (player.IsInGA) {
+				int goldenAgeTurnsLeft = player.goldenAgeEnds - gD.turn;
+				goldenAgePrefix = $"Golden Age ({goldenAgeTurnsLeft}) - ";
+			}
+			scienceProgress.SetTextAndCenterLabel(goldenAgePrefix + player.SummarizeScience(gD)).AddXOffset(extraXOffset);
 
 			// Civ and government.
 			civAndGovt.SetTextAndCenterLabel($"{player.civilization.name} - {player.government.name} (5.5.0)").AddXOffset(extraXOffset);

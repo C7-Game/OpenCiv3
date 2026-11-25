@@ -132,10 +132,18 @@ public partial class Tile {
 	}
 	public Yield ProductionYield(Player player) {
 		int yield = BaseProductionYield(player);
+		if (player.IsInGA) {
+			yield += EngineStorage.gameData.rules.GoldenAgeBonuses.Shields;
+		}
+
 		return Yield.CalculateForPlayer(this, yield, YieldType.Production, player);
 	}
 	public Yield ProductionYield(City city) {
 		int yield = BaseProductionYield(city.owner);
+		if (city.owner.IsInGA) {
+			yield += EngineStorage.gameData.rules.GoldenAgeBonuses.Shields;
+		}
+
 		return Yield.CalculateForCity(this, yield, YieldType.Production, city);
 	}
 
@@ -190,6 +198,9 @@ public partial class Tile {
 		}
 
 		yield += this.overlays.GetBaseYieldBonus(YieldType.Commerce);
+		if (player.IsInGA) {
+			yield += EngineStorage.gameData.rules.GoldenAgeBonuses.Commerce;
+		}
 
 		return yield;
 	}

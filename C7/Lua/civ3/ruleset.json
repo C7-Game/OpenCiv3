@@ -4645,6 +4645,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -4690,6 +4693,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -4735,6 +4741,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -4780,6 +4789,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -4828,6 +4840,9 @@
       ],
       "requiredResources": [
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -4876,6 +4891,9 @@
       ],
       "requiredResources": [
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -4911,7 +4929,8 @@
       ],
       "unproducible": false,
       "flags": [
-        "wheeled"
+        "wheeled",
+        "startsGoldenAge"
       ],
       "categories": [
         "Land"
@@ -4976,6 +4995,9 @@
       "requiredResources": [
         "Horses",
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5024,6 +5046,9 @@
       ],
       "requiredResources": [
         "Horses"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5072,6 +5097,9 @@
       ],
       "requiredResources": [
         "Saltpeter"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5120,6 +5148,9 @@
       ],
       "requiredResources": [
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5165,6 +5196,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5211,6 +5245,9 @@
       "requiredResources": [
         "Horses",
         "Saltpeter"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5260,6 +5297,9 @@
       "requiredResources": [
         "Oil",
         "Rubber"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5292,7 +5332,8 @@
       ],
       "unproducible": false,
       "flags": [
-        "rotateBeforeAttack"
+        "rotateBeforeAttack",
+        "startsGoldenAge"
       ],
       "categories": [
         "Sea"
@@ -5342,7 +5383,8 @@
       "unproducible": false,
       "flags": [
         "lethalLandBombardment",
-        "lethalSeaBombardment"
+        "lethalSeaBombardment",
+        "startsGoldenAge"
       ],
       "categories": [
         "Air"
@@ -5483,6 +5525,9 @@
       ],
       "requiredResources": [
         "Horses"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5528,6 +5573,9 @@
       ],
       "requiredResources": [
         "Horses"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5573,6 +5621,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5619,6 +5670,9 @@
       "requiredResources": [
         "Horses",
         "Saltpeter"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5667,6 +5721,9 @@
       ],
       "requiredResources": [
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5716,6 +5773,9 @@
       "requiredResources": [
         "Horses",
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5761,6 +5821,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -5798,7 +5861,8 @@
       "flags": [
         "wheeled",
         "lethalLandBombardment",
-        "lethalSeaBombardment"
+        "lethalSeaBombardment",
+        "startsGoldenAge"
       ],
       "categories": [
         "Land"
@@ -6933,6 +6997,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -6968,7 +7035,8 @@
       ],
       "unproducible": false,
       "flags": [
-        "wheeled"
+        "wheeled",
+        "startsGoldenAge"
       ],
       "categories": [
         "Land"
@@ -7130,7 +7198,8 @@
       ],
       "unproducible": false,
       "flags": [
-        "rotateBeforeAttack"
+        "rotateBeforeAttack",
+        "startsGoldenAge"
       ],
       "categories": [
         "Sea"
@@ -7191,6 +7260,9 @@
       ],
       "requiredResources": [
         "Iron"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -7462,6 +7534,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -7507,6 +7582,9 @@
         "goto",
         "explore",
         "load"
+      ],
+      "flags": [
+        "startsGoldenAge"
       ]
     },
     {
@@ -7542,7 +7620,8 @@
       ],
       "unproducible": false,
       "flags": [
-        "lethalSeaBombardment"
+        "lethalSeaBombardment",
+        "startsGoldenAge"
       ],
       "categories": [
         "Sea"

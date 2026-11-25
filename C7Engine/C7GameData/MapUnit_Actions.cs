@@ -401,10 +401,25 @@ public partial class MapUnit {
 			dead.RemoveFromPlay();
 		}
 
+		// Only kills count; retreats don't.
+		if (result == CombatResult.DefenderKilled) {
+			StartGoldenAgeIfEarned(attacker, defender);
+		} else if (result == CombatResult.AttackerKilled) {
+			StartGoldenAgeIfEarned(defender, attacker);
+		}
+
 		if (result.DefenderWon())
 			defender.facingDirection = defenderOriginalDirection;
 
 		return result;
+	}
+
+	// A unit that starts golden ages starts one for its owner by killing another civ's combat unit.
+	// Barbarians and non-combat units (e.g. settlers, workers) don't count as the loser.
+	internal static void StartGoldenAgeIfEarned(MapUnit winner, MapUnit loser) {
+		if (winner.unitType.startsGoldenAge && loser.IsCombatUnit() && !loser.owner.isBarbarians) {
+			winner.owner.TryStartGoldenAge();
+		}
 	}
 
 	public async Task<City?> BuildCity(string cityName) {

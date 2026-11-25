@@ -385,6 +385,14 @@ public partial class Game : Node {
 				if (mBCD.controllerId == controller.id)
 					this.EmitBarbarianCampDispersedSignal(mBCD);
 				break;
+			case MsgGoldenAgeStarted mGAS:
+				if (mGAS.controllerId == controller.id)
+					this.EmitGoldenAgeStartedSignal();
+				break;
+			case MsgGoldenAgeEnded mGAE:
+				if (mGAE.controllerId == controller.id)
+					this.EmitGoldenAgeEndedSignal();
+				break;
 			case MsgPlayerDefeated mPD:
 				this.EmitDefeatSignal(mPD.playerId);
 				InterestingEvent();

@@ -45,6 +45,15 @@ local function ransack_gold(barbarian, city)
   return math.floor(city.owner.gold / 4)
 end
 
+-- Golden age settings for new games started in OpenCiv3. They are applied to the new game's rules when it is
+-- created (see GameMode.GetSave), and are not used when loading a save or importing a BIQ or SAV, which keep their own.
+-- Duration is in turns (0 disables golden ages); shields and commerce are added to each tile's yield during a golden age.
+local golden_age_config = {
+  duration = 20,
+  shields = 1,
+  commerce = 1,
+}
+
 local function get_display_time_text(raw_time)
   local bc = game_data().timeOptions.negativeLabel
   local ad = game_data().timeOptions.positiveLabel
@@ -135,6 +144,18 @@ gameplay = {
     -- Returns the gold the barbarian takes from the city's owner when it ransacks the city.
     ransack_gold = function(barbarian, city)
       return ransack_gold(barbarian, city)
+    end,
+  },
+  golden_age = {
+    -- All clamped so a negative value can't be loaded
+    duration = function()
+      return math.max(0, golden_age_config.duration)
+    end,
+    shields = function()
+      return math.max(0, golden_age_config.shields)
+    end,
+    commerce = function()
+      return math.max(0, golden_age_config.commerce)
     end,
   },
   time = {

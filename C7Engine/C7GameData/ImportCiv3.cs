@@ -714,6 +714,7 @@ namespace C7GameData {
 				player.taxRate = leader.TaxRate;
 				player.governmentId = save.Governments[leader.Government].id;
 				player.inAnarchyUntilTurn = save.TurnNumber + leader.AnarchyTurnsLeft;
+				player.goldenAgeEnds = leader.GoldenAgeEndTurn;
 				player.primaryColorIndex = leader.Color;
 
 				player.defeated = IsDefeated(player, leader);
@@ -1466,6 +1467,7 @@ namespace C7GameData {
 				if (prto.LethalSeaBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalSeaBombardment);
 				if (prto.Radar) prototype.flags.Add(SaveUnitPrototype.Flag.Radar);
 				if (prto.Wheeled) prototype.flags.Add(SaveUnitPrototype.Flag.Wheeled);
+				if (prto.StartsGoldenAge) prototype.flags.Add(SaveUnitPrototype.Flag.StartsGoldenAge);
 
 				prototype.actions.UnionWith(GetUnitActions(prto));
 				prototype.terraformActions.UnionWith(GetUnitTerraforms(prto).Select(tfKey => terraformIdByCiv3Key[tfKey]));
@@ -2189,6 +2191,8 @@ namespace C7GameData {
 			BiqData theBiq = biq.Rule is null ? defaultBiq : biq;
 			RULE rule = theBiq.Rule[0];
 
+			save.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
+			save.Rules.GoldenAgeBonuses = new GoldenAgeBonus { Shields = 1, Commerce = 1 }; // not in the BIQ
 			save.Rules.MaximumResearchTime = rule.MaximumResearchTime;
 			save.Rules.MinimumResearchTime = rule.MinimumResearchTime;
 			save.Rules.MaximumLevel1CitySize = rule.MaximumLevel1CitySize;

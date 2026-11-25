@@ -1,5 +1,15 @@
 namespace C7GameData {
+	// Extra yield added to tiles for a player in a golden age.
+	public struct GoldenAgeBonus {
+		public int Shields;
+		public int Commerce;
+	}
+
 	public class Rules {
+		// read from the BIQ's RULE section when importing Civ3 data
+		public int GoldenAgeDuration = 20;
+		// Not in Civ3's BIQ, so this is also the default for Civ3 imports and anything that doesn't specify it
+		public GoldenAgeBonus GoldenAgeBonuses = new() { Shields = 1, Commerce = 1 };
 		public int MaximumResearchTime;
 		public int MinimumResearchTime;
 		public int ShieldValueInGold;

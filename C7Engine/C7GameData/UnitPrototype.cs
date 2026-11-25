@@ -115,6 +115,18 @@ namespace C7GameData {
 			}
 		}
 
+		// Winning combat against another civ's unit with this flag starts the owner's golden age.
+		public bool startsGoldenAge {
+			get => flags.Contains(SaveUnitPrototype.Flag.StartsGoldenAge);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.StartsGoldenAge);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.StartsGoldenAge);
+				}
+			}
+		}
+
 		// Wheeled units cannot enter terrain that Civ3 marks as impassable to
 		// wheeled units (mountains, jungle, marsh and volcano in the base game).
 		public bool wheeled {
@@ -270,9 +282,8 @@ namespace C7GameData {
 		///
 		/// "AllowLesserUnitProduction" removes unit obsolescence.
 		private bool IsUnitObsolete(City city, HashSet<Resource> accessibleResources) {
-			// TODO: Consider golden ages when determining whether a unit is obsolete.
-			// If a golden age has not yet been triggered and a unit can trigger one,
-			// it shouldn't be marked as obsolete, even if its upgrade is available.
+			// A unit that triggers a golden age is never obsolete if the player has not yet had GA
+			if (this.startsGoldenAge && !city.owner.HasHadGA) return false;
 
 			if (EngineStorage.gameData.rules.AllowLesserUnitProduction) return false;
 

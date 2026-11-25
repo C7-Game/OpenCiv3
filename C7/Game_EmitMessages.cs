@@ -192,6 +192,32 @@ public partial class Game {
 		));
 	}
 
+	public void EmitGoldenAgeStartedSignal() {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Domestic Advisor",
+				"Our civilization has entered a Golden Age!",
+				Advisor.Domestic,
+				Mood.Happy,
+				350
+			)
+		));
+	}
+
+	public void EmitGoldenAgeEndedSignal() {
+		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
+			new InformationPopup(
+				controller.id,
+				"Domestic Advisor",
+				"Our Golden Age has ended, so says our analysis.",
+				Advisor.Domestic,
+				Mood.Sad,
+				350
+			)
+		));
+	}
+
 	public void EmitConfirmStopWorkerActionSignal(MsgDisplayStopWorkerActionPopup msg) {
 		EmitSignal(SignalName.InteractivePopUp, new ParameterWrapper<InteractablePopUp>(
 			new ConfirmPopUp(
