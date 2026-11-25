@@ -915,15 +915,6 @@ public partial class Game : Node {
 			return;
 		}
 
-		if (eventKeyDown.Keycode == Godot.Key.P && eventKeyDown.IsCommandOrControlPressed()) {
-			if (preferences.Visible) {
-				preferences.HidePreferences();
-			} else {
-				preferences.ShowPreferences();
-			}
-			return;
-		}
-
 		if (eventKeyDown.Keycode == Godot.Key.F1) {
 			EmitSignal(SignalName.ShowSpecificAdvisor, C7Action.ShowDomesticAdvisor);
 		}
@@ -1131,10 +1122,12 @@ public partial class Game : Node {
 			return;
 		}
 
+		// Ctrl-P is handled only here (not in HandleKeyboardInput), otherwise the
+		// key event and the action poll both toggle in the same frame and cancel out.
 		if (currentAction == C7Action.OpenPreferences) {
 			if (preferences.Visible) {
 				preferences.HidePreferences();
-			} else {
+			} else if (!HasVisibleModal()) {
 				preferences.ShowPreferences();
 			}
 			return;
