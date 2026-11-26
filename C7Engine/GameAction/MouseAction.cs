@@ -63,7 +63,7 @@ public class MouseAction(Func<MouseAction.Event, bool> canDoFunction) {
 			longPressPending = false;
 			return Event.Drag;
 		} else
-	 		return Event.None;
+			return Event.None;
 	}
 
 	public Event TimeElapsedEvent(double delta) {

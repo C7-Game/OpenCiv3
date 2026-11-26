@@ -1,4 +1,4 @@
-﻿using C7Engine.GameAction;
+using C7Engine.GameAction;
 using System;
 using Xunit;
 
@@ -16,7 +16,7 @@ public class MouseActionTest {
 	}
 
 	[Fact]
-	public void CannotLongPressIsNoLongPressAction () {
+	public void CannotLongPressIsNoLongPressAction() {
 		var mouse = new MouseAction(CanDo(MouseAction.Event.LongPress, false));
 		Assert.Equal(MouseAction.Event.None, mouse.LeftButtonEvent(true));
 		Assert.Equal(MouseAction.Event.None, mouse.TimeElapsedEvent(0.5));
