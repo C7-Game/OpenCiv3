@@ -9,9 +9,12 @@ namespace C7GameData {
 		public string CivilopediaEntry { get; set; }
 		public int Cost;
 		public bool RequiredForEraAdvancement;
+
+		//special abilities
 		public bool BonusTechToFirstCivThatResearches;
-		public bool EnablesBridges;
 		public bool DoublesWealthProduction;
+		public bool EnablesBridges;
+		public bool IrrigateWithoutWater;
 
 		// The civilopedia name of the era this tech is part of
 		// (like ERA_Ancient_Times). This is what art lookups are based on.

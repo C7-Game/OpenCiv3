@@ -404,8 +404,6 @@ namespace C7GameData {
 			return riverNorth || riverNortheast || riverEast || riverSoutheast || riverSouth || riverSouthwest || riverWest || riverNorthwest;
 		}
 
-		// TODO: This method doesn't handle the electricity tech which allows
-		// irrigating without fresh water access.
 		public bool CanBeIrrigated(TerrainImprovement irrigation, Player player) {
 			// Irrigation can't be done if there is no irrigation bonus for the
 			// tile or if there's already an improvement or city on the tile.
@@ -413,6 +411,11 @@ namespace C7GameData {
 				irrigation.GetYieldBonus(overlayTerrainType, YieldType.Food) <= 0 ||
 				cityAtTile != null) {
 				return false;
+			}
+
+			// We can irrigate without water if we have the technology
+			if (EngineStorage.gameData.techs.Any(t => t.IrrigateWithoutWater && player.HasTech(t.id))) {
+				return true;
 			}
 
 			// If a tile borders a river or fresh water, it has fresh water access.
