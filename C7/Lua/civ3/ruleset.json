@@ -12200,6 +12200,9 @@
       "y": 464,
       "prerequisites": [
         "tech-45"
+      ],
+      "flags": [
+        "irrigateWithoutWater"
       ]
     },
     {
