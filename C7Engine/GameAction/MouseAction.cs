@@ -34,6 +34,7 @@ public class MouseAction(Func<MouseAction.Event, bool> canDoFunction) {
 	}
 
 	public Event LeftButtonEvent(bool isPressed) {
+		dragPending = isPressed;
 		var action = Event.None;
 		if (isPressed) {
 			pressedElapsed = 0.0;
@@ -59,7 +60,8 @@ public class MouseAction(Func<MouseAction.Event, bool> canDoFunction) {
 	}
 
 	public Event MotionEvent() {
-		if (longPressPending) {
+		if (dragPending) {
+			dragPending = false;
 			longPressPending = false;
 			return Event.Drag;
 		} else
@@ -71,6 +73,7 @@ public class MouseAction(Func<MouseAction.Event, bool> canDoFunction) {
 			pressedElapsed += delta;
 			if (pressedElapsed > LONG_PRESS_DELAY) {
 				longPressPending = false;
+				dragPending = false;
 				return Event.LongPress;
 			}
 		}
@@ -92,4 +95,5 @@ public class MouseAction(Func<MouseAction.Event, bool> canDoFunction) {
 	double pressedElapsed = 0.0;
 	bool doubleClickPending = false;
 	double clickElapsed = 0.0;
+	bool dragPending = false;
 }

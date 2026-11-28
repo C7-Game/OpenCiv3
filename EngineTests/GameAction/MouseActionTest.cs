@@ -42,6 +42,30 @@ public class MouseActionTest {
 	}
 
 	[Fact]
+	public void MotionAfterLongPressIntervalIsNotDragAction() {
+		var mouse = new MouseAction(CanDo(MouseAction.Event.LongPress, true));
+		Assert.Equal(MouseAction.Event.None, mouse.LeftButtonEvent(true));
+		Assert.Equal(MouseAction.Event.LongPress, mouse.TimeElapsedEvent(1.01));
+		Assert.Equal(MouseAction.Event.None, mouse.MotionEvent());
+	}
+
+	[Fact]
+	public void MotionWhenPressedIsOneDragAction() {
+		var mouse = new MouseAction(CanDo(MouseAction.Event.LongPress, false));
+		Assert.Equal(MouseAction.Event.None, mouse.LeftButtonEvent(true));
+		Assert.Equal(MouseAction.Event.Drag, mouse.MotionEvent());
+		Assert.Equal(MouseAction.Event.None, mouse.MotionEvent());
+	}
+
+	[Fact]
+	public void MotionWhenNotPressedIsNotDragAction() {
+		var mouse = new MouseAction(CanDo(MouseAction.Event.LongPress, false));
+		Assert.Equal(MouseAction.Event.None, mouse.LeftButtonEvent(true));
+		Assert.Equal(MouseAction.Event.LeftClick, mouse.LeftButtonEvent(false));
+		Assert.Equal(MouseAction.Event.None, mouse.MotionEvent());
+	}
+
+	[Fact]
 	public void LeftClickPerformsLeftClickAction() {
 		var mouse = new MouseAction(CanDo(MouseAction.Event.DoubleClick, false));
 		Assert.Equal(MouseAction.Event.None, mouse.LeftButtonEvent(true));
